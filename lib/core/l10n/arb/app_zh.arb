@@ -1,0 +1,36 @@
+{
+  "@@locale": "zh",
+  "appTitle": "SGiT 总控台",
+
+  "navDashboard": "总览",
+  "navUsers": "用户管理",
+  "navOrganizations": "组织架构",
+  "navPermissions": "权限分配",
+  "navModels": "模型中转站",
+  "navApiKeys": "API 密钥",
+  "navSettings": "设置",
+  "navLogout": "退出登录",
+
+  "loginTitle": "登录 SGiT 总控台",
+  "loginButton": "登录",
+
+  "settingsTitle": "设置",
+  "settingsThemeMode": "主题模式",
+  "settingsThemeLight": "浅色",
+  "settingsThemeDark": "深色",
+  "settingsThemeSystem": "跟随系统",
+  "settingsPrimaryColor": "主题色",
+  "settingsSecondaryColor": "次主题色",
+  "settingsFontScale": "字体缩放",
+  "settingsLanguage": "语言",
+
+  "commonSave": "保存",
+  "commonCancel": "取消",
+  "commonRefresh": "刷新",
+  "commonSearch": "搜索",
+  "commonLoading": "加载中…",
+  "commonEmpty": "暂无数据",
+  "commonRetry": "重试",
+  "commonError": "出错了",
+  "commonComingSoon": "功能开发中"
+}

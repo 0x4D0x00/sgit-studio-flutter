@@ -1,0 +1,36 @@
+{
+  "@@locale": "en",
+  "appTitle": "SGiT Nexus",
+
+  "navDashboard": "Overview",
+  "navUsers": "Users",
+  "navOrganizations": "Organizations",
+  "navPermissions": "Permissions",
+  "navModels": "Model Relay",
+  "navApiKeys": "API Keys",
+  "navSettings": "Settings",
+  "navLogout": "Log out",
+
+  "loginTitle": "Sign in to SGiT Nexus",
+  "loginButton": "Sign in",
+
+  "settingsTitle": "Settings",
+  "settingsThemeMode": "Theme mode",
+  "settingsThemeLight": "Light",
+  "settingsThemeDark": "Dark",
+  "settingsThemeSystem": "System",
+  "settingsPrimaryColor": "Primary color",
+  "settingsSecondaryColor": "Secondary color",
+  "settingsFontScale": "Font scale",
+  "settingsLanguage": "Language",
+
+  "commonSave": "Save",
+  "commonCancel": "Cancel",
+  "commonRefresh": "Refresh",
+  "commonSearch": "Search",
+  "commonLoading": "Loading…",
+  "commonEmpty": "No data",
+  "commonRetry": "Retry",
+  "commonError": "Something went wrong",
+  "commonComingSoon": "Coming soon"
+}
