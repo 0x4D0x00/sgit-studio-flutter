@@ -106,6 +106,15 @@ foreach(bundled_library ${PLUGIN_BUNDLED_LIBRARIES})
     COMPONENT Runtime)
 endforeach(bundled_library)
 
+# 打包原生加密库(FFI)：安装进 bundle/lib（对应 windows/CMakeLists.txt 的 native/windows/*.dll）。
+# Dart 侧 DynamicLibrary.open('libsgit_crypto.so'/'libsgit_ffi.so') 用裸文件名，
+# 靠上面 CMAKE_INSTALL_RPATH="$ORIGIN/lib" 解析——所以必须落在 bundle/lib，别的位置 dlopen 找不到。
+# 与 Windows 不同：Linux 的 bundle 就是 CMAKE_INSTALL_PREFIX，install() 即生效，无需 runner POST_BUILD 拷贝。
+install(FILES
+    "${CMAKE_SOURCE_DIR}/../native/linux/libsgit_crypto.so"
+    "${CMAKE_SOURCE_DIR}/../native/linux/libsgit_ffi.so"
+  DESTINATION "${INSTALL_BUNDLE_LIB_DIR}" COMPONENT Runtime)
+
 # Copy the native assets provided by the build.dart from all packages.
 set(NATIVE_ASSETS_DIR "${PROJECT_BUILD_DIR}native_assets/linux/")
 install(DIRECTORY "${NATIVE_ASSETS_DIR}"

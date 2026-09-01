@@ -37,6 +37,10 @@ dependencies:
   ffi: ^2.1.0
   flutter_svg: ^2.3.0
 
+  # 注:Web 端加密**不引任何 Dart 加密库** —— 加载同一份 Rust 编出的 WASM
+  # (web/pkg/,见 deploy/build-wasm.sh),与桌面 .so / Windows .dll 三端同源。
+  # 绑定层在 lib/core/network/crypto/browser_crypto.dart,只做 js_interop 转发。
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
@@ -45,3 +49,40 @@ dev_dependencies:
 flutter:
   uses-material-design: true
   generate: true
+
+  # 品牌资源(随包兜底)。运行时若存在外置目录(SGIT_BRAND_DIR 或 /opt/sgit/bin/brand)
+  # 则优先读外置文件,换图不用重编——见 lib/core/brand/brand_assets.dart。
+  assets:
+    - assets/brand/brand.json
+    - assets/brand/images/login/
+
+  # ⚠️ 字体必须随包，且要**拉丁 + 中日韩两份**。
+  #
+  # Web(CanvasKit)不认系统字体，缺字体时会去 fonts.gstatic.com 拉 Roboto/Noto ——
+  # 内网不通 + nginx CSP(font-src 'self')挡死，结果整站文字**全部不渲染**。
+  # 桌面端虽有系统字体兜底，这里统一用同一份，保证两端字形一致、行为可预测。
+  #
+  # 为什么两份:DroidSansFallback 是**纯 CJK 兜底字体，一个拉丁字母都没有**
+  # (charset 只有 U+0020/U+0E3F + 汉字/谚文)，单用它英文数字全变豆腐块 ——
+  # 验证码字母、用户名、token 会直接看不了。故拉丁交给 DejaVuSans。
+  #
+  # 许可(要随产品分发，必须可再分发):
+  #   · DejaVuSans        Bitstream Vera + Public Domain，740KB
+  #   · DroidSansFallback Apache-2.0，3.4MB
+  fonts:
+    # 主字体:拉丁字母/数字/符号。
+    - family: SGiTSans
+      fonts:
+        - asset: assets/fonts/DejaVuSans.ttf
+    # 兜底字体:中日韩。由 AppTypography.fontFallback 挂在主字体之后。
+    - family: SGiTSansCJK
+      fonts:
+        - asset: assets/fonts/DroidSansFallback.ttf
+    # ⚠️ 别删:这个 `Roboto` 别名是用来**掐断引擎去 gstatic 下载 Roboto** 的。
+    # Flutter Web 引擎启动时无条件补一次 Roboto,只有当已注册字体里存在名为 "Roboto"
+    # 的家族才跳过(引擎代码:`if (j === "Roboto") m = true; ... if (!m) push(下载 Roboto)`)。
+    # 内网拉不到 + CSP connect-src 'self' 会把它拦成一串控制台报错,并连带触发
+    # "RenderBox was not laid out"。注册同一份 DejaVu 顶掉即可,不额外增加体积。
+    - family: Roboto
+      fonts:
+        - asset: assets/fonts/DejaVuSans.ttf

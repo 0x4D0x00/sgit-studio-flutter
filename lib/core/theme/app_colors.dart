@@ -3,7 +3,8 @@ import 'package:flutter/material.dart';
 /// 颜色令牌(单一真源)。
 ///
 /// 三层页面结构的底色约定:
-/// - **L1** 全透明(不在这里出现颜色，就是 `Colors.transparent`)
+/// - **L1** 背景层，默认全透明(不在这里出现颜色，就是 `Colors.transparent`)；
+///   登录页在这一层铺品牌背景图(见 `BrandAssets.loginBg`)
 /// - **L2** 霓虹层，只在有霓虹的位置上色，其余纯透明；霓虹色**跟随主题色**(见 NeonLayer)
 /// - **L3** 内容层，用下面的表面/文字语义色
 ///
@@ -54,4 +55,42 @@ class AppColors {
   static const Color warning = Color(0xFFF59E0B);
   static const Color error = Color(0xFFF43F5E);
   static const Color info = Color(0xFF38BDF8);
+
+  // ---- 工作台外壳配色(1:1 对齐 sgit-studio DESIGN.md / DESIGN.dark.md 令牌) ----
+  // 命名沿用 studio 的 token 名,便于对照;左栏/外框用 Layout,卡/面板用 Container。
+  static const Color layoutBgLight = Color(0xFFF8F8F8);
+  static const Color layoutBgDark = Color(0xFF000000);
+  static const Color containerBgLight = Color(0xFFFFFFFF);
+  static const Color containerBgDark = Color(0xFF0D0D0D);
+  static const Color containerBgSecondaryLight = Color(0xFFFBFBFB);
+  static const Color containerBgSecondaryDark = Color(0xFF070707);
+  static const Color borderLight = Color(0xFFE3E3E3);
+  static const Color borderDark = Color(0xFF202020);
+  static const Color borderSecondaryLight = Color(0xFFEEEEEE);
+  static const Color borderSecondaryDark = Color(0xFF1A1A1A);
+  static const Color textLight = Color(0xFF080808);
+  static const Color textDark = Color(0xFFFFFFFF);
+  static const Color textSecondaryLight = Color(0xFF666666);
+  static const Color textSecondaryDark = Color(0xFFAAAAAA);
+  static const Color textTertiaryLight = Color(0xFF999999);
+  static const Color textTertiaryDark = Color(0xFF6F6F6F);
+
+  /// 导航选中态底色:#0074DD @10%(明暗一致,studio NavItem 写死)。
+  static const Color navItemActive = Color(0x1A0074DD);
+
+  /// 技能标签(青绿),studio SkillChips 写死。
+  static const Color skillChip = Color(0xFF009688);
+
+  // ---- 登录页专用(1:1 对齐 sgit-studio 登录页设计稿,不跟随动态主色) ----
+  /// 登录按钮品牌蓝渐变(173deg #1677ff → #0958d9)。
+  static const Color loginSubmitGradientStart = Color(0xFF1677FF);
+  static const Color loginSubmitGradientEnd = Color(0xFF0958D9);
+
+  /// 登录卡片蓝调阴影(rgba(22,119,255,.10))。
+  static const Color loginCardShadow = Color(0x1A1677FF);
+
+  /// 验证码图片框底色/描边(浅色稿固定值,明暗一致)。
+  static const Color loginCaptchaBg = Color(0xFFF1F5F9);
+  static const Color loginCaptchaBorder = Color(0xFFE2E8F0);
+
 }

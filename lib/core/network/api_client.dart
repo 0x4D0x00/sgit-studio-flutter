@@ -25,7 +25,7 @@ class ApiClient {
       throw const ApiException('缺少 operation');
     }
     try {
-      final result = SgitRequestFfi.instance.request(
+      final result = await SgitRequestFfi.instance.request(
         operation: operation,
         action: action,
         payload: payload,

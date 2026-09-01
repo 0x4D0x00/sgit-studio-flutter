@@ -18,6 +18,19 @@ class ApiEndpoints {
   static const String getServerPublicKey = '/api/getServerPublicKey';
   static const String getNonce = '/api/getNonce';
   static const String captchaImage = '/api/captcha/image';
+
+  // ---- auth-server 同源端点(Web 专用) ----
+  // Web 端没有 .so 可加载,这几个走 nginx `location /auth/` 反代到 auth-server。
+  // ⚠️ 只有 GET 能这么直取:后端 browser_crypto 中间件对 GET/HEAD 豁免加密
+  // (见 sgit-services/src/http/browser_crypto.rs 的 is_exempt),POST 必须走加密信封。
+  /// 图形验证码(GET,明文 `{captcha_id, svg}`)。
+  static const String authImageCaptcha = '/auth/imageCaptcha';
+
+  /// 应用层加密握手:取服务端 RSA 公钥(GET,明文)。
+  static const String authServerPublicKey = '/auth/serverPublicKey';
+
+  /// 登录 V2(POST,**必须**加密信封,Web 待接加密后启用)。
+  static const String authLoginPasswordV2 = '/auth/loginPasswordV2';
 }
 
 /// 统一入口的分发参数(type/operation/action)常量。业务模块按需引用，避免散落字面量。

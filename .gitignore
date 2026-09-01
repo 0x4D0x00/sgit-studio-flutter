@@ -43,3 +43,8 @@ app.*.map.json
 /android/app/debug
 /android/app/profile
 /android/app/release
+
+# ---- 从 sgcode 编出来的派生产物，不入库（22MB+，且会与 sgcode 源码脱节）----
+# 重建：桌面 ./deploy/sync-native.sh   Web ./deploy/build-wasm.sh
+/native/
+/web/pkg/

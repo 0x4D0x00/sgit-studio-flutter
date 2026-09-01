@@ -9,7 +9,7 @@ class AppLocalizationsZh extends AppLocalizations {
   AppLocalizationsZh([String locale = 'zh']) : super(locale);
 
   @override
-  String get appTitle => 'SGiT 总控台';
+  String get navHome => '首页';
 
   @override
   String get navDashboard => '总览';
@@ -36,10 +36,31 @@ class AppLocalizationsZh extends AppLocalizations {
   String get navLogout => '退出登录';
 
   @override
-  String get loginTitle => '登录 SGiT 总控台';
+  String get loginButton => '登 录';
 
   @override
-  String get loginButton => '登录';
+  String get loginIdentifierPlaceholder => '请输入用户名';
+
+  @override
+  String get loginPasswordPlaceholder => '请输入密码';
+
+  @override
+  String get loginCaptchaPlaceholder => '输入验证码';
+
+  @override
+  String get loginCaptchaRefresh => '点击刷新验证码';
+
+  @override
+  String get loginCaptchaFailed => '验证码加载失败，点击图片重试';
+
+  @override
+  String get loginIdentifierRequired => '请输入用户名';
+
+  @override
+  String get loginPasswordRequired => '请输入密码';
+
+  @override
+  String get loginCaptchaRequired => '请输入图形验证码';
 
   @override
   String get settingsTitle => '设置';

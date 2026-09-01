@@ -98,11 +98,11 @@ abstract class AppLocalizations {
     Locale('zh'),
   ];
 
-  /// No description provided for @appTitle.
+  /// No description provided for @navHome.
   ///
   /// In zh, this message translates to:
-  /// **'SGiT 总控台'**
-  String get appTitle;
+  /// **'首页'**
+  String get navHome;
 
   /// No description provided for @navDashboard.
   ///
@@ -152,17 +152,59 @@ abstract class AppLocalizations {
   /// **'退出登录'**
   String get navLogout;
 
-  /// No description provided for @loginTitle.
-  ///
-  /// In zh, this message translates to:
-  /// **'登录 SGiT 总控台'**
-  String get loginTitle;
-
   /// No description provided for @loginButton.
   ///
   /// In zh, this message translates to:
-  /// **'登录'**
+  /// **'登 录'**
   String get loginButton;
+
+  /// No description provided for @loginIdentifierPlaceholder.
+  ///
+  /// In zh, this message translates to:
+  /// **'请输入用户名'**
+  String get loginIdentifierPlaceholder;
+
+  /// No description provided for @loginPasswordPlaceholder.
+  ///
+  /// In zh, this message translates to:
+  /// **'请输入密码'**
+  String get loginPasswordPlaceholder;
+
+  /// No description provided for @loginCaptchaPlaceholder.
+  ///
+  /// In zh, this message translates to:
+  /// **'输入验证码'**
+  String get loginCaptchaPlaceholder;
+
+  /// No description provided for @loginCaptchaRefresh.
+  ///
+  /// In zh, this message translates to:
+  /// **'点击刷新验证码'**
+  String get loginCaptchaRefresh;
+
+  /// No description provided for @loginCaptchaFailed.
+  ///
+  /// In zh, this message translates to:
+  /// **'验证码加载失败，点击图片重试'**
+  String get loginCaptchaFailed;
+
+  /// No description provided for @loginIdentifierRequired.
+  ///
+  /// In zh, this message translates to:
+  /// **'请输入用户名'**
+  String get loginIdentifierRequired;
+
+  /// No description provided for @loginPasswordRequired.
+  ///
+  /// In zh, this message translates to:
+  /// **'请输入密码'**
+  String get loginPasswordRequired;
+
+  /// No description provided for @loginCaptchaRequired.
+  ///
+  /// In zh, this message translates to:
+  /// **'请输入图形验证码'**
+  String get loginCaptchaRequired;
 
   /// No description provided for @settingsTitle.
   ///

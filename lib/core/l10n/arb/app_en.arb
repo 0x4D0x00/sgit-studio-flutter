@@ -1,7 +1,8 @@
 {
   "@@locale": "en",
-  "appTitle": "SGiT Nexus",
+  "@@comment_appTitle": "Product name comes from brand.json (BrandConfig); never hardcode it here",
 
+  "navHome": "Home",
   "navDashboard": "Overview",
   "navUsers": "Users",
   "navOrganizations": "Organizations",
@@ -11,8 +12,15 @@
   "navSettings": "Settings",
   "navLogout": "Log out",
 
-  "loginTitle": "Sign in to SGiT Nexus",
   "loginButton": "Sign in",
+  "loginIdentifierPlaceholder": "Enter your username",
+  "loginPasswordPlaceholder": "Enter your password",
+  "loginCaptchaPlaceholder": "Enter the code",
+  "loginCaptchaRefresh": "Click to refresh the captcha",
+  "loginCaptchaFailed": "Failed to load the captcha — click the image to retry",
+  "loginIdentifierRequired": "Please enter your username",
+  "loginPasswordRequired": "Please enter your password",
+  "loginCaptchaRequired": "Please enter the image captcha",
 
   "settingsTitle": "Settings",
   "settingsThemeMode": "Theme mode",

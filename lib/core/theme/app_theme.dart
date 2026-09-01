@@ -43,6 +43,10 @@ class AppTheme {
       useMaterial3: true,
       brightness: brightness,
       colorScheme: scheme,
+      // 全局字体:随包 SGiTSans。必须在 ThemeData 这一层设，textTheme 只覆盖走
+      // textTheme 的文字；裸 TextStyle / hintStyle 等要靠这里兜底，否则 Web 上不渲染。
+      fontFamily: AppTypography.fontFamily,
+      fontFamilyFallback: AppTypography.fontFallback,
       // 背景透明:交给三层结构绘制。
       scaffoldBackgroundColor: Colors.transparent,
       canvasColor: Colors.transparent,

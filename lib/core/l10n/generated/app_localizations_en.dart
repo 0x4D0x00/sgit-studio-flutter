@@ -9,7 +9,7 @@ class AppLocalizationsEn extends AppLocalizations {
   AppLocalizationsEn([String locale = 'en']) : super(locale);
 
   @override
-  String get appTitle => 'SGiT Nexus';
+  String get navHome => 'Home';
 
   @override
   String get navDashboard => 'Overview';
@@ -36,10 +36,32 @@ class AppLocalizationsEn extends AppLocalizations {
   String get navLogout => 'Log out';
 
   @override
-  String get loginTitle => 'Sign in to SGiT Nexus';
+  String get loginButton => 'Sign in';
 
   @override
-  String get loginButton => 'Sign in';
+  String get loginIdentifierPlaceholder => 'Enter your username';
+
+  @override
+  String get loginPasswordPlaceholder => 'Enter your password';
+
+  @override
+  String get loginCaptchaPlaceholder => 'Enter the code';
+
+  @override
+  String get loginCaptchaRefresh => 'Click to refresh the captcha';
+
+  @override
+  String get loginCaptchaFailed =>
+      'Failed to load the captcha — click the image to retry';
+
+  @override
+  String get loginIdentifierRequired => 'Please enter your username';
+
+  @override
+  String get loginPasswordRequired => 'Please enter your password';
+
+  @override
+  String get loginCaptchaRequired => 'Please enter the image captcha';
 
   @override
   String get settingsTitle => 'Settings';

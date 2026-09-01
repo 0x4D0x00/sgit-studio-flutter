@@ -28,6 +28,7 @@ class LocalStorage {
   Future<void> setAuthToken(String? v) async =>
       v == null ? _prefs.remove(_kAuthToken) : _prefs.setString(_kAuthToken, v);
 
+
   String? get themeMode => _prefs.getString(_kThemeMode);
   Future<void> setThemeMode(String v) => _prefs.setString(_kThemeMode, v);
 

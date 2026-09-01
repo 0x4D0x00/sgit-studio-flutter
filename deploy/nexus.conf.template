@@ -1,0 +1,121 @@
+# ============================================================================
+# SGiT-Nexus (Flutter Web) —— nginx 伺服 flutter build web 产物 + 反代后端。
+#
+# 端口经 .env / 环境变量参数化（去硬编码）。nginx 官方 entrypoint 会把
+# /etc/nginx/templates/*.template 经 envsubst 渲染到 /etc/nginx/conf.d/。
+# 只替换我们的端口变量（NGINX_ENVSUBST_FILTER），绝不误伤 $host/$uri 等 nginx 运行时变量。
+#
+#   浏览器 → nginx(:${NEXUS_HTTP_PORT}) →
+#     /trpc /ws /upload /f /webapi /sgcode-  →  sgit-gateway    127.0.0.1:${GATEWAY_PORT}
+#     /auth/*                                →  sgit-auth-server 127.0.0.1:${AUTH_PORT}
+#     /api/*                                 →  sgit-server(Go)  127.0.0.1:${SERVER_PORT}
+#     其余（Flutter SPA 静态）               →  /usr/share/nginx/nexus
+#
+# 注：反代块是为"最后再接"后端预留的同源通道；现阶段 Web 端 FFI 走占位 stub，
+#     页面能渲染但登录/加密调用暂不通（预期）。
+# ============================================================================
+
+map $http_upgrade $connection_upgrade { default upgrade; '' close; }
+
+server {
+    listen ${NEXUS_HTTP_PORT} default_server;
+    server_name _;
+
+    # ---- Flutter Web 静态站根 ----
+    root /usr/share/nginx/nexus;
+    index index.html;
+
+    # 内容安全策略：离线/内网下禁止一切对外请求；放行同源 + data:/blob:（canvaskit wasm /
+    # worker / 内联图）+ ws/wss（后续主对话）。'unsafe-eval' 供 wasm 实例化。
+    set $sgit_csp "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' blob:; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self' data:; media-src 'self' data: blob:; connect-src 'self' ws: wss:; worker-src 'self' blob:; frame-src 'self' blob:; object-src 'none'; base-uri 'self'";
+    add_header Content-Security-Policy $sgit_csp always;
+
+    # ---- 后端反代（为"最后再接"预留，同源无需前端配 IP） ----
+    location /trpc/ {
+        proxy_pass http://127.0.0.1:${GATEWAY_PORT};
+        proxy_http_version 1.1;
+        proxy_set_header Host              $host;
+        proxy_set_header X-Real-IP         $remote_addr;
+        proxy_set_header X-Forwarded-For   $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_read_timeout 3600s;
+    }
+    location /ws {
+        proxy_pass http://127.0.0.1:${GATEWAY_PORT};
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade    $http_upgrade;
+        proxy_set_header Connection $connection_upgrade;
+        proxy_set_header Host       $host;
+        proxy_read_timeout 3600s;
+    }
+    location /upload/ {
+        proxy_pass http://127.0.0.1:${GATEWAY_PORT};
+        proxy_http_version 1.1;
+        proxy_set_header Host $host;
+        client_max_body_size 100m;
+    }
+    location /f/ {
+        proxy_pass http://127.0.0.1:${GATEWAY_PORT};
+        proxy_set_header Host $host;
+    }
+    location /webapi/ {
+        proxy_pass http://127.0.0.1:${GATEWAY_PORT};
+        proxy_http_version 1.1;
+        proxy_set_header Host              $host;
+        proxy_set_header X-Forwarded-For   $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_read_timeout 3600s;
+    }
+    location /sgcode- {
+        proxy_pass http://127.0.0.1:${GATEWAY_PORT};
+        proxy_http_version 1.1;
+        client_max_body_size 512m;
+        proxy_set_header Host              $host;
+        proxy_set_header X-Forwarded-For   $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_read_timeout 3600s;
+    }
+    location /auth/ {
+        proxy_pass http://127.0.0.1:${AUTH_PORT};
+        proxy_http_version 1.1;
+        proxy_set_header Host              $host;
+        proxy_set_header X-Real-IP         $remote_addr;
+        proxy_set_header X-Forwarded-For   $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+
+    # ---- 业务通道 → Go SGiT-Server ----
+    # 桌面端由 libsgit_ffi.so 直接打这个后端;Web 端没有 .so,但走的是**同一套协议**
+    # (getNonce / getServerPublicKey / encryptedRequest,v1 CBC 加密),只是加密改由
+    # 同一份 Rust 编出的 WASM 完成。故这里只需把 /api/ 原样转给 sgit-server。
+    # ⚠️ 不经 gateway —— 业务数据一律走 FFI 那条链。
+    location /api/ {
+        proxy_pass http://127.0.0.1:${SERVER_PORT};
+        proxy_http_version 1.1;
+        proxy_set_header Host              $host;
+        proxy_set_header X-Real-IP         $remote_addr;
+        proxy_set_header X-Forwarded-For   $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        client_max_body_size 512m;
+        proxy_read_timeout 120s;
+    }
+
+    # ---- Flutter Web 缓存策略 ----
+    # flutter_bootstrap.js / index.html：不长缓存，保证发版即时可见（配合用户强刷清 SW）。
+    location = /index.html {
+        add_header Cache-Control "no-cache";
+        add_header Content-Security-Policy $sgit_csp always;
+    }
+    location = /flutter_bootstrap.js {
+        add_header Cache-Control "no-cache";
+    }
+    location = /flutter_service_worker.js {
+        add_header Cache-Control "no-cache, no-store, must-revalidate";
+        expires -1;
+    }
+
+    # SPA 客户端路由回退（go_router）：静态命中则返回，否则回 index.html。
+    location / {
+        try_files $uri $uri/ /index.html;
+    }
+}

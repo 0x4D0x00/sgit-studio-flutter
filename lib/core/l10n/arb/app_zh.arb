@@ -1,7 +1,8 @@
 {
   "@@locale": "zh",
-  "appTitle": "SGiT 总控台",
+  "@@comment_appTitle": "产品名一律读 brand.json(BrandConfig),不在 arb 里写死品牌名",
 
+  "navHome": "首页",
   "navDashboard": "总览",
   "navUsers": "用户管理",
   "navOrganizations": "组织架构",
@@ -11,8 +12,15 @@
   "navSettings": "设置",
   "navLogout": "退出登录",
 
-  "loginTitle": "登录 SGiT 总控台",
-  "loginButton": "登录",
+  "loginButton": "登 录",
+  "loginIdentifierPlaceholder": "请输入用户名",
+  "loginPasswordPlaceholder": "请输入密码",
+  "loginCaptchaPlaceholder": "输入验证码",
+  "loginCaptchaRefresh": "点击刷新验证码",
+  "loginCaptchaFailed": "验证码加载失败，点击图片重试",
+  "loginIdentifierRequired": "请输入用户名",
+  "loginPasswordRequired": "请输入密码",
+  "loginCaptchaRequired": "请输入图形验证码",
 
   "settingsTitle": "设置",
   "settingsThemeMode": "主题模式",

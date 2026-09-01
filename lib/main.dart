@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'app.dart';
+import 'core/brand/brand_config.dart';
 import 'core/platform/desktop_window.dart';
 import 'core/storage/local_storage.dart';
 
@@ -10,6 +11,9 @@ Future<void> main() async {
 
   // 本地存储(主题/语言/token 持久化)。
   await LocalStorage.init();
+
+  // 品牌文本配置(产品名/版权)。必须在 runApp 前拿到——窗口标题/标签页标题要用。
+  await BrandConfig.load();
 
   runApp(const ProviderScope(child: SgitNexusApp()));
 
