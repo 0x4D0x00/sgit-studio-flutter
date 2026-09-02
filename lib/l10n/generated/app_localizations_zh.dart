@@ -1,0 +1,512 @@
+// ignore: unused_import
+import 'package:intl/intl.dart' as intl;
+import 'app_localizations.dart';
+
+// ignore_for_file: type=lint
+
+/// The translations for Chinese (`zh`).
+class AppLocalizationsZh extends AppLocalizations {
+  AppLocalizationsZh([String locale = 'zh']) : super(locale);
+
+  @override
+  String get navSearch => '搜索';
+
+  @override
+  String get navNewChat => '新建对话';
+
+  @override
+  String get navHistory => '历史对话';
+
+  @override
+  String get navAssistants => '助理';
+
+  @override
+  String get navStudioGroup => '智能体';
+
+  @override
+  String get navSettings => '设置';
+
+  @override
+  String get navLogout => '退出登录';
+
+  @override
+  String get shellExpandNav => '展开导航';
+
+  @override
+  String get shellCollapseNav => '收起导航';
+
+  @override
+  String get shellToggleOutput => '输出物面板';
+
+  @override
+  String get shellOutputTitle => '输出物';
+
+  @override
+  String get shellOutputEmpty => '暂无产物';
+
+  @override
+  String workspaceWelcome(String name) {
+    return '$name，为你待命';
+  }
+
+  @override
+  String get workspaceInputHint => '有什么可以帮你的？';
+
+  @override
+  String get workspaceSend => '发送';
+
+  @override
+  String get studioAccessDenied => '无权访问该功能';
+
+  @override
+  String get studioScenes => '场景';
+
+  @override
+  String get studioSubagent => '子 Agent';
+
+  @override
+  String get studioSkill => '技能';
+
+  @override
+  String get studioMcp => 'MCP';
+
+  @override
+  String get studioTools => '工具';
+
+  @override
+  String get studioMemory => '记忆';
+
+  @override
+  String get studioKnowledge => '知识库';
+
+  @override
+  String get studioLlmRelay => '大模型中转站';
+
+  @override
+  String get chatFaultNotConnected => '尚未连接到内核，无法发送';
+
+  @override
+  String get chatReconnect => '重连';
+
+  @override
+  String get chatStop => '停止';
+
+  @override
+  String get chatSteerHint => '插话改方向…';
+
+  @override
+  String get chatTextTruncated => '内容可能不完整';
+
+  @override
+  String get chatApprovalTitle => '需要你确认';
+
+  @override
+  String get chatApprovalAllowOnce => '允许一次';
+
+  @override
+  String get chatApprovalAllowAlways => '总是允许';
+
+  @override
+  String get chatApprovalDeny => '拒绝';
+
+  @override
+  String get chatApprovalResolvedAllow => '已允许';
+
+  @override
+  String get chatApprovalResolvedAlways => '已设为总是允许';
+
+  @override
+  String get chatApprovalResolvedDeny => '已拒绝';
+
+  @override
+  String get chatToolRunning => '执行中…';
+
+  @override
+  String get chatToolTruncated => '输出已截断，完整内容需展开获取';
+
+  @override
+  String get chatNoticeCompacted => '上下文已压缩';
+
+  @override
+  String get chatNoticeDisconnected => '连接已断开';
+
+  @override
+  String get chatNoticeUnknown => '未知提示';
+
+  @override
+  String chatToolElapsed(int ms) {
+    return '$ms ms';
+  }
+
+  @override
+  String chatNoticeModelRerouted(String to) {
+    return '模型已改道：$to';
+  }
+
+  @override
+  String chatNoticeDropped(int count) {
+    return '有 $count 条增量被合并（内容可能不完整）';
+  }
+
+  @override
+  String chatFaultVersionMismatch(int kernel, int client) {
+    return '内核帧格式版本 $kernel 与客户端 $client 不匹配，请升级客户端';
+  }
+
+  @override
+  String chatStats(int input, int output, int ms) {
+    return '输入 $input · 输出 $output · 耗时 $ms ms';
+  }
+
+  @override
+  String get studioEmpty => '暂无内容';
+
+  @override
+  String get studioRefresh => '刷新';
+
+  @override
+  String get studioRemove => '删除';
+
+  @override
+  String studioRemoveConfirm(String name) {
+    return '确定删除「$name」？';
+  }
+
+  @override
+  String get studioStale => '显示的是缓存，正在刷新…';
+
+  @override
+  String get studioComingSoon => '该页数据源待接';
+
+  @override
+  String get relayProviders => '厂商';
+
+  @override
+  String get relayModels => '模型';
+
+  @override
+  String get relayKeys => '密钥';
+
+  @override
+  String get relayDisabled => '已停用';
+
+  @override
+  String get relayCustom => '自建';
+
+  @override
+  String get relayBack => '返回';
+
+  @override
+  String get relayKeyMasked => '密钥仅显示后 6 位';
+
+  @override
+  String relayContextWindow(int n) {
+    return '上下文 $n';
+  }
+
+  @override
+  String get relayToggleOn => '点击启用';
+
+  @override
+  String get relayToggleOff => '点击停用';
+
+  @override
+  String get relaySync => '同步模型';
+
+  @override
+  String get relayNoProvider => '尚未配置任何厂商';
+
+  @override
+  String get modelSelector => '选择模型';
+
+  @override
+  String get modelSelectorDefault => '默认模型';
+
+  @override
+  String get modelSelectorNone => '暂无可用模型';
+
+  @override
+  String get navNewChatDone => '已开始新对话';
+
+  @override
+  String get loginButton => '登 录';
+
+  @override
+  String get loginIdentifierPlaceholder => '请输入用户名';
+
+  @override
+  String get loginPasswordPlaceholder => '请输入密码';
+
+  @override
+  String get loginCaptchaPlaceholder => '输入验证码';
+
+  @override
+  String get loginCaptchaRefresh => '点击刷新验证码';
+
+  @override
+  String get loginCaptchaFailed => '验证码加载失败，点击图片重试';
+
+  @override
+  String get loginIdentifierRequired => '请输入用户名';
+
+  @override
+  String get loginPasswordRequired => '请输入密码';
+
+  @override
+  String get loginCaptchaRequired => '请输入图形验证码';
+
+  @override
+  String get settingsTitle => '设置';
+
+  @override
+  String get settingsThemeMode => '主题模式';
+
+  @override
+  String get settingsThemeTransparent => '透明';
+
+  @override
+  String get settingsThemeLight => '浅色';
+
+  @override
+  String get settingsThemeDark => '深色';
+
+  @override
+  String get settingsThemeSystem => '跟随系统';
+
+  @override
+  String get settingsPrimaryColor => '主题色';
+
+  @override
+  String get settingsSecondaryColor => '次主题色';
+
+  @override
+  String get settingsFontScale => '字体缩放';
+
+  @override
+  String get settingsLanguage => '语言';
+
+  @override
+  String get settingsLanguageZh => '简体中文';
+
+  @override
+  String get settingsLanguageEn => 'English';
+
+  @override
+  String get settingsResetDefault => '恢复默认';
+
+  @override
+  String get commonSave => '保存';
+
+  @override
+  String get commonCancel => '取消';
+
+  @override
+  String get commonRefresh => '刷新';
+
+  @override
+  String get commonSearch => '搜索';
+
+  @override
+  String get commonLoading => '加载中…';
+
+  @override
+  String get commonEmpty => '暂无数据';
+
+  @override
+  String get commonRetry => '重试';
+
+  @override
+  String get commonError => '出错了';
+
+  @override
+  String get commonComingSoon => '功能开发中';
+
+  @override
+  String commonNotWired(String what) {
+    return '$what：功能待接';
+  }
+
+  @override
+  String get studioScopePersonal => '个人';
+
+  @override
+  String get studioScopeMaster => '管理';
+
+  @override
+  String get studioScopeMasterHint => '管理版：改动对所有用户生效';
+
+  @override
+  String get relayAddProvider => '添加厂商';
+
+  @override
+  String get relayEditProvider => '编辑厂商';
+
+  @override
+  String get relayDeleteProvider => '删除厂商';
+
+  @override
+  String get relayDeleteProviderHint => '厂商下若仍有模型或密钥将无法删除，需先在其模型页清空。';
+
+  @override
+  String get relayAddModel => '手动添加模型';
+
+  @override
+  String get relayEditModel => '编辑模型';
+
+  @override
+  String get relayDeleteModel => '删除模型';
+
+  @override
+  String get relayKeyPool => '密钥池';
+
+  @override
+  String relayKeyPoolTitle(String code) {
+    return 'API Key 密钥池 · $code（该品牌下所有模型共用）';
+  }
+
+  @override
+  String relaySyncConfirmMaster(String code) {
+    return '从 $code 厂商接口同步最新模型列表？';
+  }
+
+  @override
+  String relaySyncConfirmPersonal(String code) {
+    return '直连 $code 的接口拉取模型列表？需先填好 Base URL 并添加密钥。';
+  }
+
+  @override
+  String relayScopeHintMaster(int n) {
+    return '共 $n 个模型 · 保存/同步后自动对所有用户生效';
+  }
+
+  @override
+  String relayScopeHintPersonal(int n) {
+    return '共 $n 个模型 · 仅本人可见 · 对话时由 sgcode 直连厂商，不经平台后端';
+  }
+
+  @override
+  String get relayLocalBadge => '个人（本地）';
+
+  @override
+  String get relayAddKey => '新增';
+
+  @override
+  String get relayKeyNameHint => '密钥备注名（可选）';
+
+  @override
+  String get relayKeyPasteHint => '粘贴 API Key';
+
+  @override
+  String get relayNoKeys => '暂无密钥';
+
+  @override
+  String get relayNoProviders => '暂无厂商，点右上角「添加厂商」新建。';
+
+  @override
+  String get relayFieldModelCode => '品牌代码';
+
+  @override
+  String get relayFieldProvider => '厂商标签';
+
+  @override
+  String get relayFieldDisplayName => '显示名';
+
+  @override
+  String get relayFieldBaseUrl => 'Base URL';
+
+  @override
+  String get relayFieldEndpoint => '聊天端点';
+
+  @override
+  String get relayFieldModelsEndpoint => '模型列表端点';
+
+  @override
+  String get relayFieldUploadBaseUrl => '上传 Base URL';
+
+  @override
+  String get relayFieldModelType => '类型';
+
+  @override
+  String get relayFieldPriority => '优先级';
+
+  @override
+  String get relayFieldModelName => '模型名';
+
+  @override
+  String get relayFieldContextWindow => '上下文窗口';
+
+  @override
+  String get relayFieldMaxOutput => '最大输出';
+
+  @override
+  String get relayFieldAvailable => '可用';
+
+  @override
+  String get relayRequiredModelCode => '品牌代码必填（唯一，如 DeepSeek）';
+
+  @override
+  String get relayRequiredModelName => '模型代码和模型名必填';
+
+  @override
+  String get relayRequiredApiKey => '请输入 API Key';
+
+  @override
+  String get commonDelete => '删除';
+
+  @override
+  String get commonEdit => '编辑';
+
+  @override
+  String get commonAdd => '新增';
+
+  @override
+  String get commonConfirm => '确定';
+
+  @override
+  String get commonSaved => '已保存';
+
+  @override
+  String get commonDeleted => '已删除';
+
+  @override
+  String get commonSynced => '已同步';
+
+  @override
+  String get relaySyncBlockedDisabled => '厂商已停用，先启用才能同步';
+
+  @override
+  String get kernelPhaseConnecting1 => '正在连接内核…';
+
+  @override
+  String get kernelPhaseConnecting2 => '正在校验身份…';
+
+  @override
+  String get kernelPhaseSandbox1 => '正在启动你的沙箱…';
+
+  @override
+  String get kernelPhaseSandbox2 => '正在拉起运行环境…';
+
+  @override
+  String get kernelPhaseSandbox3 => '正在准备工作目录…';
+
+  @override
+  String get kernelPhaseSandbox4 => '正在加载技能与 MCP 工具…';
+
+  @override
+  String get kernelPhaseSandbox5 => '首次启动会慢一些，请稍候…';
+
+  @override
+  String get kernelPhaseSandbox6 => '正在等待引擎握手…';
+
+  @override
+  String get kernelPhaseReady => '内核已就绪';
+
+  @override
+  String get chatSendWhileBusy => '上一轮还在跑，可直接输入插话';
+
+  @override
+  String get chatNoTurnToSteer => '当前没有进行中的对话，无法插话';
+
+  @override
+  String get chatKernelStalled => '内核长时间无响应，已恢复可输入状态';
+}

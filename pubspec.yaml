@@ -1,5 +1,5 @@
-name: sgit_nexus
-description: "SGiT-Nexus — 全端(Web/桌面/移动)后台总控台，走 sgcode / SGiT-Server 的 API 与数据库。"
+name: sgit_studio_flutter
+description: "SGiT Studio (Flutter) — 全端(Web/桌面/移动)客户端，内核是 sgcode，经 FFI/WASM 接入。"
 publish_to: 'none'
 
 version: 1.0.0+1

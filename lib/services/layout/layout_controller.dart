@@ -1,0 +1,53 @@
+import 'package:flutter/foundation.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+import 'package:sgit_studio_flutter/layout/metrics/workspace_metrics.dart';
+
+/// 工作台外壳状态：左右栏的展开与宽度（对应 studio 的 global store
+/// `showLeftPanel` / `leftPanelWidth` / 右栏 expand）。
+///
+/// 放在 `services/` 而不是 `layout/`：布局是**全 app 都要读的 5 个横切状态之一**
+/// （主题 / 语言 / 特效 / 布局 / 会话），而 `layout/` 一层按约定不许 import 状态管理库。
+/// 换 Riverpod → Signals 时，只有本文件这类 controller 需要重写。
+@immutable
+class LayoutState {
+  const LayoutState({
+    this.navExpanded = true,
+    this.navWidth = WorkspaceMetrics.navDefaultWidth,
+    this.outputExpanded = true,
+    this.outputWidth = WorkspaceMetrics.outputDefaultWidth,
+  });
+
+  final bool navExpanded;
+  final double navWidth;
+  final bool outputExpanded;
+  final double outputWidth;
+
+  LayoutState copyWith({
+    bool? navExpanded,
+    double? navWidth,
+    bool? outputExpanded,
+    double? outputWidth,
+  }) =>
+      LayoutState(
+        navExpanded: navExpanded ?? this.navExpanded,
+        navWidth: navWidth ?? this.navWidth,
+        outputExpanded: outputExpanded ?? this.outputExpanded,
+        outputWidth: outputWidth ?? this.outputWidth,
+      );
+}
+
+class LayoutController extends Notifier<LayoutState> {
+  @override
+  LayoutState build() => const LayoutState();
+
+  void toggleNav() => state = state.copyWith(navExpanded: !state.navExpanded);
+  void setNavWidth(double w) => state = state.copyWith(navWidth: w);
+
+  void toggleOutput() =>
+      state = state.copyWith(outputExpanded: !state.outputExpanded);
+  void setOutputWidth(double w) => state = state.copyWith(outputWidth: w);
+}
+
+final layoutControllerProvider =
+    NotifierProvider<LayoutController, LayoutState>(LayoutController.new);

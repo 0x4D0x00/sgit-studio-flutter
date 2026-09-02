@@ -1,4 +1,4 @@
-# sgit_nexus
+# sgit_studio_flutter
 
 A new Flutter project.
 

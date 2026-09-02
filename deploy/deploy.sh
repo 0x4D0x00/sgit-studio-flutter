@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# SGiT-Nexus（Flutter Web）→ docker 部署 / 热更新。
+# SGiT Studio (Flutter Web) → docker 部署 / 热更新。
 #
 # 用法：
 #   ./deploy/deploy.sh            # 构建 web + 首次建镜像&容器，或热替已存在容器
@@ -7,16 +7,17 @@
 #   ./deploy/deploy.sh image      # 只重建镜像（需先 build）
 #   ./deploy/deploy.sh cp         # 只 docker cp 热替 + reload（迭代期最快，需容器已在跑）
 #
-# docker 一律经 `sg docker`（免密，不碰 root 认证）。
+# ⚠️ ubuntu 已移出 docker 组（安全加固，见 memory sandbox-broker-privsep），
+# 所有 docker 命令必须经 root。非 tty 场景用 expect 喂密码。
 set -euo pipefail
 
 REPO="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$REPO"
 
-IMAGE="sgit/nexus-nginx:offline"
-CONTAINER="sgit-nexus"
-DOCKERFILE="deploy/nexus-nginx.Dockerfile"
-WEBROOT_IN_CONTAINER="/usr/share/nginx/nexus"
+IMAGE="sgit/studio-flutter-nginx:offline"
+CONTAINER="sgit-studio-flutter"
+DOCKERFILE="deploy/studio-flutter-nginx.Dockerfile"
+WEBROOT_IN_CONTAINER="/usr/share/nginx/studio-flutter"
 
 # Flutter SDK（宿主，装在 /opt/flutter 或 ~/flutter）。
 if [ -x /opt/flutter/bin/flutter ]; then export PATH="$PATH:/opt/flutter/bin"; fi
@@ -26,7 +27,7 @@ if [ -x "$HOME/flutter/bin/flutter" ]; then export PATH="$PATH:$HOME/flutter/bin
 export FLUTTER_STORAGE_BASE_URL="${FLUTTER_STORAGE_BASE_URL:-https://storage.flutter-io.cn}"
 export PUB_HOSTED_URL="${PUB_HOSTED_URL:-https://pub.flutter-io.cn}"
 
-DOCKER() { sg docker -c "docker $*"; }
+DOCKER() { su root -c "docker $*"; }
 
 build_web() {
   echo ">> flutter build web ..."

@@ -1,0 +1,47 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+import 'package:sgit_studio_flutter/features/shell/presentation/nav_panel_container.dart';
+import 'package:sgit_studio_flutter/l10n/generated/app_localizations.dart';
+import 'package:sgit_studio_flutter/layout/panels/output_panel.dart';
+import 'package:sgit_studio_flutter/layout/shell/app_shell.dart';
+import 'package:sgit_studio_flutter/services/layout/layout_controller.dart';
+
+/// 外壳容器 —— 把布局状态与回调喂给纯组件 `AppShell`。
+///
+/// 这是**整个外壳唯一的 provider 订阅点**：`AppShell` / `NavPanel` / `OutputPanel`
+/// 三个纯组件都不认识 Riverpod。
+class AppShellContainer extends ConsumerWidget {
+  const AppShellContainer({
+    super.key,
+    required this.child,
+    this.activeStudioKey,
+  });
+
+  final Widget child;
+  final String? activeStudioKey;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context);
+    final layout = ref.watch(layoutControllerProvider);
+    final ctrl = ref.read(layoutControllerProvider.notifier);
+
+    return AppShell(
+      navExpanded: layout.navExpanded,
+      navWidth: layout.navWidth,
+      outputExpanded: layout.outputExpanded,
+      outputWidth: layout.outputWidth,
+      onToggleNav: ctrl.toggleNav,
+      onToggleOutput: ctrl.toggleOutput,
+      onNavWidthChanged: ctrl.setNavWidth,
+      onOutputWidthChanged: ctrl.setOutputWidth,
+      nav: NavPanelContainer(activeStudioKey: activeStudioKey),
+      output: OutputPanel(
+        title: l10n.shellOutputTitle,
+        emptyText: l10n.shellOutputEmpty,
+      ),
+      child: child,
+    );
+  }
+}

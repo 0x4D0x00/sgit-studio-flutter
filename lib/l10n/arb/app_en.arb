@@ -1,0 +1,269 @@
+{
+  "@@locale": "en",
+  "@@comment_appTitle": "Product name comes from brand.json (BrandConfig); never hardcode it here",
+  "navSearch": "Search",
+  "navNewChat": "New chat",
+  "navHistory": "History",
+  "navAssistants": "Assistants",
+  "navStudioGroup": "Studio",
+  "navSettings": "Settings",
+  "navLogout": "Log out",
+  "shellExpandNav": "Expand navigation",
+  "shellCollapseNav": "Collapse navigation",
+  "shellToggleOutput": "Output panel",
+  "shellOutputTitle": "Outputs",
+  "shellOutputEmpty": "No outputs yet",
+  "workspaceWelcome": "{name} is standing by",
+  "@workspaceWelcome": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "workspaceInputHint": "How can I help?",
+  "workspaceSend": "Send",
+  "studioAccessDenied": "You don't have access to this feature",
+  "studioScenes": "Scenes",
+  "studioSubagent": "Subagents",
+  "studioSkill": "Skills",
+  "studioMcp": "MCP",
+  "studioTools": "Tools",
+  "studioMemory": "Memory",
+  "studioKnowledge": "Knowledge",
+  "studioLlmRelay": "Model relay",
+  "chatFaultNotConnected": "Not connected to the kernel",
+  "chatReconnect": "Reconnect",
+  "chatStop": "Stop",
+  "chatSteerHint": "Steer mid-turn…",
+  "chatTextTruncated": "Content may be incomplete",
+  "chatApprovalTitle": "Needs your confirmation",
+  "chatApprovalAllowOnce": "Allow once",
+  "chatApprovalAllowAlways": "Always allow",
+  "chatApprovalDeny": "Deny",
+  "chatApprovalResolvedAllow": "Allowed",
+  "chatApprovalResolvedAlways": "Always allowed",
+  "chatApprovalResolvedDeny": "Denied",
+  "chatToolRunning": "Running…",
+  "chatToolTruncated": "Output truncated — expand to fetch the full text",
+  "chatNoticeCompacted": "Context compacted",
+  "chatNoticeDisconnected": "Disconnected",
+  "chatNoticeUnknown": "Notice",
+  "chatToolElapsed": "{ms} ms",
+  "@chatToolElapsed": {
+    "placeholders": {
+      "ms": {
+        "type": "int"
+      }
+    }
+  },
+  "chatNoticeModelRerouted": "Model rerouted to {to}",
+  "@chatNoticeModelRerouted": {
+    "placeholders": {
+      "to": {
+        "type": "String"
+      }
+    }
+  },
+  "chatNoticeDropped": "{count} deltas were merged (content may be incomplete)",
+  "@chatNoticeDropped": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "chatFaultVersionMismatch": "Kernel frame version {kernel} does not match client {client}. Please upgrade the client.",
+  "@chatFaultVersionMismatch": {
+    "placeholders": {
+      "kernel": {
+        "type": "int"
+      },
+      "client": {
+        "type": "int"
+      }
+    }
+  },
+  "chatStats": "in {input} · out {output} · {ms} ms",
+  "@chatStats": {
+    "placeholders": {
+      "input": {
+        "type": "int"
+      },
+      "output": {
+        "type": "int"
+      },
+      "ms": {
+        "type": "int"
+      }
+    }
+  },
+  "studioEmpty": "Nothing here yet",
+  "studioRefresh": "Refresh",
+  "studioRemove": "Delete",
+  "studioRemoveConfirm": "Delete “{name}”?",
+  "@studioRemoveConfirm": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "studioStale": "Showing cached data, refreshing…",
+  "studioComingSoon": "Data source not wired yet",
+  "relayProviders": "Providers",
+  "relayModels": "Models",
+  "relayKeys": "API keys",
+  "relayDisabled": "Disabled",
+  "relayCustom": "Custom",
+  "relayBack": "Back",
+  "relayKeyMasked": "Only the last 6 characters are shown",
+  "relayContextWindow": "ctx {n}",
+  "@relayContextWindow": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "relayToggleOn": "Click to enable",
+  "relayToggleOff": "Click to disable",
+  "relaySync": "Sync models",
+  "relayNoProvider": "No provider configured yet",
+  "modelSelector": "Select model",
+  "modelSelectorDefault": "Default model",
+  "modelSelectorNone": "No models available",
+  "navNewChatDone": "Started a new conversation",
+  "loginButton": "Sign in",
+  "loginIdentifierPlaceholder": "Enter your username",
+  "loginPasswordPlaceholder": "Enter your password",
+  "loginCaptchaPlaceholder": "Enter the code",
+  "loginCaptchaRefresh": "Click to refresh the captcha",
+  "loginCaptchaFailed": "Failed to load the captcha — click the image to retry",
+  "loginIdentifierRequired": "Please enter your username",
+  "loginPasswordRequired": "Please enter your password",
+  "loginCaptchaRequired": "Please enter the image captcha",
+  "settingsTitle": "Settings",
+  "settingsThemeMode": "Theme mode",
+  "settingsThemeTransparent": "Transparent",
+  "settingsThemeLight": "Light",
+  "settingsThemeDark": "Dark",
+  "settingsThemeSystem": "System",
+  "settingsPrimaryColor": "Primary color",
+  "settingsSecondaryColor": "Secondary color",
+  "settingsFontScale": "Font scale",
+  "settingsLanguage": "Language",
+  "settingsLanguageZh": "简体中文",
+  "settingsLanguageEn": "English",
+  "settingsResetDefault": "Reset to default",
+  "commonSave": "Save",
+  "commonCancel": "Cancel",
+  "commonRefresh": "Refresh",
+  "commonSearch": "Search",
+  "commonLoading": "Loading…",
+  "commonEmpty": "No data",
+  "commonRetry": "Retry",
+  "commonError": "Something went wrong",
+  "commonComingSoon": "Coming soon",
+  "commonNotWired": "{what}: not wired up yet",
+  "@commonNotWired": {
+    "placeholders": {
+      "what": {
+        "type": "String"
+      }
+    }
+  },
+  "studioScopePersonal": "Personal",
+  "studioScopeMaster": "Manage",
+  "studioScopeMasterHint": "Manage scope: changes apply to all users",
+  "relayAddProvider": "Add provider",
+  "relayEditProvider": "Edit provider",
+  "relayDeleteProvider": "Delete provider",
+  "relayDeleteProviderHint": "Providers that still have models or keys cannot be deleted. Clear them on the models page first.",
+  "relayAddModel": "Add model",
+  "relayEditModel": "Edit model",
+  "relayDeleteModel": "Delete model",
+  "relayKeyPool": "Key pool",
+  "relayKeyPoolTitle": "API key pool · {code} (shared by all models of this brand)",
+  "relaySyncConfirmMaster": "Sync the latest model list from {code}?",
+  "relaySyncConfirmPersonal": "Pull the model list directly from {code}? Fill in Base URL and add a key first.",
+  "relayScopeHintMaster": "{n} models · saved/synced changes apply to all users",
+  "relayScopeHintPersonal": "{n} models · visible only to you · sgcode connects to the vendor directly",
+  "relayLocalBadge": "Personal (local)",
+  "relayAddKey": "Add",
+  "relayKeyNameHint": "Key label (optional)",
+  "relayKeyPasteHint": "Paste API key",
+  "relayNoKeys": "No keys yet",
+  "relayNoProviders": "No providers yet. Use \"Add provider\" to create one.",
+  "relayFieldModelCode": "Brand code",
+  "relayFieldProvider": "Vendor tag",
+  "relayFieldDisplayName": "Display name",
+  "relayFieldBaseUrl": "Base URL",
+  "relayFieldEndpoint": "Chat endpoint",
+  "relayFieldModelsEndpoint": "Models endpoint",
+  "relayFieldUploadBaseUrl": "Upload base URL",
+  "relayFieldModelType": "Type",
+  "relayFieldPriority": "Priority",
+  "relayFieldModelName": "Model name",
+  "relayFieldContextWindow": "Context window",
+  "relayFieldMaxOutput": "Max output",
+  "relayFieldAvailable": "Available",
+  "relayRequiredModelCode": "Brand code is required (unique, e.g. DeepSeek)",
+  "relayRequiredModelName": "Model code and model name are required",
+  "relayRequiredApiKey": "Enter an API key",
+  "commonDelete": "Delete",
+  "commonEdit": "Edit",
+  "commonAdd": "Add",
+  "commonConfirm": "Confirm",
+  "commonSaved": "Saved",
+  "commonDeleted": "Deleted",
+  "commonSynced": "Synced",
+  "@relayKeyPoolTitle": {
+    "placeholders": {
+      "code": {
+        "type": "String"
+      }
+    }
+  },
+  "@relaySyncConfirmMaster": {
+    "placeholders": {
+      "code": {
+        "type": "String"
+      }
+    }
+  },
+  "@relaySyncConfirmPersonal": {
+    "placeholders": {
+      "code": {
+        "type": "String"
+      }
+    }
+  },
+  "@relayScopeHintMaster": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "@relayScopeHintPersonal": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "relaySyncBlockedDisabled": "Provider is disabled — enable it before syncing",
+  "kernelPhaseConnecting1": "Connecting to the kernel…",
+  "kernelPhaseConnecting2": "Verifying your session…",
+  "kernelPhaseSandbox1": "Starting your sandbox…",
+  "kernelPhaseSandbox2": "Bringing up the runtime…",
+  "kernelPhaseSandbox3": "Preparing the workspace…",
+  "kernelPhaseSandbox4": "Loading skills and MCP tools…",
+  "kernelPhaseSandbox5": "First start takes a little longer…",
+  "kernelPhaseSandbox6": "Waiting for the engine handshake…",
+  "kernelPhaseReady": "Kernel ready",
+  "chatSendWhileBusy": "Still running — type to steer the current turn",
+  "chatNoTurnToSteer": "No turn in progress to steer",
+  "chatKernelStalled": "The kernel stopped responding — input re-enabled"
+}

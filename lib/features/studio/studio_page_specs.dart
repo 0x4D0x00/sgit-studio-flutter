@@ -1,0 +1,137 @@
+import 'package:flutter/foundation.dart';
+
+/// 一个 studio 子页的数据契约。**8 页共用一套 UI，各页只是一份 spec。**
+///
+/// 这是「拒绝重」在这里的兑现：7 页纯配置（每页 ~20 行），只有大模型中转站因为是
+/// L1/L2/L3 三级页 + 厂商 CRUD（见 memory `relay-l1l2l3-provider-crud`）才单独写。
+///
+/// 端点契约来自 gateway 的 `/sgcode-*` handler，字段名是**实测**的，不是猜的
+/// （猜字段名的教训见 `docs/KERNEL_FFI.md` §2.1.0）。
+@immutable
+class ResourcePageSpec {
+  const ResourcePageSpec({
+    required this.key,
+    required this.listPath,
+    required this.listField,
+    required this.idField,
+    required this.nameField,
+    this.descField = 'description',
+    this.enabledField,
+    this.removePath,
+    this.refreshPath,
+    this.extraFields = const [],
+    this.detailKind = DetailKind.none,
+  });
+
+  /// 与 `StudioPageDef.key` 一致。
+  final String key;
+
+  /// 列表端点（GET）。
+  final String listPath;
+
+  /// 列表数组在响应里的字段名。**各端点不统一**，所以要配。
+  final String listField;
+
+  final String idField;
+  final String nameField;
+  final String descField;
+
+  /// 开关字段（没有就是不可开关的资源）。
+  final String? enabledField;
+
+  /// 删除 / 刷新端点（POST）。为空表示该页不提供这个动作。
+  final String? removePath;
+  final String? refreshPath;
+
+  /// 要一并带出的附加字段，供列表右侧显示。
+  final List<String> extraFields;
+
+  final DetailKind detailKind;
+}
+
+/// 详情区怎么渲染。
+enum DetailKind {
+  /// 不展开详情。
+  none,
+
+  /// Markdown 正文（技能）。
+  markdown,
+
+  /// 键值表（场景 / 子 Agent 的模型、特性、MCP 开关等）。
+  keyValue,
+}
+
+/// 8 个子页的注册表。
+///
+/// ⚠️ **只做个人版（per-cid）**，不做管理版（母版）—— 见 memory
+/// `flutter-studio-pages-personal-only`。所以这里不带 `scope` 参数。
+abstract final class StudioPageSpecs {
+  static const scenes = ResourcePageSpec(
+    key: 'scenes',
+    listPath: '/sgcode-scene/list',
+    listField: 'scenes',
+    idField: 'id',
+    nameField: 'name',
+    removePath: '/sgcode-scene/remove',
+    refreshPath: '/sgcode-scene/refresh',
+    extraFields: ['model', 'subagents'],
+    detailKind: DetailKind.keyValue,
+  );
+
+  static const subagent = ResourcePageSpec(
+    key: 'subagent',
+    listPath: '/sgcode-subagent/list',
+    listField: 'subagents',
+    idField: 'id',
+    nameField: 'name',
+    removePath: '/sgcode-subagent/remove',
+    refreshPath: '/sgcode-subagent/refresh',
+    extraFields: ['model', 'reasoningEffort'],
+    detailKind: DetailKind.keyValue,
+  );
+
+  static const skill = ResourcePageSpec(
+    key: 'skill',
+    listPath: '/sgcode-skill/list',
+    listField: 'skills',
+    idField: 'id',
+    nameField: 'name',
+    removePath: '/sgcode-skill/remove',
+    refreshPath: '/sgcode-skill/refresh',
+    detailKind: DetailKind.markdown,
+  );
+
+  static const mcp = ResourcePageSpec(
+    key: 'mcp',
+    listPath: '/sgcode-mcp/list',
+    listField: 'servers',
+    // ⚠️ MCP 用 name 当主键（没有独立 id 字段）。
+    idField: 'name',
+    nameField: 'name',
+    descField: 'command',
+    enabledField: 'enabled',
+    removePath: '/sgcode-mcp/remove',
+    extraFields: ['transport', 'toolCount', 'connected', 'builtin'],
+  );
+
+  static const knowledge = ResourcePageSpec(
+    key: 'knowledge',
+    listPath: '/sgcode-knowledge/list',
+    listField: 'files',
+    idField: 'id',
+    nameField: 'name',
+    descField: 'sceneName',
+    removePath: '/sgcode-knowledge/remove',
+    extraFields: ['scope', 'size', 'updatedAt'],
+  );
+
+  /// 按 key 取。未注册（tools / memory / llm-relay 是定制页）返回 null。
+  static ResourcePageSpec? of(String key) => switch (key) {
+        'scenes' => scenes,
+        'subagent' => subagent,
+        'skill' => skill,
+        'mcp' => mcp,
+        'knowledge' => knowledge,
+        _ => null,
+      };
+}

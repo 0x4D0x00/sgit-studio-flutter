@@ -9,8 +9,8 @@ set -euo pipefail
 
 REPO="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 ALIGN_DIR=/program/sgit-align
-CONTAINER=sgit-nexus            # TODO 容器名沿用旧命名,待随项目更名一起改
-WEBROOT=/usr/share/nginx/nexus
+CONTAINER=sgit-studio-flutter
+WEBROOT=/usr/share/nginx/studio-flutter
 
 : "${SU_PASS:?请先 export SU_PASS=<root 口令>}"
 

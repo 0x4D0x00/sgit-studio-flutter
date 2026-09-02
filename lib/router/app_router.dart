@@ -1,0 +1,56 @@
+import 'package:flutter/foundation.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
+
+import 'package:sgit_studio_flutter/features/auth/application/auth_controller.dart';
+import 'package:sgit_studio_flutter/features/auth/presentation/pages/login_page.dart';
+import 'package:sgit_studio_flutter/features/settings/presentation/pages/settings_page.dart';
+import 'package:sgit_studio_flutter/features/shell/presentation/app_shell_container.dart';
+import 'package:sgit_studio_flutter/features/studio/presentation/pages/studio_page.dart';
+import 'package:sgit_studio_flutter/features/workspace/presentation/pages/workspace_page.dart';
+import 'package:sgit_studio_flutter/router/route_names.dart';
+
+/// GoRouter 配置。ShellRoute 承载常驻工作台外壳（窗口 bar + 左右栏），登录页独立。
+///
+/// 路由结构对齐 sgit-studio：`/` 是工作台，「智能体」8 个子页走 `/studio/<key>`。
+final routerProvider = Provider<GoRouter>((ref) {
+  return GoRouter(
+    initialLocation: RouteNames.home,
+    refreshListenable: _AuthListenable(ref),
+    redirect: (context, state) {
+      final authed = ref.read(authControllerProvider).isAuthenticated;
+      final atLogin = state.matchedLocation == RouteNames.login;
+      if (!authed) return atLogin ? null : RouteNames.login;
+      if (atLogin) return RouteNames.home;
+      return null;
+    },
+    routes: [
+      GoRoute(path: RouteNames.login, builder: (_, _) => const LoginPage()),
+      ShellRoute(
+        builder: (context, state, child) => AppShellContainer(
+          activeStudioKey: state.pathParameters['key'],
+          child: child,
+        ),
+        routes: [
+          GoRoute(path: RouteNames.home, builder: (_, _) => const WorkspacePage()),
+          GoRoute(
+            path: '${RouteNames.studioPrefix}/:key',
+            builder: (_, state) =>
+                StudioPage(pageKey: state.pathParameters['key'] ?? ''),
+          ),
+          GoRoute(
+              path: RouteNames.settings,
+              builder: (_, _) => const SettingsPage()),
+        ],
+      ),
+    ],
+  );
+});
+
+/// 把登录态变化桥接成 GoRouter 可监听的 Listenable。
+class _AuthListenable extends ChangeNotifier {
+  _AuthListenable(Ref ref) {
+    ref.listen(authControllerProvider.select((s) => s.isAuthenticated),
+        (_, _) => notifyListeners());
+  }
+}

@@ -37,7 +37,20 @@
       sgit_login_v2,
       sgit_logout,
       sgit_is_authenticated,
+      sgit_validate_session,
       sgit_current_cid,
+      sgit_kernel_open,
+      sgit_kernel_close,
+      sgit_kernel_set_waker,
+      sgit_kernel_drain,
+      sgit_kernel_caps,
+      sgit_kernel_connect_status,
+      sgit_kernel_send,
+      sgit_kernel_interrupt,
+      sgit_kernel_steer,
+      sgit_kernel_respond,
+      sgit_kernel_set_thread,
+      sgit_gateway_call,
     } from './pkg/sgit_ffi_web.js';
 
     window.__sgitCryptoReady = init().then(() => {
@@ -46,7 +59,22 @@
         loginV2: sgit_login_v2,
         logout: sgit_logout,
         isAuthenticated: sgit_is_authenticated,
+        validateSession: sgit_validate_session,
         currentCid: sgit_current_cid,
+      };
+      window.__sgitKernel = {
+        open: sgit_kernel_open,
+        close: sgit_kernel_close,
+        setWaker: sgit_kernel_set_waker,
+        drain: sgit_kernel_drain,
+        caps: sgit_kernel_caps,
+        connectStatus: sgit_kernel_connect_status,
+        send: sgit_kernel_send,
+        interrupt: sgit_kernel_interrupt,
+        steer: sgit_kernel_steer,
+        respond: sgit_kernel_respond,
+        setThread: sgit_kernel_set_thread,
+        gatewayCall: sgit_gateway_call,
       };
       return true;
     });

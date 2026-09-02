@@ -1,0 +1,272 @@
+{
+  "@@locale": "zh",
+  "@@comment_appTitle": "产品名一律读 brand.json(BrandConfig),不在 arb 里写死品牌名",
+  "@@comment_rule": "⚠️ widget 里禁止出现中英文字面量,一律走本文件。新增文案两份 arb 同步加。",
+  "navSearch": "搜索",
+  "navNewChat": "新建对话",
+  "navHistory": "历史对话",
+  "navAssistants": "助理",
+  "navStudioGroup": "智能体",
+  "navSettings": "设置",
+  "navLogout": "退出登录",
+  "shellExpandNav": "展开导航",
+  "shellCollapseNav": "收起导航",
+  "shellToggleOutput": "输出物面板",
+  "shellOutputTitle": "输出物",
+  "shellOutputEmpty": "暂无产物",
+  "workspaceWelcome": "{name}，为你待命",
+  "@workspaceWelcome": {
+    "description": "工作台欢迎语。name 来自 brand.json，禁止在文案里写死品牌名",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "workspaceInputHint": "有什么可以帮你的？",
+  "workspaceSend": "发送",
+  "studioAccessDenied": "无权访问该功能",
+  "studioScenes": "场景",
+  "studioSubagent": "子 Agent",
+  "studioSkill": "技能",
+  "studioMcp": "MCP",
+  "studioTools": "工具",
+  "studioMemory": "记忆",
+  "studioKnowledge": "知识库",
+  "studioLlmRelay": "大模型中转站",
+  "chatFaultNotConnected": "尚未连接到内核，无法发送",
+  "chatReconnect": "重连",
+  "chatStop": "停止",
+  "chatSteerHint": "插话改方向…",
+  "chatTextTruncated": "内容可能不完整",
+  "chatApprovalTitle": "需要你确认",
+  "chatApprovalAllowOnce": "允许一次",
+  "chatApprovalAllowAlways": "总是允许",
+  "chatApprovalDeny": "拒绝",
+  "chatApprovalResolvedAllow": "已允许",
+  "chatApprovalResolvedAlways": "已设为总是允许",
+  "chatApprovalResolvedDeny": "已拒绝",
+  "chatToolRunning": "执行中…",
+  "chatToolTruncated": "输出已截断，完整内容需展开获取",
+  "chatNoticeCompacted": "上下文已压缩",
+  "chatNoticeDisconnected": "连接已断开",
+  "chatNoticeUnknown": "未知提示",
+  "chatToolElapsed": "{ms} ms",
+  "@chatToolElapsed": {
+    "placeholders": {
+      "ms": {
+        "type": "int"
+      }
+    }
+  },
+  "chatNoticeModelRerouted": "模型已改道：{to}",
+  "@chatNoticeModelRerouted": {
+    "placeholders": {
+      "to": {
+        "type": "String"
+      }
+    }
+  },
+  "chatNoticeDropped": "有 {count} 条增量被合并（内容可能不完整）",
+  "@chatNoticeDropped": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "chatFaultVersionMismatch": "内核帧格式版本 {kernel} 与客户端 {client} 不匹配，请升级客户端",
+  "@chatFaultVersionMismatch": {
+    "placeholders": {
+      "kernel": {
+        "type": "int"
+      },
+      "client": {
+        "type": "int"
+      }
+    }
+  },
+  "chatStats": "输入 {input} · 输出 {output} · 耗时 {ms} ms",
+  "@chatStats": {
+    "placeholders": {
+      "input": {
+        "type": "int"
+      },
+      "output": {
+        "type": "int"
+      },
+      "ms": {
+        "type": "int"
+      }
+    }
+  },
+  "studioEmpty": "暂无内容",
+  "studioRefresh": "刷新",
+  "studioRemove": "删除",
+  "studioRemoveConfirm": "确定删除「{name}」？",
+  "@studioRemoveConfirm": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "studioStale": "显示的是缓存，正在刷新…",
+  "studioComingSoon": "该页数据源待接",
+  "relayProviders": "厂商",
+  "relayModels": "模型",
+  "relayKeys": "密钥",
+  "relayDisabled": "已停用",
+  "relayCustom": "自建",
+  "relayBack": "返回",
+  "relayKeyMasked": "密钥仅显示后 6 位",
+  "relayContextWindow": "上下文 {n}",
+  "@relayContextWindow": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "relayToggleOn": "点击启用",
+  "relayToggleOff": "点击停用",
+  "relaySync": "同步模型",
+  "relayNoProvider": "尚未配置任何厂商",
+  "modelSelector": "选择模型",
+  "modelSelectorDefault": "默认模型",
+  "modelSelectorNone": "暂无可用模型",
+  "navNewChatDone": "已开始新对话",
+  "loginButton": "登 录",
+  "loginIdentifierPlaceholder": "请输入用户名",
+  "loginPasswordPlaceholder": "请输入密码",
+  "loginCaptchaPlaceholder": "输入验证码",
+  "loginCaptchaRefresh": "点击刷新验证码",
+  "loginCaptchaFailed": "验证码加载失败，点击图片重试",
+  "loginIdentifierRequired": "请输入用户名",
+  "loginPasswordRequired": "请输入密码",
+  "loginCaptchaRequired": "请输入图形验证码",
+  "settingsTitle": "设置",
+  "settingsThemeMode": "主题模式",
+  "settingsThemeTransparent": "透明",
+  "settingsThemeLight": "浅色",
+  "settingsThemeDark": "深色",
+  "settingsThemeSystem": "跟随系统",
+  "settingsPrimaryColor": "主题色",
+  "settingsSecondaryColor": "次主题色",
+  "settingsFontScale": "字体缩放",
+  "settingsLanguage": "语言",
+  "settingsLanguageZh": "简体中文",
+  "settingsLanguageEn": "English",
+  "settingsResetDefault": "恢复默认",
+  "commonSave": "保存",
+  "commonCancel": "取消",
+  "commonRefresh": "刷新",
+  "commonSearch": "搜索",
+  "commonLoading": "加载中…",
+  "commonEmpty": "暂无数据",
+  "commonRetry": "重试",
+  "commonError": "出错了",
+  "commonComingSoon": "功能开发中",
+  "commonNotWired": "{what}：功能待接",
+  "@commonNotWired": {
+    "description": "点到尚未接线的入口时的提示",
+    "placeholders": {
+      "what": {
+        "type": "String"
+      }
+    }
+  },
+  "studioScopePersonal": "个人",
+  "studioScopeMaster": "管理",
+  "studioScopeMasterHint": "管理版：改动对所有用户生效",
+  "relayAddProvider": "添加厂商",
+  "relayEditProvider": "编辑厂商",
+  "relayDeleteProvider": "删除厂商",
+  "relayDeleteProviderHint": "厂商下若仍有模型或密钥将无法删除，需先在其模型页清空。",
+  "relayAddModel": "手动添加模型",
+  "relayEditModel": "编辑模型",
+  "relayDeleteModel": "删除模型",
+  "relayKeyPool": "密钥池",
+  "relayKeyPoolTitle": "API Key 密钥池 · {code}（该品牌下所有模型共用）",
+  "relaySyncConfirmMaster": "从 {code} 厂商接口同步最新模型列表？",
+  "relaySyncConfirmPersonal": "直连 {code} 的接口拉取模型列表？需先填好 Base URL 并添加密钥。",
+  "relayScopeHintMaster": "共 {n} 个模型 · 保存/同步后自动对所有用户生效",
+  "relayScopeHintPersonal": "共 {n} 个模型 · 仅本人可见 · 对话时由 sgcode 直连厂商，不经平台后端",
+  "relayLocalBadge": "个人（本地）",
+  "relayAddKey": "新增",
+  "relayKeyNameHint": "密钥备注名（可选）",
+  "relayKeyPasteHint": "粘贴 API Key",
+  "relayNoKeys": "暂无密钥",
+  "relayNoProviders": "暂无厂商，点右上角「添加厂商」新建。",
+  "relayFieldModelCode": "品牌代码",
+  "relayFieldProvider": "厂商标签",
+  "relayFieldDisplayName": "显示名",
+  "relayFieldBaseUrl": "Base URL",
+  "relayFieldEndpoint": "聊天端点",
+  "relayFieldModelsEndpoint": "模型列表端点",
+  "relayFieldUploadBaseUrl": "上传 Base URL",
+  "relayFieldModelType": "类型",
+  "relayFieldPriority": "优先级",
+  "relayFieldModelName": "模型名",
+  "relayFieldContextWindow": "上下文窗口",
+  "relayFieldMaxOutput": "最大输出",
+  "relayFieldAvailable": "可用",
+  "relayRequiredModelCode": "品牌代码必填（唯一，如 DeepSeek）",
+  "relayRequiredModelName": "模型代码和模型名必填",
+  "relayRequiredApiKey": "请输入 API Key",
+  "commonDelete": "删除",
+  "commonEdit": "编辑",
+  "commonAdd": "新增",
+  "commonConfirm": "确定",
+  "commonSaved": "已保存",
+  "commonDeleted": "已删除",
+  "commonSynced": "已同步",
+  "@relayKeyPoolTitle": {
+    "placeholders": {
+      "code": {
+        "type": "String"
+      }
+    }
+  },
+  "@relaySyncConfirmMaster": {
+    "placeholders": {
+      "code": {
+        "type": "String"
+      }
+    }
+  },
+  "@relaySyncConfirmPersonal": {
+    "placeholders": {
+      "code": {
+        "type": "String"
+      }
+    }
+  },
+  "@relayScopeHintMaster": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "@relayScopeHintPersonal": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "relaySyncBlockedDisabled": "厂商已停用，先启用才能同步",
+  "kernelPhaseConnecting1": "正在连接内核…",
+  "kernelPhaseConnecting2": "正在校验身份…",
+  "kernelPhaseSandbox1": "正在启动你的沙箱…",
+  "kernelPhaseSandbox2": "正在拉起运行环境…",
+  "kernelPhaseSandbox3": "正在准备工作目录…",
+  "kernelPhaseSandbox4": "正在加载技能与 MCP 工具…",
+  "kernelPhaseSandbox5": "首次启动会慢一些，请稍候…",
+  "kernelPhaseSandbox6": "正在等待引擎握手…",
+  "kernelPhaseReady": "内核已就绪",
+  "chatSendWhileBusy": "上一轮还在跑，可直接输入插话",
+  "chatNoTurnToSteer": "当前没有进行中的对话，无法插话",
+  "chatKernelStalled": "内核长时间无响应，已恢复可输入状态"
+}
