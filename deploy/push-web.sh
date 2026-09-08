@@ -9,7 +9,11 @@ set -euo pipefail
 
 REPO="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 ALIGN_DIR=/program/sgit-align
-CONTAINER=sgit-studio-flutter
+# ⚠️ 容器名 != 项目名：现网伺服本项目 web 产物(:18099)的容器叫 sgit-nexus
+# （镜像 sgit/nexus-nginx:offline，nginx root 仍是 /usr/share/nginx/studio-flutter）。
+# 此前写死 sgit-studio-flutter，docker exec 直接 "No such container"。
+# 换容器时用 `CONTAINER=xxx ./deploy/push-web.sh` 覆盖，别再改死。
+CONTAINER="${CONTAINER:-sgit-nexus}"
 WEBROOT=/usr/share/nginx/studio-flutter
 
 : "${SU_PASS:?请先 export SU_PASS=<root 口令>}"
