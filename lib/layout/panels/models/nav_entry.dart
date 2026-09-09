@@ -16,13 +16,46 @@ class NavEntry {
   final String label;
 }
 
+/// 组标题右侧的操作按钮。语义由容器声明，布局层不从标题文案猜。
+enum NavSectionAction {
+  /// 不放按钮。
+  none,
+
+  /// 「+」：新增/置顶一项。
+  add,
+
+  /// 排序：切换列表排序方式。
+  sort,
+}
+
 /// 导航分组。[title] 为空时不渲染组标题（整组紧贴上一组）。
 @immutable
 class NavSection {
-  const NavSection({this.title, required this.entries});
+  const NavSection({
+    this.title,
+    required this.entries,
+    this.action = NavSectionAction.none,
+    this.collapsible = false,
+    this.emptyHint,
+    this.emptyHintIcon,
+  });
 
   final String? title;
   final List<NavEntry> entries;
 
-  bool get isEmpty => entries.isEmpty;
+  /// 组标题右侧的按钮。
+  final NavSectionAction action;
+
+  /// 标题后是否带展开/收起箭头。
+  final bool collapsible;
+
+  /// [entries] 为空时的占位提示文案。给了就说明「空也要出现」，
+  /// 不给才是 studio 原来的「无权限就彻底不出现」。
+  final String? emptyHint;
+
+  /// [emptyHint] 前面的图标。
+  final IconData? emptyHintIcon;
+
+  /// 整组该不该被跳过：没条目、又没有空态提示，才算真的没有。
+  bool get isEmpty => entries.isEmpty && emptyHint == null;
 }

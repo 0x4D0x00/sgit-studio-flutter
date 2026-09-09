@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:sgit_studio_flutter/design/extensions/app_skin.dart';
+import 'package:sgit_studio_flutter/design/tokens/app_spacing.dart';
 import 'package:sgit_studio_flutter/domain/models/chat/chat_item.dart';
+import 'package:sgit_studio_flutter/features/chat/presentation/assistant_switcher_container.dart';
 import 'package:sgit_studio_flutter/features/chat/presentation/chat_composer.dart';
 import 'package:sgit_studio_flutter/features/chat/presentation/chat_transcript.dart';
 import 'package:sgit_studio_flutter/features/workspace/presentation/widgets/workspace_hero.dart';
@@ -14,10 +16,13 @@ import 'package:sgit_studio_flutter/services/chat/chat_controller.dart';
 /// 工作台中栏 —— 对齐 sgit-studio 首页（`home/features/index.tsx`）的**就地对话**。
 ///
 /// 两态，同一个页面：
-/// - **空态**：Hero 头像 + 欢迎语 + 技能标签（居中），下方输入区；
+/// - **空态**：Hero 头像 + 欢迎语 + 技能标签 + 助理切换区（居中），下方输入区；
 /// - **有对话**：上方 [ChatTranscript] 撑满，下方输入区固定。
 ///
 /// 输入区两态共用 [ChatComposer]，所以从空态发第一条消息时输入框不会跳位。
+///
+/// 助理切换区与技能标签**同一套逻辑**：只在空态出现。开聊之后 scene 已经定了，
+/// 再摆一排切换按钮等于邀请用户点掉自己刚才的对话（切助理会清列表重开一轮）。
 class WorkspacePage extends ConsumerStatefulWidget {
   const WorkspacePage({super.key});
 
@@ -178,7 +183,9 @@ class _EmptyState extends StatelessWidget {
               const WorkspaceHero(),
               const SizedBox(height: 24),
               WorkspaceSkillChips(accent: skin.accentChip),
-              const SizedBox(height: 32),
+              const SizedBox(height: AppSpacing.lg),
+              const AssistantSwitcherContainer(),
+              const SizedBox(height: AppSpacing.lg),
               composer,
             ],
           ),
