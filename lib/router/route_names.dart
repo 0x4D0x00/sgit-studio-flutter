@@ -13,6 +13,9 @@ class RouteNames {
   /// 工作台首页。
   static const String home = '/';
 
+  /// 输出产物页。
+  static const String artifacts = '/artifacts';
+
   /// 「智能体」子页前缀，完整路径 `/studio/<key>`。
   static const String studioPrefix = '/studio';
   static String studio(String key) => '$studioPrefix/$key';

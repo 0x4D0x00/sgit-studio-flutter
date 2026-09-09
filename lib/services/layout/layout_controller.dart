@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'package:sgit_studio_flutter/domain/models/chat/code_artifact.dart';
 import 'package:sgit_studio_flutter/layout/metrics/workspace_metrics.dart';
 
 /// 工作台外壳状态：左右栏的展开与宽度（对应 studio 的 global store
@@ -14,8 +15,9 @@ class LayoutState {
   const LayoutState({
     this.navExpanded = true,
     this.navWidth = WorkspaceMetrics.navDefaultWidth,
-    this.outputExpanded = true,
+    this.outputExpanded = false,
     this.outputWidth = WorkspaceMetrics.outputDefaultWidth,
+    this.activeArtifact,
   });
 
   final bool navExpanded;
@@ -23,31 +25,88 @@ class LayoutState {
   final bool outputExpanded;
   final double outputWidth;
 
-  LayoutState copyWith({
+  /// 当前在右侧面板显示的产物（代码块）。
+  final CodeArtifact? activeArtifact;
+
+  LayoutState
+  copyWith({
     bool? navExpanded,
     double? navWidth,
     bool? outputExpanded,
     double? outputWidth,
-  }) =>
-      LayoutState(
-        navExpanded: navExpanded ?? this.navExpanded,
-        navWidth: navWidth ?? this.navWidth,
-        outputExpanded: outputExpanded ?? this.outputExpanded,
-        outputWidth: outputWidth ?? this.outputWidth,
-      );
+    CodeArtifact? activeArtifact,
+    bool clearArtifact = false,
+  }) => LayoutState(
+    navExpanded:
+        navExpanded ??
+        this.navExpanded,
+    navWidth:
+        navWidth ??
+        this.navWidth,
+    outputExpanded:
+        outputExpanded ??
+        this.outputExpanded,
+    outputWidth:
+        outputWidth ??
+        this.outputWidth,
+    activeArtifact: clearArtifact
+        ? null
+        : (activeArtifact ??
+              this.activeArtifact),
+  );
 }
 
-class LayoutController extends Notifier<LayoutState> {
+class LayoutController
+    extends
+        Notifier<
+          LayoutState
+        > {
   @override
   LayoutState build() => const LayoutState();
 
-  void toggleNav() => state = state.copyWith(navExpanded: !state.navExpanded);
-  void setNavWidth(double w) => state = state.copyWith(navWidth: w);
+  void toggleNav() => state = state.copyWith(
+    navExpanded: !state.navExpanded,
+  );
+  void
+  setNavWidth(
+    double w,
+  ) => state = state.copyWith(
+    navWidth: w,
+  );
 
-  void toggleOutput() =>
-      state = state.copyWith(outputExpanded: !state.outputExpanded);
-  void setOutputWidth(double w) => state = state.copyWith(outputWidth: w);
+  void toggleOutput() => state = state.copyWith(
+    outputExpanded: !state.outputExpanded,
+  );
+  void
+  setOutputWidth(
+    double w,
+  ) => state = state.copyWith(
+    outputWidth: w,
+  );
+
+  /// 显示代码产物到右侧面板。
+  void showArtifact(
+    CodeArtifact artifact,
+  ) {
+    state = state.copyWith(
+      activeArtifact: artifact,
+      outputExpanded: true,
+    );
+  }
+
+  /// 关闭右侧面板。
+  void closeOutput() {
+    state = state.copyWith(
+      outputExpanded: false,
+      clearArtifact: true,
+    );
+  }
 }
 
 final layoutControllerProvider =
-    NotifierProvider<LayoutController, LayoutState>(LayoutController.new);
+    NotifierProvider<
+      LayoutController,
+      LayoutState
+    >(
+      LayoutController.new,
+    );

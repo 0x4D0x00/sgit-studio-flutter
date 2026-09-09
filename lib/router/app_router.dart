@@ -2,10 +2,12 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import 'package:sgit_studio_flutter/features/artifacts/presentation/pages/artifacts_page.dart';
 import 'package:sgit_studio_flutter/features/auth/application/auth_controller.dart';
 import 'package:sgit_studio_flutter/features/auth/presentation/pages/login_page.dart';
 import 'package:sgit_studio_flutter/features/settings/presentation/pages/settings_page.dart';
 import 'package:sgit_studio_flutter/features/shell/presentation/app_shell_container.dart';
+import 'package:sgit_studio_flutter/features/shell/presentation/nav_panel_container.dart';
 import 'package:sgit_studio_flutter/features/studio/presentation/pages/studio_page.dart';
 import 'package:sgit_studio_flutter/features/workspace/presentation/pages/workspace_page.dart';
 import 'package:sgit_studio_flutter/router/route_names.dart';
@@ -27,12 +29,24 @@ final routerProvider = Provider<GoRouter>((ref) {
     routes: [
       GoRoute(path: RouteNames.login, builder: (_, _) => const LoginPage()),
       ShellRoute(
-        builder: (context, state, child) => AppShellContainer(
-          activeStudioKey: state.pathParameters['key'],
-          child: child,
-        ),
+        builder: (context, state, child) {
+          // 确定当前激活的导航项：产物页 / studio 子页 / 默认 null（工作台）。
+          final path = state.uri.path;
+          final activeNavId = path == RouteNames.artifacts
+              ? NavPanelContainer.idArtifacts
+              : state.pathParameters['key'];
+
+          return AppShellContainer(
+            activeNavId: activeNavId,
+            child: child,
+          );
+        },
         routes: [
           GoRoute(path: RouteNames.home, builder: (_, _) => const WorkspacePage()),
+          GoRoute(
+            path: RouteNames.artifacts,
+            builder: (_, _) => const ArtifactsPage(),
+          ),
           GoRoute(
             path: '${RouteNames.studioPrefix}/:key',
             builder: (_, state) =>
