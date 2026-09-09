@@ -54,6 +54,24 @@ class AppLocalizationsEn extends AppLocalizations {
   String get chatGroupNone => 'None';
 
   @override
+  String get chatGroupDate => 'Date';
+
+  @override
+  String get chatGroupUnread => 'Unread';
+
+  @override
+  String get chatGroupState => 'State';
+
+  @override
+  String get chatGroupCustom => 'Custom groups';
+
+  @override
+  String get chatSortName => 'Name';
+
+  @override
+  String get chatSortDateCreated => 'Date created';
+
+  @override
   String get chatSortLastActivity => 'Last activity';
 
   @override

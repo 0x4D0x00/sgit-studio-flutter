@@ -188,6 +188,42 @@ abstract class AppLocalizations {
   /// **'无'**
   String get chatGroupNone;
 
+  /// No description provided for @chatGroupDate.
+  ///
+  /// In zh, this message translates to:
+  /// **'日期'**
+  String get chatGroupDate;
+
+  /// No description provided for @chatGroupUnread.
+  ///
+  /// In zh, this message translates to:
+  /// **'未读'**
+  String get chatGroupUnread;
+
+  /// No description provided for @chatGroupState.
+  ///
+  /// In zh, this message translates to:
+  /// **'状态'**
+  String get chatGroupState;
+
+  /// No description provided for @chatGroupCustom.
+  ///
+  /// In zh, this message translates to:
+  /// **'自定义分组'**
+  String get chatGroupCustom;
+
+  /// No description provided for @chatSortName.
+  ///
+  /// In zh, this message translates to:
+  /// **'名称'**
+  String get chatSortName;
+
+  /// No description provided for @chatSortDateCreated.
+  ///
+  /// In zh, this message translates to:
+  /// **'创建时间'**
+  String get chatSortDateCreated;
+
   /// No description provided for @chatSortLastActivity.
   ///
   /// In zh, this message translates to:
