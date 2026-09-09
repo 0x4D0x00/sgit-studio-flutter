@@ -20,6 +20,40 @@ class AppRadius {
   static const double pill = 999;
 }
 
+/// 弹出菜单尺寸 —— `ui/components/menu/app_menu.dart` 的单一真源。
+///
+/// 菜单是「一处定样式、全站复用」的组件，尺寸集中在这里，避免各页各写一遍
+/// `offset` / `padding` / 圆角(历史上 nav_panel 与 artifacts_page 各写过一份 8)。
+class AppMenuMetrics {
+  AppMenuMetrics._();
+
+  static const double radius = 8;
+
+  /// 单行高度。图标 18 + 上下 9 的视觉重心，和导航行的 48 区分开。
+  static const double itemHeight = 36;
+
+  /// 默认菜单宽度。快捷键/当前值要右对齐，所以菜单必须定宽而非按内容撑开。
+  ///
+  /// 别调太大：项的文案通常很短（「今日」「无」），菜单越宽，文案与右侧
+  /// 对勾/当前值之间的空档越难看。
+  static const double minWidth = 180;
+
+  static const double iconSize = 18;
+
+  /// 项的左内边距。
+  static const double itemPadStart = 12;
+
+  /// 项的右内边距。比左侧大一点 —— 右侧那一格（对勾/快捷键/当前值）
+  /// 紧贴描边会显得挤。
+  static const double itemPadEnd = 16;
+
+  /// 文案与右侧那一格之间的**最小**间距。
+  static const double trailingGap = 12;
+
+  /// 触发器与菜单之间的缝。
+  static const double gap = 6;
+}
+
 /// 响应式断点。
 class AppBreakpoints {
   AppBreakpoints._();

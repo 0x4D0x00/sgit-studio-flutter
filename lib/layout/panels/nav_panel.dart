@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:sgit_studio_flutter/design/extensions/app_skin.dart';
 import 'package:sgit_studio_flutter/layout/metrics/workspace_metrics.dart';
 import 'package:sgit_studio_flutter/layout/panels/models/nav_entry.dart';
+import 'package:sgit_studio_flutter/ui/components/menu/app_menu.dart';
 
 /// 左侧导航栏 —— 重构
 ///
@@ -28,20 +29,12 @@ class NavPanel
     required this.activeId,
     required this.onSelect,
     required this.userName,
-    required this.userActionTooltip,
-    required this.onUserAction,
     required this.searchTooltip,
     required this.collapseTooltip,
-    required this.settingsLabel,
-    required this.groupByLabel,
-    required this.groupByValue,
-    required this.sortByLabel,
-    required this.sortByValue,
+    this.userMenu = const [],
     this.onSearch,
     this.onCollapse,
     this.onAddProject,
-    this.onSortChats,
-    this.onSettings,
   });
 
   final ImageProvider brandMark;
@@ -60,8 +53,6 @@ class NavPanel
   >
   onSelect;
   final String userName;
-  final String userActionTooltip;
-  final VoidCallback onUserAction;
 
   /// 用户区右下角搜索按钮的 tooltip。
   final String searchTooltip;
@@ -70,20 +61,13 @@ class NavPanel
   /// （中栏顶栏只负责展开），所以它得说清楚自己是干什么的。
   final String collapseTooltip;
 
-  /// 用户菜单里「设置」一项的文案（「退出」复用 [userActionTooltip]）。
-  final String settingsLabel;
-
-  /// 会话列表菜单的两行：标签 + 当前值。
-  final String groupByLabel;
-  final String groupByValue;
-  final String sortByLabel;
-  final String sortByValue;
+  /// 用户菜单内容（设置、退出登录）。容器注入，由
+  /// `features/shell/presentation/nav_panel_container.dart` 管业务。
+  final List<AppMenuEntry> userMenu;
 
   final VoidCallback? onSearch;
   final VoidCallback? onCollapse;
   final VoidCallback? onAddProject;
-  final VoidCallback? onSortChats;
-  final VoidCallback? onSettings;
 
   @override
   State<
@@ -258,79 +242,31 @@ class _NavPanelState
             ),
           const Spacer(),
           // 操作按钮
-          if (section.action ==
-                  NavSectionAction.add &&
-              widget.onAddProject !=
-                  null)
+          if (section.action == NavSectionAction.add && widget.onAddProject != null)
             InkWell(
               onTap: widget.onAddProject,
-              borderRadius: BorderRadius.circular(
-                4,
-              ),
+              borderRadius: BorderRadius.circular(4),
               child: Padding(
-                padding: const EdgeInsets.all(
-                  4,
-                ),
+                padding: const EdgeInsets.all(4),
                 child: Icon(
-                  Icons.add,
+                  section.actionIcon ?? Icons.add,
                   size: 16,
                   color: skin.textSecondary,
                 ),
               ),
             )
-          else if (section.action ==
-              NavSectionAction.sort)
-            PopupMenuButton<
-              String
-            >(
-              icon: Icon(
-                Icons.tune,
-                size: 16,
-                color: skin.textSecondary,
-              ),
-              offset: const Offset(
-                0,
-                8,
-              ),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(
-                  8,
+          else if (section.action == NavSectionAction.menu && section.menu.isNotEmpty)
+            AppMenuAnchor(
+              entries: section.menu,
+              minWidth: 180,
+              child: Padding(
+                padding: const EdgeInsets.all(4),
+                child: Icon(
+                  section.actionIcon ?? Icons.tune,
+                  size: 16,
+                  color: skin.textSecondary,
                 ),
               ),
-              padding: EdgeInsets.zero,
-              itemBuilder:
-                  (
-                    context,
-                  ) => [
-                    PopupMenuItem(
-                      enabled: false,
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 16,
-                        vertical: 12,
-                      ),
-                      child: Text(
-                        widget.groupByLabel,
-                        style: TextStyle(
-                          fontSize: 14,
-                          color: skin.text,
-                        ),
-                      ),
-                    ),
-                    PopupMenuItem(
-                      enabled: false,
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 16,
-                        vertical: 12,
-                      ),
-                      child: Text(
-                        widget.sortByLabel,
-                        style: TextStyle(
-                          fontSize: 14,
-                          color: skin.text,
-                        ),
-                      ),
-                    ),
-                  ],
             ),
         ],
       ),
@@ -479,216 +415,91 @@ class _NavPanelState
   );
 
   /// 用户区域：左侧头像+名字（点击显示菜单），右侧收起侧边栏按钮
-  Widget
-  _userArea(
-    AppSkin skin,
-  ) => Padding(
-    padding: const EdgeInsets.symmetric(
-      horizontal: 8,
-    ),
+  Widget _userArea(AppSkin skin) => Padding(
+    padding: const EdgeInsets.symmetric(horizontal: 8),
     child: SizedBox(
       height: WorkspaceMetrics.navItemHeight,
       child: Row(
         children: [
           // 左侧：头像+用户名（点击显示菜单）
           Expanded(
-            child: Material(
-              color: Colors.transparent,
-              borderRadius: BorderRadius.circular(
-                WorkspaceMetrics.navItemRadius,
-              ),
-              clipBehavior: Clip.antiAlias,
-              child: InkWell(
-                onTap: _showUserMenu,
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 12,
-                  ),
-                  child: Row(
-                    children: [
-                      CircleAvatar(
-                        radius: 13,
-                        backgroundColor: skin.navItemActive,
-                        child: Icon(
-                          Icons.person_rounded,
-                          size: 16,
-                          color: skin.text,
+            child: widget.userMenu.isEmpty
+                ? Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 12),
+                    child: Row(
+                      children: [
+                        CircleAvatar(
+                          radius: 13,
+                          backgroundColor: skin.navItemActive,
+                          child: Icon(Icons.person_rounded, size: 16, color: skin.text),
                         ),
-                      ),
-                      const SizedBox(
-                        width: 8,
-                      ),
-                      Expanded(
-                        child: Text(
-                          widget.userName,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: TextStyle(
-                            fontSize: 14,
-                            color: skin.text,
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            widget.userName,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(fontSize: 14, color: skin.text),
+                          ),
+                        ),
+                      ],
+                    ),
+                  )
+                : AppMenuAnchor(
+                    entries: widget.userMenu,
+                    align: AppMenuAlign.above,
+                    child: Material(
+                      color: Colors.transparent,
+                      borderRadius: BorderRadius.circular(WorkspaceMetrics.navItemRadius),
+                      clipBehavior: Clip.antiAlias,
+                      child: InkWell(
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 12),
+                          child: Row(
+                            children: [
+                              CircleAvatar(
+                                radius: 13,
+                                backgroundColor: skin.navItemActive,
+                                child: Icon(Icons.person_rounded, size: 16, color: skin.text),
+                              ),
+                              const SizedBox(width: 8),
+                              Expanded(
+                                child: Text(
+                                  widget.userName,
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: TextStyle(fontSize: 14, color: skin.text),
+                                ),
+                              ),
+                            ],
                           ),
                         ),
                       ),
-                    ],
+                    ),
                   ),
-                ),
-              ),
-            ),
           ),
 
           // 右侧：搜索按钮
-          if (widget.onSearch !=
-              null)
+          if (widget.onSearch != null)
             IconButton(
-              icon: Icon(
-                Icons.search,
-                size: 20,
-                color: skin.textSecondary,
-              ),
+              icon: Icon(Icons.search, size: 20, color: skin.textSecondary),
               onPressed: widget.onSearch,
               tooltip: widget.searchTooltip,
               padding: EdgeInsets.zero,
-              constraints: const BoxConstraints(
-                minWidth: 32,
-                minHeight: 32,
-              ),
+              constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
             ),
 
           // 收起侧边栏按钮
-          if (widget.onCollapse !=
-              null)
+          if (widget.onCollapse != null)
             IconButton(
-              icon: Icon(
-                Icons.menu_open_sharp,
-                size: 20,
-                color: skin.textSecondary,
-              ),
+              icon: Icon(Icons.menu_open_sharp, size: 20, color: skin.textSecondary),
               onPressed: widget.onCollapse,
               tooltip: widget.collapseTooltip,
               padding: EdgeInsets.zero,
-              constraints: const BoxConstraints(
-                minWidth: 32,
-                minHeight: 32,
-              ),
+              constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
             ),
         ],
       ),
     ),
   );
-
-  /// 显示用户菜单（设置 + 退出登录）。
-  void _showUserMenu() {
-    final skin = AppSkin.of(
-      context,
-    );
-
-    showDialog(
-      context: context,
-      barrierColor: Colors.transparent,
-      builder:
-          (
-            context,
-          ) => Stack(
-            children: [
-              Positioned(
-                left: 24,
-                bottom: 80,
-                child: Material(
-                  elevation: 8,
-                  borderRadius: BorderRadius.circular(
-                    8,
-                  ),
-                  child: Container(
-                    width: 240,
-                    decoration: BoxDecoration(
-                      color: skin.containerBg,
-                      borderRadius: BorderRadius.circular(
-                        8,
-                      ),
-                      border: Border.all(
-                        color: skin.border,
-                      ),
-                    ),
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        // 用户邮箱/名称
-                        Padding(
-                          padding: const EdgeInsets.all(
-                            12,
-                          ),
-                          child: Text(
-                            widget.userName,
-                            style: TextStyle(
-                              fontSize: 13,
-                              color: skin.textSecondary,
-                            ),
-                          ),
-                        ),
-                        Divider(
-                          height: 1,
-                          color: skin.borderSecondary,
-                        ),
-
-                        // 设置
-                        if (widget.onSettings !=
-                            null)
-                          ListTile(
-                            leading: Icon(
-                              Icons.settings_outlined,
-                              size: 18,
-                              color: skin.text,
-                            ),
-                            title: Text(
-                              widget.settingsLabel,
-                              style: TextStyle(
-                                fontSize: 14,
-                                color: skin.text,
-                              ),
-                            ),
-                            dense: true,
-                            onTap: () {
-                              Navigator.pop(
-                                context,
-                              );
-                              widget.onSettings?.call();
-                            },
-                          ),
-
-                        Divider(
-                          height: 1,
-                          color: skin.borderSecondary,
-                        ),
-
-                        // 退出登录
-                        ListTile(
-                          leading: Icon(
-                            Icons.logout,
-                            size: 18,
-                            color: skin.text,
-                          ),
-                          title: Text(
-                            widget.userActionTooltip,
-                            style: TextStyle(
-                              fontSize: 14,
-                              color: skin.text,
-                            ),
-                          ),
-                          dense: true,
-                          onTap: () {
-                            Navigator.pop(
-                              context,
-                            );
-                            widget.onUserAction();
-                          },
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-            ],
-          ),
-    );
-  }
 }

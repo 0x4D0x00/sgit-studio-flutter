@@ -1,5 +1,7 @@
 import 'package:flutter/widgets.dart';
 
+import 'package:sgit_studio_flutter/ui/components/menu/app_menu_entry.dart';
+
 /// 导航项（**纯展示数据**）。
 ///
 /// ⚠️ 这里刻意不含任何业务语义 —— 没有路由、没有权限、没有 studio 的 8 个 key。
@@ -24,8 +26,11 @@ enum NavSectionAction {
   /// 「+」：新增/置顶一项。
   add,
 
-  /// 排序：切换列表排序方式。
-  sort,
+  /// 弹菜单：具体几项、点了干什么，由 [NavSection.menu] 声明。
+  ///
+  /// 早先这里叫 `sort`，布局层还顺带管着「分组方式/排序方式」两行的文案参数
+  /// （`groupByLabel` 那一串）。菜单内容属于业务，收回容器声明。
+  menu,
 }
 
 /// 导航分组。[title] 为空时不渲染组标题（整组紧贴上一组）。
@@ -35,6 +40,8 @@ class NavSection {
     this.title,
     required this.entries,
     this.action = NavSectionAction.none,
+    this.actionIcon,
+    this.menu = const [],
     this.collapsible = false,
     this.emptyHint,
     this.emptyHintIcon,
@@ -45,6 +52,13 @@ class NavSection {
 
   /// 组标题右侧的按钮。
   final NavSectionAction action;
+
+  /// 按钮图标。`action == add` 时默认 `Icons.add`；`action == menu` 时
+  /// 默认 `Icons.tune`；容器可以传这个参数盖掉默认。
+  final IconData? actionIcon;
+
+  /// `action == menu` 时的菜单内容（图2 的 Group by / Sort by 子菜单）。
+  final List<AppMenuEntry> menu;
 
   /// 标题后是否带展开/收起箭头。
   final bool collapsible;

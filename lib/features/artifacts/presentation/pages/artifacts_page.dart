@@ -7,6 +7,7 @@ import 'package:sgit_studio_flutter/design/tokens/app_spacing.dart';
 import 'package:sgit_studio_flutter/domain/models/artifact/artifact.dart';
 import 'package:sgit_studio_flutter/features/artifacts/application/artifacts_controller.dart';
 import 'package:sgit_studio_flutter/l10n/generated/app_localizations.dart';
+import 'package:sgit_studio_flutter/ui/components/menu/app_menu.dart';
 
 /// 输出产物页 —— 点左栏「输出物」进来的主页。
 ///
@@ -159,15 +160,8 @@ class _ArtifactsPageState
               },
             ),
           ],
-          const SizedBox(
-            width: AppSpacing.xs,
-          ),
-          _rangeMenu(
-            l10n,
-            skin,
-            state.range,
-            ctrl,
-          ),
+          const SizedBox(width: AppSpacing.xs),
+          _rangeMenu(l10n, skin, state.range, ctrl),
         ],
       ),
     );
@@ -190,79 +184,37 @@ class _ArtifactsPageState
       ArtifactDateRange.all => l10n.artifactsRangeAll,
     };
 
-    return PopupMenuButton<
-      ArtifactDateRange
-    >(
-      initialValue: current,
-      onSelected: ctrl.setRange,
-      tooltip: l10n.artifactsRange,
-      offset: const Offset(
-        0,
-        8,
-      ),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(
-          8,
+    return AppMenuAnchor(
+      semanticLabel: l10n.artifactsRange,
+      entries: [
+        AppMenuRadioGroup<ArtifactDateRange>(
+          values: ArtifactDateRange.values,
+          selected: current,
+          labelOf: label,
+          onSelect: ctrl.setRange,
         ),
-      ),
+      ],
       child: Container(
         padding: const EdgeInsets.symmetric(
           horizontal: AppSpacing.sm,
           vertical: AppSpacing.xs,
         ),
         decoration: BoxDecoration(
-          border: Border.all(
-            color: skin.borderSecondary,
-          ),
-          borderRadius: BorderRadius.circular(
-            AppRadius.sm,
-          ),
+          border: Border.all(color: skin.borderSecondary),
+          borderRadius: BorderRadius.circular(AppRadius.sm),
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
             Text(
-              label(
-                current,
-              ),
-              style: TextStyle(
-                fontSize: 14,
-                color: skin.text,
-              ),
+              label(current),
+              style: TextStyle(fontSize: 14, color: skin.text),
             ),
-            const SizedBox(
-              width: 4,
-            ),
-            Icon(
-              Icons.arrow_drop_down,
-              size: 20,
-              color: skin.textSecondary,
-            ),
+            const SizedBox(width: 4),
+            Icon(Icons.arrow_drop_down, size: 20, color: skin.textSecondary),
           ],
         ),
       ),
-      itemBuilder:
-          (
-            _,
-          ) => [
-            for (final r in ArtifactDateRange.values)
-              PopupMenuItem(
-                value: r,
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 12,
-                ),
-                child: Text(
-                  label(
-                    r,
-                  ),
-                  style: TextStyle(
-                    fontSize: 14,
-                    color: skin.text,
-                  ),
-                ),
-              ),
-          ],
     );
   }
 

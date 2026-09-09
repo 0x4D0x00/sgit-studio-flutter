@@ -5,6 +5,7 @@ import 'package:sgit_studio_flutter/design/extensions/app_skin.dart';
 import 'package:sgit_studio_flutter/design/tokens/app_spacing.dart';
 import 'package:sgit_studio_flutter/features/chat/application/model_list_controller.dart';
 import 'package:sgit_studio_flutter/l10n/generated/app_localizations.dart';
+import 'package:sgit_studio_flutter/ui/components/menu/app_menu.dart';
 
 /// 输入框上的模型选择器。
 ///
@@ -29,59 +30,29 @@ class ModelSelector extends ConsumerWidget {
     final current = s.find(selected);
     final enabled = !s.isEmpty;
 
-    return PopupMenuButton<String?>(
+    return AppMenuAnchor(
       enabled: enabled,
-      tooltip: l10n.modelSelector,
-      position: PopupMenuPosition.under,
-      constraints: const BoxConstraints(maxHeight: 420, minWidth: 240),
-      onSelected: onChanged,
-      itemBuilder: (_) => [
-        PopupMenuItem<String?>(
-          value: null,
-          height: 36,
-          child: Text(l10n.modelSelectorDefault,
-              style: TextStyle(fontSize: 13, color: skin.textTertiary)),
+      semanticLabel: l10n.modelSelector,
+      minWidth: 260,
+      maxHeight: 420,
+      entries: [
+        AppMenuAction(
+          label: l10n.modelSelectorDefault,
+          checked: selected == null,
+          onTap: () => onChanged(null),
         ),
         for (final g in s.groups) ...[
-          PopupMenuItem<String?>(
-            enabled: false,
-            height: 28,
-            child: Text(
-              g.name,
-              style: TextStyle(
-                fontSize: 11,
-                fontWeight: FontWeight.w600,
-                color: skin.textTertiary,
-              ),
-            ),
-          ),
+          AppMenuLabel(g.name),
           for (final m in g.models)
-            PopupMenuItem<String?>(
-              value: m.id,
-              height: 36,
-              child: Row(
-                children: [
-                  Expanded(
-                    child: Text(m.displayName,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: TextStyle(fontSize: 13, color: skin.text)),
-                  ),
-                  if (m.contextWindow != null)
-                    Padding(
-                      padding: const EdgeInsets.only(left: AppSpacing.xs),
-                      child: Text(l10n.relayContextWindow(m.contextWindow!),
-                          style: TextStyle(
-                              fontSize: 10, color: skin.textTertiary)),
-                    ),
-                  if (m.id == selected)
-                    Padding(
-                      padding: const EdgeInsets.only(left: AppSpacing.xxs),
-                      child: Icon(Icons.check_rounded,
-                          size: 14, color: skin.accentChip),
-                    ),
-                ],
-              ),
+            AppMenuAction(
+              label: m.displayName,
+              // 上下文窗口挂在右侧那一格：它是这一项的属性，不是快捷键，
+              // 但视觉位置与快捷键同列，所以复用 trailingValue。
+              trailingValue: m.contextWindow == null
+                  ? null
+                  : l10n.relayContextWindow(m.contextWindow!),
+              checked: m.id == selected,
+              onTap: () => onChanged(m.id),
             ),
         ],
       ],

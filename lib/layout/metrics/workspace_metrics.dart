@@ -20,7 +20,7 @@ class WorkspaceMetrics {
   /// 左栏（在圆角卡外面）。
   static const double navDefaultWidth = 280;
   static const double navMinWidth = 240;
-  static const double navMaxWidth = 400;
+  static const double navMaxWidth = 360;
 
   /// 右栏（在圆角卡里面）。
   static const double outputDefaultWidth = 280;
@@ -28,7 +28,9 @@ class WorkspaceMetrics {
   static const double outputMaxWidth = 480;
 
   /// 面板展开/折叠动画。
-  static const Duration panelAnim = Duration(milliseconds: 200);
+  static const Duration panelAnim = Duration(
+    milliseconds: 200,
+  );
 
   /// 拖拽把手命中宽度（studio 是 DraggablePanel 的边缘 resizer）。
   static const double resizerHitWidth = 6;

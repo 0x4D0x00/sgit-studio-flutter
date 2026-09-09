@@ -13,6 +13,7 @@ import 'package:sgit_studio_flutter/services/chat/chat_controller.dart';
 import 'package:sgit_studio_flutter/services/brand/brand_assets.dart';
 import 'package:sgit_studio_flutter/services/brand/brand_config.dart';
 import 'package:sgit_studio_flutter/services/layout/layout_controller.dart';
+import 'package:sgit_studio_flutter/ui/components/menu/app_menu.dart';
 
 /// 左栏容器 —— 把 provider / 路由 / 品牌 / l10n 喂给纯组件 `NavPanel`。
 ///
@@ -94,7 +95,29 @@ class NavPanelContainer
         NavSection(
           title: l10n.navHistory,
           collapsible: true,
-          action: NavSectionAction.sort,
+          action: NavSectionAction.menu,
+          menu: [
+            AppMenuSubmenu(
+              label: l10n.chatGroupBy,
+              trailingValue: l10n.chatGroupNone,
+              entries: [
+                AppMenuAction(label: l10n.chatGroupNone, checked: true, onTap: () {}),
+                AppMenuAction(label: l10n.chatGroupDate, onTap: () {}),
+                AppMenuAction(label: l10n.chatGroupUnread, onTap: () {}),
+                AppMenuAction(label: l10n.chatGroupState, onTap: () {}),
+                AppMenuAction(label: l10n.chatGroupCustom, onTap: () {}),
+              ],
+            ),
+            AppMenuSubmenu(
+              label: l10n.chatSortBy,
+              trailingValue: l10n.chatSortLastActivity,
+              entries: [
+                AppMenuAction(label: l10n.chatSortName, onTap: () {}),
+                AppMenuAction(label: l10n.chatSortDateCreated, onTap: () {}),
+                AppMenuAction(label: l10n.chatSortLastActivity, checked: true, onTap: () {}),
+              ],
+            ),
+          ],
           entries: [
             // TODO: 换成 thread/list 的真实历史，scenes 只是临时占位。
             for (final sc in scenes)
@@ -108,49 +131,28 @@ class NavPanelContainer
           ],
         ),
       ],
-      onSelect:
-          (
-            id,
-          ) => _onSelect(
-            context,
-            ref,
-            l10n,
-            id,
-          ),
+      onSelect: (id) => _onSelect(context, ref, l10n, id),
       userName: BrandConfig.instance.orgName,
-      userActionTooltip: l10n.navLogout,
-      onUserAction: () => ref
-          .read(
-            authControllerProvider.notifier,
-          )
-          .logout(),
       searchTooltip: l10n.navSearch,
       collapseTooltip: l10n.shellCollapseNav,
-      settingsLabel: l10n.navSettings,
-      groupByLabel: l10n.chatGroupBy,
-      groupByValue: l10n.chatGroupNone,
-      sortByLabel: l10n.chatSortBy,
-      sortByValue: l10n.chatSortLastActivity,
-      onSearch: () => _onSearch(
-        context,
-        l10n,
-      ),
-      onCollapse: () => ref
-          .read(
-            layoutControllerProvider.notifier,
-          )
-          .toggleNav(),
-      onAddProject: () => _onAddProject(
-        context,
-        l10n,
-      ),
-      onSortChats: () => _onSortChats(
-        context,
-        l10n,
-      ),
-      onSettings: () => context.go(
-        RouteNames.settings,
-      ),
+      userMenu: [
+        AppMenuLabel(BrandConfig.instance.orgName),
+        const AppMenuDivider(),
+        AppMenuAction(
+          icon: Icons.settings_outlined,
+          label: l10n.navSettings,
+          onTap: () => context.go(RouteNames.settings),
+        ),
+        const AppMenuDivider(),
+        AppMenuAction(
+          icon: Icons.logout,
+          label: l10n.navLogout,
+          onTap: () => ref.read(authControllerProvider.notifier).logout(),
+        ),
+      ],
+      onSearch: () => _notWired(context, l10n, 'search'),
+      onCollapse: () => ref.read(layoutControllerProvider.notifier).toggleNav(),
+      onAddProject: () => _notWired(context, l10n, 'add-project'),
     );
   }
 
@@ -223,46 +225,7 @@ class NavPanelContainer
     }
   }
 
-  void _onSearch(
-    BuildContext context,
-    AppLocalizations l10n,
-  ) {
-    _notWired(
-      context,
-      l10n,
-      'search',
-    );
-  }
-
-  void _onAddProject(
-    BuildContext context,
-    AppLocalizations l10n,
-  ) {
-    // TODO: 实现添加项目到 Projects 区域
-    _notWired(
-      context,
-      l10n,
-      'add-project',
-    );
-  }
-
-  void _onSortChats(
-    BuildContext context,
-    AppLocalizations l10n,
-  ) {
-    // TODO: 实现对话列表排序
-    _notWired(
-      context,
-      l10n,
-      'sort-chats',
-    );
-  }
-
-  void _notWired(
-    BuildContext context,
-    AppLocalizations l10n,
-    String id,
-  ) {
+  void _notWired(BuildContext context, AppLocalizations l10n, String id) {
     ScaffoldMessenger.of(
       context,
     ).showSnackBar(
