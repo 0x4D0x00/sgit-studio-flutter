@@ -6,9 +6,19 @@
   "navNewChat": "新建对话",
   "navHistory": "历史对话",
   "navAssistants": "助理",
+  "assistantPentest": "渗透助理",
+  "assistantDefense": "防护助理",
+  "assistantContest": "竞赛助理",
+  "assistantOffice": "办公助理",
+  "assistantSwitcher": "切换助理",
   "navStudioGroup": "智能体",
   "navSettings": "设置",
   "navLogout": "退出登录",
+  "navSettings": "设置",
+  "chatGroupBy": "分组方式",
+  "chatSortBy": "排序方式",
+  "chatGroupNone": "无",
+  "chatSortLastActivity": "最近活动",
   "shellExpandNav": "展开导航",
   "shellCollapseNav": "收起导航",
   "shellToggleOutput": "输出物面板",
@@ -268,5 +278,25 @@
   "kernelPhaseReady": "内核已就绪",
   "chatSendWhileBusy": "上一轮还在跑，可直接输入插话",
   "chatNoTurnToSteer": "当前没有进行中的对话，无法插话",
-  "chatKernelStalled": "内核长时间无响应，已恢复可输入状态"
+  "chatKernelStalled": "内核长时间无响应，已恢复可输入状态",
+  "artifactsTitle": "输出产物",
+  "artifactsEmpty": "暂无产物",
+  "artifactsSearch": "搜索产物",
+  "artifactsSearchHint": "按标题搜索",
+  "artifactsSearchClose": "关闭搜索",
+  "artifactsRange": "时间范围",
+  "artifactsRangeToday": "今日",
+  "artifactsRangeWeek": "本周",
+  "artifactsRangeMonth": "本月",
+  "artifactsRangeYear": "本年",
+  "artifactsRangeAll": "全部",
+  "artifactsEdited": "编辑于 {when}",
+  "@artifactsEdited": {
+    "description": "产物卡片上的最后编辑时间。when 已按当前语言格式化",
+    "placeholders": {
+      "when": {
+        "type": "String"
+      }
+    }
+  }
 }

@@ -21,6 +21,21 @@ class AppLocalizationsZh extends AppLocalizations {
   String get navAssistants => '助理';
 
   @override
+  String get assistantPentest => '渗透助理';
+
+  @override
+  String get assistantDefense => '防护助理';
+
+  @override
+  String get assistantContest => '竞赛助理';
+
+  @override
+  String get assistantOffice => '办公助理';
+
+  @override
+  String get assistantSwitcher => '切换助理';
+
+  @override
   String get navStudioGroup => '智能体';
 
   @override
@@ -28,6 +43,18 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get navLogout => '退出登录';
+
+  @override
+  String get chatGroupBy => '分组方式';
+
+  @override
+  String get chatSortBy => '排序方式';
+
+  @override
+  String get chatGroupNone => '无';
+
+  @override
+  String get chatSortLastActivity => '最近活动';
 
   @override
   String get shellExpandNav => '展开导航';
@@ -509,4 +536,42 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get chatKernelStalled => '内核长时间无响应，已恢复可输入状态';
+
+  @override
+  String get artifactsTitle => '输出产物';
+
+  @override
+  String get artifactsEmpty => '暂无产物';
+
+  @override
+  String get artifactsSearch => '搜索产物';
+
+  @override
+  String get artifactsSearchHint => '按标题搜索';
+
+  @override
+  String get artifactsSearchClose => '关闭搜索';
+
+  @override
+  String get artifactsRange => '时间范围';
+
+  @override
+  String get artifactsRangeToday => '今日';
+
+  @override
+  String get artifactsRangeWeek => '本周';
+
+  @override
+  String get artifactsRangeMonth => '本月';
+
+  @override
+  String get artifactsRangeYear => '本年';
+
+  @override
+  String get artifactsRangeAll => '全部';
+
+  @override
+  String artifactsEdited(String when) {
+    return '编辑于 $when';
+  }
 }

@@ -122,6 +122,36 @@ abstract class AppLocalizations {
   /// **'助理'**
   String get navAssistants;
 
+  /// No description provided for @assistantPentest.
+  ///
+  /// In zh, this message translates to:
+  /// **'渗透助理'**
+  String get assistantPentest;
+
+  /// No description provided for @assistantDefense.
+  ///
+  /// In zh, this message translates to:
+  /// **'防护助理'**
+  String get assistantDefense;
+
+  /// No description provided for @assistantContest.
+  ///
+  /// In zh, this message translates to:
+  /// **'竞赛助理'**
+  String get assistantContest;
+
+  /// No description provided for @assistantOffice.
+  ///
+  /// In zh, this message translates to:
+  /// **'办公助理'**
+  String get assistantOffice;
+
+  /// No description provided for @assistantSwitcher.
+  ///
+  /// In zh, this message translates to:
+  /// **'切换助理'**
+  String get assistantSwitcher;
+
   /// No description provided for @navStudioGroup.
   ///
   /// In zh, this message translates to:
@@ -139,6 +169,30 @@ abstract class AppLocalizations {
   /// In zh, this message translates to:
   /// **'退出登录'**
   String get navLogout;
+
+  /// No description provided for @chatGroupBy.
+  ///
+  /// In zh, this message translates to:
+  /// **'分组方式'**
+  String get chatGroupBy;
+
+  /// No description provided for @chatSortBy.
+  ///
+  /// In zh, this message translates to:
+  /// **'排序方式'**
+  String get chatSortBy;
+
+  /// No description provided for @chatGroupNone.
+  ///
+  /// In zh, this message translates to:
+  /// **'无'**
+  String get chatGroupNone;
+
+  /// No description provided for @chatSortLastActivity.
+  ///
+  /// In zh, this message translates to:
+  /// **'最近活动'**
+  String get chatSortLastActivity;
 
   /// No description provided for @shellExpandNav.
   ///
@@ -1045,6 +1099,78 @@ abstract class AppLocalizations {
   /// In zh, this message translates to:
   /// **'内核长时间无响应，已恢复可输入状态'**
   String get chatKernelStalled;
+
+  /// No description provided for @artifactsTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'输出产物'**
+  String get artifactsTitle;
+
+  /// No description provided for @artifactsEmpty.
+  ///
+  /// In zh, this message translates to:
+  /// **'暂无产物'**
+  String get artifactsEmpty;
+
+  /// No description provided for @artifactsSearch.
+  ///
+  /// In zh, this message translates to:
+  /// **'搜索产物'**
+  String get artifactsSearch;
+
+  /// No description provided for @artifactsSearchHint.
+  ///
+  /// In zh, this message translates to:
+  /// **'按标题搜索'**
+  String get artifactsSearchHint;
+
+  /// No description provided for @artifactsSearchClose.
+  ///
+  /// In zh, this message translates to:
+  /// **'关闭搜索'**
+  String get artifactsSearchClose;
+
+  /// No description provided for @artifactsRange.
+  ///
+  /// In zh, this message translates to:
+  /// **'时间范围'**
+  String get artifactsRange;
+
+  /// No description provided for @artifactsRangeToday.
+  ///
+  /// In zh, this message translates to:
+  /// **'今日'**
+  String get artifactsRangeToday;
+
+  /// No description provided for @artifactsRangeWeek.
+  ///
+  /// In zh, this message translates to:
+  /// **'本周'**
+  String get artifactsRangeWeek;
+
+  /// No description provided for @artifactsRangeMonth.
+  ///
+  /// In zh, this message translates to:
+  /// **'本月'**
+  String get artifactsRangeMonth;
+
+  /// No description provided for @artifactsRangeYear.
+  ///
+  /// In zh, this message translates to:
+  /// **'本年'**
+  String get artifactsRangeYear;
+
+  /// No description provided for @artifactsRangeAll.
+  ///
+  /// In zh, this message translates to:
+  /// **'全部'**
+  String get artifactsRangeAll;
+
+  /// 产物卡片上的最后编辑时间。when 已按当前语言格式化
+  ///
+  /// In zh, this message translates to:
+  /// **'编辑于 {when}'**
+  String artifactsEdited(String when);
 }
 
 class _AppLocalizationsDelegate

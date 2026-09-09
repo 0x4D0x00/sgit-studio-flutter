@@ -21,6 +21,21 @@ class AppLocalizationsEn extends AppLocalizations {
   String get navAssistants => 'Assistants';
 
   @override
+  String get assistantPentest => 'Pentest assistant';
+
+  @override
+  String get assistantDefense => 'Defense assistant';
+
+  @override
+  String get assistantContest => 'Contest assistant';
+
+  @override
+  String get assistantOffice => 'Office assistant';
+
+  @override
+  String get assistantSwitcher => 'Switch assistant';
+
+  @override
   String get navStudioGroup => 'Studio';
 
   @override
@@ -28,6 +43,18 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get navLogout => 'Log out';
+
+  @override
+  String get chatGroupBy => 'Group by';
+
+  @override
+  String get chatSortBy => 'Sort by';
+
+  @override
+  String get chatGroupNone => 'None';
+
+  @override
+  String get chatSortLastActivity => 'Last activity';
 
   @override
   String get shellExpandNav => 'Expand navigation';
@@ -518,4 +545,42 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get chatKernelStalled =>
       'The kernel stopped responding — input re-enabled';
+
+  @override
+  String get artifactsTitle => 'Artifacts';
+
+  @override
+  String get artifactsEmpty => 'No artifacts yet';
+
+  @override
+  String get artifactsSearch => 'Search artifacts';
+
+  @override
+  String get artifactsSearchHint => 'Search by title';
+
+  @override
+  String get artifactsSearchClose => 'Close search';
+
+  @override
+  String get artifactsRange => 'Time range';
+
+  @override
+  String get artifactsRangeToday => 'Today';
+
+  @override
+  String get artifactsRangeWeek => 'This week';
+
+  @override
+  String get artifactsRangeMonth => 'This month';
+
+  @override
+  String get artifactsRangeYear => 'This year';
+
+  @override
+  String get artifactsRangeAll => 'All';
+
+  @override
+  String artifactsEdited(String when) {
+    return 'Edited $when';
+  }
 }

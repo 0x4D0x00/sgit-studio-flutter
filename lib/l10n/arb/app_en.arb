@@ -5,9 +5,19 @@
   "navNewChat": "New chat",
   "navHistory": "History",
   "navAssistants": "Assistants",
+  "assistantPentest": "Pentest assistant",
+  "assistantDefense": "Defense assistant",
+  "assistantContest": "Contest assistant",
+  "assistantOffice": "Office assistant",
+  "assistantSwitcher": "Switch assistant",
   "navStudioGroup": "Studio",
   "navSettings": "Settings",
   "navLogout": "Log out",
+  "navSettings": "Settings",
+  "chatGroupBy": "Group by",
+  "chatSortBy": "Sort by",
+  "chatGroupNone": "None",
+  "chatSortLastActivity": "Last activity",
   "shellExpandNav": "Expand navigation",
   "shellCollapseNav": "Collapse navigation",
   "shellToggleOutput": "Output panel",
@@ -265,5 +275,25 @@
   "kernelPhaseReady": "Kernel ready",
   "chatSendWhileBusy": "Still running — type to steer the current turn",
   "chatNoTurnToSteer": "No turn in progress to steer",
-  "chatKernelStalled": "The kernel stopped responding — input re-enabled"
+  "chatKernelStalled": "The kernel stopped responding — input re-enabled",
+  "artifactsTitle": "Artifacts",
+  "artifactsEmpty": "No artifacts yet",
+  "artifactsSearch": "Search artifacts",
+  "artifactsSearchHint": "Search by title",
+  "artifactsSearchClose": "Close search",
+  "artifactsRange": "Time range",
+  "artifactsRangeToday": "Today",
+  "artifactsRangeWeek": "This week",
+  "artifactsRangeMonth": "This month",
+  "artifactsRangeYear": "This year",
+  "artifactsRangeAll": "All",
+  "artifactsEdited": "Edited {when}",
+  "@artifactsEdited": {
+    "description": "Last edited timestamp on artifact card. when is already formatted for the current locale",
+    "placeholders": {
+      "when": {
+        "type": "String"
+      }
+    }
+  }
 }
