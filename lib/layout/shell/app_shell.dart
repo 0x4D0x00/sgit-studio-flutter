@@ -85,7 +85,9 @@ class AppShell extends StatelessWidget {
                       minWidth: WorkspaceMetrics.navMinWidth,
                       maxWidth: WorkspaceMetrics.navMaxWidth,
                       onWidthChanged: onNavWidthChanged,
+                      onToggle: onToggleNav,
                       backgroundColor: skin.layoutBg,
+                      borderSide: BorderSide(color: skin.border, width: 1),
                       child: nav,
                     ),
 
@@ -104,42 +106,31 @@ class AppShell extends StatelessWidget {
                       child: DecoratedBox(
                         decoration: BoxDecoration(
                           color: skin.containerBg,
-                          border: Border.all(
-                              color: skin.border,
-                              width: WorkspaceMetrics.frameBorder),
-                          borderRadius: const BorderRadius.vertical(
-                            top: Radius.circular(WorkspaceMetrics.frameRadius),
-                          ),
                         ),
-                        child: ClipRRect(
-                          borderRadius: const BorderRadius.vertical(
-                            top: Radius.circular(WorkspaceMetrics.frameRadius),
-                          ),
-                          child: Row(
-                            children: [
-                              Expanded(
-                                child: Column(
-                                  children: [
-                                    _header(context, skin, narrow),
-                                    Expanded(child: child),
-                                  ],
-                                ),
+                        child: Row(
+                          children: [
+                            Expanded(
+                              child: Column(
+                                children: [
+                                  _header(context, skin, narrow),
+                                  Expanded(child: child),
+                                ],
                               ),
-                              if (!narrow)
-                                ResizablePanel(
-                                  side: AxisDirection.right,
-                                  width: outputWidth,
-                                  expanded: outputExpanded,
-                                  minWidth: WorkspaceMetrics.outputMinWidth,
-                                  maxWidth: WorkspaceMetrics.outputMaxWidth,
-                                  onWidthChanged: onOutputWidthChanged,
-                                  backgroundColor: skin.containerBg,
-                                  borderSide:
-                                      BorderSide(color: skin.borderSecondary),
-                                  child: output,
-                                ),
-                            ],
-                          ),
+                            ),
+                            if (!narrow)
+                              ResizablePanel(
+                                side: AxisDirection.right,
+                                width: outputWidth,
+                                expanded: outputExpanded,
+                                minWidth: WorkspaceMetrics.outputMinWidth,
+                                maxWidth: WorkspaceMetrics.outputMaxWidth,
+                                onWidthChanged: onOutputWidthChanged,
+                                backgroundColor: skin.containerBg,
+                                borderSide:
+                                    BorderSide(color: skin.borderSecondary),
+                                child: output,
+                              ),
+                          ],
                         ),
                       ),
                     ),
@@ -153,8 +144,11 @@ class AppShell extends StatelessWidget {
     );
   }
 
-  /// 顶栏：studio 里**只在左栏折叠时出现**，高 44、padding 8，里面只放展开按钮。
-  /// 这里额外放右栏开关（studio 是浮在右上角的 ActionIcon）。
+  /// 顶栏：高 44、padding 8。
+  ///
+  /// ⚠️ **只放「展开左栏」按钮**：收起走左栏底部（搜索右边）那颗 chevron，
+  /// 收起入口只留一个 —— 两处都能收起时，用户会以为它们不是同一件事。
+  /// 左栏展开时这里空着（右栏开关仍在），折叠后才出现展开按钮。
   Widget _header(BuildContext context, AppSkin skin, bool narrow) {
     final l10n = AppLocalizations.of(context);
     final collapsed = narrow || !navExpanded;
@@ -165,17 +159,16 @@ class AppShell extends StatelessWidget {
         padding: const EdgeInsets.all(8),
         child: Row(
           children: [
-            IconButton(
-              iconSize: 18,
-              color: skin.textSecondary,
-              tooltip: collapsed ? l10n.shellExpandNav : l10n.shellCollapseNav,
-              icon: Icon(collapsed
-                  ? Icons.menu_rounded
-                  : Icons.menu_open_rounded),
-              onPressed: () => narrow
-                  ? Scaffold.of(context).openDrawer()
-                  : onToggleNav(),
-            ),
+            if (collapsed)
+              IconButton(
+                iconSize: 18,
+                color: skin.textSecondary,
+                tooltip: l10n.shellExpandNav,
+                icon: const Icon(Icons.menu_rounded),
+                onPressed: () => narrow
+                    ? Scaffold.of(context).openDrawer()
+                    : onToggleNav(),
+              ),
             const Spacer(),
             if (!narrow)
               IconButton(

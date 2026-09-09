@@ -18,8 +18,12 @@ import 'package:sgit_studio_flutter/services/chat/chat_controller.dart';
 ///
 /// **steer 与 stop 是两件事**，别合成一个按钮：CLI 里 `turn/steer` 是把新指示并进
 /// 当前 turn（不重来），`turn/interrupt` 是掐掉。合并了用户就没法"补一句话继续跑"。
+///
+/// [showModelInside] 控制模型选择器位置：true=在输入框内右下角，false=在输入框外右下角。
 class ChatComposer extends ConsumerStatefulWidget {
-  const ChatComposer({super.key});
+  const ChatComposer({super.key, this.showModelInside = true});
+
+  final bool showModelInside;
 
   @override
   ConsumerState<ChatComposer> createState() => _ChatComposerState();
@@ -131,22 +135,30 @@ class _ChatComposerState extends ConsumerState<ChatComposer> {
                     ),
                   ),
                   const SizedBox(width: AppSpacing.xs),
+                  // 模型选择器在输入框内时显示
+                  if (widget.showModelInside) ...[
+                    ModelSelector(
+                      selected: _model,
+                      onChanged: (m) => setState(() => _model = m),
+                    ),
+                    const SizedBox(width: AppSpacing.xs),
+                  ],
                   _action(ctrl, l10n, busy, hasText),
                 ],
               ),
             ),
-            // 模型选择器放输入框下方：它是"这轮用什么模型"的说明，
-            // 不该挤占输入区（输入才是主角）。
-            Padding(
-              padding: const EdgeInsets.only(top: AppSpacing.xxs),
-              child: Align(
-                alignment: Alignment.centerLeft,
-                child: ModelSelector(
-                  selected: _model,
-                  onChanged: (m) => setState(() => _model = m),
+            // 模型选择器在输入框外时显示
+            if (!widget.showModelInside)
+              Padding(
+                padding: const EdgeInsets.only(top: AppSpacing.xxs),
+                child: Align(
+                  alignment: Alignment.centerRight,
+                  child: ModelSelector(
+                    selected: _model,
+                    onChanged: (m) => setState(() => _model = m),
+                  ),
                 ),
               ),
-            ),
           ],
         ),
       ),

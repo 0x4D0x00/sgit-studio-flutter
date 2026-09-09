@@ -53,18 +53,28 @@ class _WorkspacePageState extends ConsumerState<WorkspacePage> {
         Expanded(
           child: ValueListenableBuilder<int>(
             valueListenable: ctrl.itemsRevision,
-            builder: (context, _, _) =>
-                ctrl.items.isEmpty ? const _EmptyState() : const ChatTranscript(),
+            builder: (context, _, __) {
+              final isEmpty = ctrl.items.isEmpty;
+              return isEmpty
+                  ? const _EmptyState(
+                      composer: ChatComposer(showModelInside: true),
+                    )
+                  : Column(
+                      children: [
+                        const Expanded(child: ChatTranscript()),
+                        Padding(
+                          padding: const EdgeInsets.fromLTRB(
+                            WorkspaceMetrics.contentPaddingInline,
+                            0,
+                            WorkspaceMetrics.contentPaddingInline,
+                            WorkspaceMetrics.framePadding * 2,
+                          ),
+                          child: const ChatComposer(showModelInside: false),
+                        ),
+                      ],
+                    );
+            },
           ),
-        ),
-        Padding(
-          padding: const EdgeInsets.fromLTRB(
-            WorkspaceMetrics.contentPaddingInline,
-            0,
-            WorkspaceMetrics.contentPaddingInline,
-            WorkspaceMetrics.framePadding * 2,
-          ),
-          child: const ChatComposer(),
         ),
       ],
     );
@@ -141,35 +151,36 @@ class _WorkspacePageState extends ConsumerState<WorkspacePage> {
   }
 }
 
-/// 空态：Hero + 欢迎语 + 技能标签。
+/// 空态：Hero + 欢迎语 + 技能标签 + 输入框（在标签下方）。
 class _EmptyState extends StatelessWidget {
-  const _EmptyState();
+  const _EmptyState({required this.composer});
+
+  final Widget composer;
 
   @override
   Widget build(BuildContext context) {
     final skin = AppSkin.of(context);
-    final vh = MediaQuery.sizeOf(context).height;
 
     return SingleChildScrollView(
-      padding: EdgeInsets.only(
+      padding: const EdgeInsets.only(
         top: WorkspaceMetrics.centerPaddingTop,
-        bottom: vh * 0.06,
+        left: WorkspaceMetrics.contentPaddingInline,
+        right: WorkspaceMetrics.contentPaddingInline,
+        bottom: WorkspaceMetrics.framePadding * 2,
       ),
       child: Center(
         child: ConstrainedBox(
-          constraints:
-              const BoxConstraints(maxWidth: WorkspaceMetrics.contentMaxWidth),
-          child: Padding(
-            padding: const EdgeInsets.symmetric(
-                horizontal: WorkspaceMetrics.contentPaddingInline),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                const WorkspaceHero(),
-                const SizedBox(height: 24),
-                WorkspaceSkillChips(accent: skin.accentChip),
-              ],
-            ),
+          constraints: const BoxConstraints(
+              maxWidth: WorkspaceMetrics.contentMaxWidth),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const WorkspaceHero(),
+              const SizedBox(height: 24),
+              WorkspaceSkillChips(accent: skin.accentChip),
+              const SizedBox(height: 32),
+              composer,
+            ],
           ),
         ),
       ),

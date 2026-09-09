@@ -7,7 +7,8 @@ import 'package:sgit_studio_flutter/layout/metrics/workspace_metrics.dart';
 /// 行为对齐 studio：
 /// - 折叠时宽度直接到 **0**（不是变窄），200ms ease-out 动画；
 /// - 拖拽把手在**朝向内容的那一侧边缘**（左栏拖右边缘、右栏拖左边缘）；
-/// - 宽度夹在 [minWidth]~[maxWidth] 之间。
+/// - 宽度夹在 [minWidth]~[maxWidth] 之间；
+/// - 左栏拖拽时，如果宽度小于最小宽度，松手后自动收起。
 class ResizablePanel extends StatelessWidget {
   const ResizablePanel({
     super.key,
@@ -20,6 +21,7 @@ class ResizablePanel extends StatelessWidget {
     required this.maxWidth,
     this.backgroundColor,
     this.borderSide,
+    this.onToggle,
   });
 
   final Widget child;
@@ -36,6 +38,9 @@ class ResizablePanel extends StatelessWidget {
 
   /// 面板与内容之间的分割线（studio 右栏有、左栏没有）。
   final BorderSide? borderSide;
+
+  /// 折叠/展开回调（用于左栏拖拽小于最小宽度时自动收起）。
+  final VoidCallback? onToggle;
 
   bool get _isLeft => side == AxisDirection.left;
 
@@ -87,7 +92,17 @@ class ResizablePanel extends StatelessWidget {
           onHorizontalDragUpdate: (d) {
             // 左栏往右拖变宽；右栏往左拖变宽 —— 故右栏取反。
             final delta = _isLeft ? d.delta.dx : -d.delta.dx;
-            onWidthChanged((width + delta).clamp(minWidth, maxWidth));
+            final newWidth = width + delta;
+            if (_isLeft) {
+              // 左栏：拖拽到小于最小宽度时直接触发收起
+              if (newWidth < minWidth && onToggle != null) {
+                onToggle!();
+              } else {
+                onWidthChanged(newWidth.clamp(minWidth, maxWidth));
+              }
+            } else {
+              onWidthChanged(newWidth.clamp(minWidth, maxWidth));
+            }
           },
         ),
       ),
