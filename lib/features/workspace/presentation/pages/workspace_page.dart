@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:sgit_studio_flutter/design/extensions/app_skin.dart';
 import 'package:sgit_studio_flutter/design/tokens/app_spacing.dart';
 import 'package:sgit_studio_flutter/domain/models/chat/chat_item.dart';
+import 'package:sgit_studio_flutter/domain/models/chat/chat_session.dart';
 import 'package:sgit_studio_flutter/features/chat/presentation/assistant_switcher_container.dart';
 import 'package:sgit_studio_flutter/features/chat/presentation/chat_composer.dart';
 import 'package:sgit_studio_flutter/features/chat/presentation/chat_transcript.dart';
