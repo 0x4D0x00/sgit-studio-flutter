@@ -5,11 +5,23 @@ import 'app_localizations.dart';
 // ignore_for_file: type=lint
 
 /// The translations for English (`en`).
-class AppLocalizationsEn extends AppLocalizations {
-  AppLocalizationsEn([String locale = 'en']) : super(locale);
+class AppLocalizationsEn
+    extends
+        AppLocalizations {
+  AppLocalizationsEn([
+    String locale = 'en',
+  ]) : super(
+         locale,
+       );
 
   @override
   String get navSearch => 'Search';
+
+  @override
+  String get navSearchDialogHint => 'Search chats';
+
+  @override
+  String get navSearchDialogEmpty => 'No matching chats found';
 
   @override
   String get navNewChat => 'New chat';
@@ -90,7 +102,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get shellOutputEmpty => 'No outputs yet';
 
   @override
-  String workspaceWelcome(String name) {
+  String workspaceWelcome(
+    String name,
+  ) {
     return '$name is standing by';
   }
 
@@ -126,6 +140,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get studioLlmRelay => 'Model relay';
+
+  @override
+  String get studioApiKey => 'API keys';
 
   @override
   String get chatFaultNotConnected => 'Not connected to the kernel';
@@ -167,8 +184,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get chatToolRunning => 'Running…';
 
   @override
-  String get chatToolTruncated =>
-      'Output truncated — expand to fetch the full text';
+  String get chatToolTruncated => 'Output truncated — expand to fetch the full text';
 
   @override
   String get chatNoticeCompacted => 'Context compacted';
@@ -180,27 +196,40 @@ class AppLocalizationsEn extends AppLocalizations {
   String get chatNoticeUnknown => 'Notice';
 
   @override
-  String chatToolElapsed(int ms) {
+  String chatToolElapsed(
+    int ms,
+  ) {
     return '$ms ms';
   }
 
   @override
-  String chatNoticeModelRerouted(String to) {
+  String chatNoticeModelRerouted(
+    String to,
+  ) {
     return 'Model rerouted to $to';
   }
 
   @override
-  String chatNoticeDropped(int count) {
+  String chatNoticeDropped(
+    int count,
+  ) {
     return '$count deltas were merged (content may be incomplete)';
   }
 
   @override
-  String chatFaultVersionMismatch(int kernel, int client) {
+  String chatFaultVersionMismatch(
+    int kernel,
+    int client,
+  ) {
     return 'Kernel frame version $kernel does not match client $client. Please upgrade the client.';
   }
 
   @override
-  String chatStats(int input, int output, int ms) {
+  String chatStats(
+    int input,
+    int output,
+    int ms,
+  ) {
     return 'in $input · out $output · $ms ms';
   }
 
@@ -214,7 +243,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get studioRemove => 'Delete';
 
   @override
-  String studioRemoveConfirm(String name) {
+  String studioRemoveConfirm(
+    String name,
+  ) {
     return 'Delete “$name”?';
   }
 
@@ -246,7 +277,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get relayKeyMasked => 'Only the last 6 characters are shown';
 
   @override
-  String relayContextWindow(int n) {
+  String relayContextWindow(
+    int n,
+  ) {
     return 'ctx $n';
   }
 
@@ -290,8 +323,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get loginCaptchaRefresh => 'Click to refresh the captcha';
 
   @override
-  String get loginCaptchaFailed =>
-      'Failed to load the captcha — click the image to retry';
+  String get loginCaptchaFailed => 'Failed to load the captcha — click the image to retry';
 
   @override
   String get loginIdentifierRequired => 'Please enter your username';
@@ -369,7 +401,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get commonComingSoon => 'Coming soon';
 
   @override
-  String commonNotWired(String what) {
+  String commonNotWired(
+    String what,
+  ) {
     return '$what: not wired up yet';
   }
 
@@ -380,8 +414,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get studioScopeMaster => 'Manage';
 
   @override
-  String get studioScopeMasterHint =>
-      'Manage scope: changes apply to all users';
+  String get studioScopeMasterHint => 'Manage scope: changes apply to all users';
 
   @override
   String get relayAddProvider => 'Add provider';
@@ -393,8 +426,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get relayDeleteProvider => 'Delete provider';
 
   @override
-  String get relayDeleteProviderHint =>
-      'Providers that still have models or keys cannot be deleted. Clear them on the models page first.';
+  String get relayDeleteProviderHint => 'Providers that still have models or keys cannot be deleted. Clear them on the models page first.';
 
   @override
   String get relayAddModel => 'Add model';
@@ -409,27 +441,37 @@ class AppLocalizationsEn extends AppLocalizations {
   String get relayKeyPool => 'Key pool';
 
   @override
-  String relayKeyPoolTitle(String code) {
+  String relayKeyPoolTitle(
+    String code,
+  ) {
     return 'API key pool · $code (shared by all models of this brand)';
   }
 
   @override
-  String relaySyncConfirmMaster(String code) {
+  String relaySyncConfirmMaster(
+    String code,
+  ) {
     return 'Sync the latest model list from $code?';
   }
 
   @override
-  String relaySyncConfirmPersonal(String code) {
+  String relaySyncConfirmPersonal(
+    String code,
+  ) {
     return 'Pull the model list directly from $code? Fill in Base URL and add a key first.';
   }
 
   @override
-  String relayScopeHintMaster(int n) {
+  String relayScopeHintMaster(
+    int n,
+  ) {
     return '$n models · saved/synced changes apply to all users';
   }
 
   @override
-  String relayScopeHintPersonal(int n) {
+  String relayScopeHintPersonal(
+    int n,
+  ) {
     return '$n models · visible only to you · sgcode connects to the vendor directly';
   }
 
@@ -449,8 +491,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get relayNoKeys => 'No keys yet';
 
   @override
-  String get relayNoProviders =>
-      'No providers yet. Use \"Add provider\" to create one.';
+  String get relayNoProviders => 'No providers yet. Use \"Add provider\" to create one.';
 
   @override
   String get relayFieldModelCode => 'Brand code';
@@ -492,8 +533,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get relayFieldAvailable => 'Available';
 
   @override
-  String get relayRequiredModelCode =>
-      'Brand code is required (unique, e.g. DeepSeek)';
+  String get relayRequiredModelCode => 'Brand code is required (unique, e.g. DeepSeek)';
 
   @override
   String get relayRequiredModelName => 'Model code and model name are required';
@@ -523,8 +563,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get commonSynced => 'Synced';
 
   @override
-  String get relaySyncBlockedDisabled =>
-      'Provider is disabled — enable it before syncing';
+  String get relaySyncBlockedDisabled => 'Provider is disabled — enable it before syncing';
 
   @override
   String get kernelPhaseConnecting1 => 'Connecting to the kernel…';
@@ -554,15 +593,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get kernelPhaseReady => 'Kernel ready';
 
   @override
-  String get chatSendWhileBusy =>
-      'Still running — type to steer the current turn';
+  String get chatSendWhileBusy => 'Still running — type to steer the current turn';
 
   @override
   String get chatNoTurnToSteer => 'No turn in progress to steer';
 
   @override
-  String get chatKernelStalled =>
-      'The kernel stopped responding — input re-enabled';
+  String get chatKernelStalled => 'The kernel stopped responding — input re-enabled';
 
   @override
   String get artifactsTitle => 'Artifacts';
@@ -598,7 +635,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get artifactsRangeAll => 'All';
 
   @override
-  String artifactsEdited(String when) {
+  String artifactsEdited(
+    String when,
+  ) {
     return 'Edited $when';
   }
 }

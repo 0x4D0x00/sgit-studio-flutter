@@ -5,11 +5,23 @@ import 'app_localizations.dart';
 // ignore_for_file: type=lint
 
 /// The translations for Chinese (`zh`).
-class AppLocalizationsZh extends AppLocalizations {
-  AppLocalizationsZh([String locale = 'zh']) : super(locale);
+class AppLocalizationsZh
+    extends
+        AppLocalizations {
+  AppLocalizationsZh([
+    String locale = 'zh',
+  ]) : super(
+         locale,
+       );
 
   @override
   String get navSearch => '搜索';
+
+  @override
+  String get navSearchDialogHint => '搜索聊天';
+
+  @override
+  String get navSearchDialogEmpty => '未找到匹配的会话';
 
   @override
   String get navNewChat => '新建对话';
@@ -90,7 +102,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get shellOutputEmpty => '暂无产物';
 
   @override
-  String workspaceWelcome(String name) {
+  String workspaceWelcome(
+    String name,
+  ) {
     return '$name，为你待命';
   }
 
@@ -126,6 +140,9 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get studioLlmRelay => '大模型中转站';
+
+  @override
+  String get studioApiKey => 'API 密钥';
 
   @override
   String get chatFaultNotConnected => '尚未连接到内核，无法发送';
@@ -179,27 +196,40 @@ class AppLocalizationsZh extends AppLocalizations {
   String get chatNoticeUnknown => '未知提示';
 
   @override
-  String chatToolElapsed(int ms) {
+  String chatToolElapsed(
+    int ms,
+  ) {
     return '$ms ms';
   }
 
   @override
-  String chatNoticeModelRerouted(String to) {
+  String chatNoticeModelRerouted(
+    String to,
+  ) {
     return '模型已改道：$to';
   }
 
   @override
-  String chatNoticeDropped(int count) {
+  String chatNoticeDropped(
+    int count,
+  ) {
     return '有 $count 条增量被合并（内容可能不完整）';
   }
 
   @override
-  String chatFaultVersionMismatch(int kernel, int client) {
+  String chatFaultVersionMismatch(
+    int kernel,
+    int client,
+  ) {
     return '内核帧格式版本 $kernel 与客户端 $client 不匹配，请升级客户端';
   }
 
   @override
-  String chatStats(int input, int output, int ms) {
+  String chatStats(
+    int input,
+    int output,
+    int ms,
+  ) {
     return '输入 $input · 输出 $output · 耗时 $ms ms';
   }
 
@@ -213,7 +243,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get studioRemove => '删除';
 
   @override
-  String studioRemoveConfirm(String name) {
+  String studioRemoveConfirm(
+    String name,
+  ) {
     return '确定删除「$name」？';
   }
 
@@ -245,7 +277,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get relayKeyMasked => '密钥仅显示后 6 位';
 
   @override
-  String relayContextWindow(int n) {
+  String relayContextWindow(
+    int n,
+  ) {
     return '上下文 $n';
   }
 
@@ -367,7 +401,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get commonComingSoon => '功能开发中';
 
   @override
-  String commonNotWired(String what) {
+  String commonNotWired(
+    String what,
+  ) {
     return '$what：功能待接';
   }
 
@@ -405,27 +441,37 @@ class AppLocalizationsZh extends AppLocalizations {
   String get relayKeyPool => '密钥池';
 
   @override
-  String relayKeyPoolTitle(String code) {
+  String relayKeyPoolTitle(
+    String code,
+  ) {
     return 'API Key 密钥池 · $code（该品牌下所有模型共用）';
   }
 
   @override
-  String relaySyncConfirmMaster(String code) {
+  String relaySyncConfirmMaster(
+    String code,
+  ) {
     return '从 $code 厂商接口同步最新模型列表？';
   }
 
   @override
-  String relaySyncConfirmPersonal(String code) {
+  String relaySyncConfirmPersonal(
+    String code,
+  ) {
     return '直连 $code 的接口拉取模型列表？需先填好 Base URL 并添加密钥。';
   }
 
   @override
-  String relayScopeHintMaster(int n) {
+  String relayScopeHintMaster(
+    int n,
+  ) {
     return '共 $n 个模型 · 保存/同步后自动对所有用户生效';
   }
 
   @override
-  String relayScopeHintPersonal(int n) {
+  String relayScopeHintPersonal(
+    int n,
+  ) {
     return '共 $n 个模型 · 仅本人可见 · 对话时由 sgcode 直连厂商，不经平台后端';
   }
 
@@ -589,7 +635,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get artifactsRangeAll => '全部';
 
   @override
-  String artifactsEdited(String when) {
+  String artifactsEdited(
+    String when,
+  ) {
     return '编辑于 $when';
   }
 }
