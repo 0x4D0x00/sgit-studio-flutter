@@ -3,7 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:sgit_studio_flutter/data/repositories/gateway_repository.dart';
 import 'package:sgit_studio_flutter/domain/models/studio/relay_models.dart';
-import 'package:sgit_studio_flutter/features/studio/application/studio_controllers.dart';
+import 'package:sgit_studio_flutter/features/studio/application/kernel_client_provider.dart';
 
 /// 输入框「可用 chat 模型」的数据源 —— 与 React studio 的 `useEnabledChatModels`
 /// **同一套取法**（两端读同一份 relay 三表，取法不一致就会两边显示不同）。

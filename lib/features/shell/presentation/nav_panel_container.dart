@@ -4,7 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import 'package:sgit_studio_flutter/features/auth/application/auth_controller.dart';
 import 'package:sgit_studio_flutter/domain/models/studio/resource_item.dart';
-import 'package:sgit_studio_flutter/features/studio/application/studio_controllers.dart';
+import 'package:sgit_studio_flutter/features/studio/application/resource_list_controller.dart';
 import 'package:sgit_studio_flutter/features/studio/studio_feature.dart';
 import 'package:sgit_studio_flutter/features/studio/studio_page_specs.dart';
 import 'package:sgit_studio_flutter/l10n/generated/app_localizations.dart';

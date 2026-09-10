@@ -3,7 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:sgit_studio_flutter/design/extensions/app_skin.dart';
 import 'package:sgit_studio_flutter/design/tokens/app_spacing.dart';
-import 'package:sgit_studio_flutter/features/studio/application/studio_controllers.dart';
+import 'package:sgit_studio_flutter/features/studio/application/relay_controller.dart';
 import 'package:sgit_studio_flutter/l10n/generated/app_localizations.dart';
 
 /// L3 密钥池 —— **品牌级**，一个厂商下所有模型共用这一池。

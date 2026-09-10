@@ -4,7 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:sgit_studio_flutter/design/extensions/app_skin.dart';
 import 'package:sgit_studio_flutter/design/tokens/app_spacing.dart';
 import 'package:sgit_studio_flutter/domain/models/studio/relay_models.dart';
-import 'package:sgit_studio_flutter/features/studio/application/studio_controllers.dart';
+import 'package:sgit_studio_flutter/features/studio/application/relay_controller.dart';
 import 'package:sgit_studio_flutter/features/studio/application/studio_scope.dart';
 import 'package:sgit_studio_flutter/features/studio/presentation/widgets/relay_forms.dart';
 import 'package:sgit_studio_flutter/features/studio/presentation/widgets/relay_key_pool.dart';

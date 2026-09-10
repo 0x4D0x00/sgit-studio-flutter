@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import 'package:sgit_studio_flutter/features/menu/application/menu_controller.dart';
+import 'package:sgit_studio_flutter/features/studio/application/accessible_menus_controller.dart';
 import 'package:sgit_studio_flutter/l10n/generated/app_localizations.dart';
 
 /// 「智能体」子页注册清单 —— 本 feature 的单一真源。

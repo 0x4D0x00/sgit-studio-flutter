@@ -80,7 +80,7 @@ class ArtifactsState {
 /// 产物列表控制器。
 ///
 /// ⚠️ 内核端点待接：目前返回空列表，等 `/sgcode-artifact/list` 放开后
-/// 对接真实数据（参考 `studio_controllers.dart` 的 ResourceListController）。
+/// 对接真实数据（参考 `resource_list_controller.dart` 的 ResourceListController）。
 class ArtifactsController extends Notifier<ArtifactsState> {
   @override
   ArtifactsState build() {
