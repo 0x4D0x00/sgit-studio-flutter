@@ -62,29 +62,17 @@ import 'app_localizations_zh.dart';
 /// be consistent with the languages listed in the AppLocalizations.supportedLocales
 /// property.
 abstract class AppLocalizations {
-  AppLocalizations(
-    String locale,
-  ) : localeName = intl.Intl.canonicalizedLocale(
-        locale.toString(),
-      );
+  AppLocalizations(String locale)
+    : localeName = intl.Intl.canonicalizedLocale(locale.toString());
 
   final String localeName;
 
-  static AppLocalizations of(
-    BuildContext context,
-  ) {
-    return Localizations.of<
-      AppLocalizations
-    >(
-      context,
-      AppLocalizations,
-    )!;
+  static AppLocalizations of(BuildContext context) {
+    return Localizations.of<AppLocalizations>(context, AppLocalizations)!;
   }
 
-  static const LocalizationsDelegate<
-    AppLocalizations
-  >
-  delegate = _AppLocalizationsDelegate();
+  static const LocalizationsDelegate<AppLocalizations> delegate =
+      _AppLocalizationsDelegate();
 
   /// A list of this localizations delegate along with the default localizations
   /// delegates.
@@ -96,17 +84,8 @@ abstract class AppLocalizations {
   /// Additional delegates can be added by appending to this list in
   /// MaterialApp. This list does not have to be used at all if a custom list
   /// of delegates is preferred or required.
-  static const List<
-    LocalizationsDelegate<
-      dynamic
-    >
-  >
-  localizationsDelegates =
-      <
-        LocalizationsDelegate<
-          dynamic
-        >
-      >[
+  static const List<LocalizationsDelegate<dynamic>> localizationsDelegates =
+      <LocalizationsDelegate<dynamic>>[
         delegate,
         GlobalMaterialLocalizations.delegate,
         GlobalCupertinoLocalizations.delegate,
@@ -114,20 +93,10 @@ abstract class AppLocalizations {
       ];
 
   /// A list of this localizations delegate's supported locales.
-  static const List<
-    Locale
-  >
-  supportedLocales =
-      <
-        Locale
-      >[
-        Locale(
-          'en',
-        ),
-        Locale(
-          'zh',
-        ),
-      ];
+  static const List<Locale> supportedLocales = <Locale>[
+    Locale('en'),
+    Locale('zh'),
+  ];
 
   /// No description provided for @navSearch.
   ///
@@ -307,9 +276,7 @@ abstract class AppLocalizations {
   ///
   /// In zh, this message translates to:
   /// **'{name}，为你待命'**
-  String workspaceWelcome(
-    String name,
-  );
+  String workspaceWelcome(String name);
 
   /// No description provided for @workspaceInputHint.
   ///
@@ -489,44 +456,31 @@ abstract class AppLocalizations {
   ///
   /// In zh, this message translates to:
   /// **'{ms} ms'**
-  String chatToolElapsed(
-    int ms,
-  );
+  String chatToolElapsed(int ms);
 
   /// No description provided for @chatNoticeModelRerouted.
   ///
   /// In zh, this message translates to:
   /// **'模型已改道：{to}'**
-  String chatNoticeModelRerouted(
-    String to,
-  );
+  String chatNoticeModelRerouted(String to);
 
   /// No description provided for @chatNoticeDropped.
   ///
   /// In zh, this message translates to:
   /// **'有 {count} 条增量被合并（内容可能不完整）'**
-  String chatNoticeDropped(
-    int count,
-  );
+  String chatNoticeDropped(int count);
 
   /// No description provided for @chatFaultVersionMismatch.
   ///
   /// In zh, this message translates to:
   /// **'内核帧格式版本 {kernel} 与客户端 {client} 不匹配，请升级客户端'**
-  String chatFaultVersionMismatch(
-    int kernel,
-    int client,
-  );
+  String chatFaultVersionMismatch(int kernel, int client);
 
   /// No description provided for @chatStats.
   ///
   /// In zh, this message translates to:
   /// **'输入 {input} · 输出 {output} · 耗时 {ms} ms'**
-  String chatStats(
-    int input,
-    int output,
-    int ms,
-  );
+  String chatStats(int input, int output, int ms);
 
   /// No description provided for @studioEmpty.
   ///
@@ -550,9 +504,7 @@ abstract class AppLocalizations {
   ///
   /// In zh, this message translates to:
   /// **'确定删除「{name}」？'**
-  String studioRemoveConfirm(
-    String name,
-  );
+  String studioRemoveConfirm(String name);
 
   /// No description provided for @studioStale.
   ///
@@ -612,9 +564,7 @@ abstract class AppLocalizations {
   ///
   /// In zh, this message translates to:
   /// **'上下文 {n}'**
-  String relayContextWindow(
-    int n,
-  );
+  String relayContextWindow(int n);
 
   /// No description provided for @relayToggleOn.
   ///
@@ -854,9 +804,7 @@ abstract class AppLocalizations {
   ///
   /// In zh, this message translates to:
   /// **'{what}：功能待接'**
-  String commonNotWired(
-    String what,
-  );
+  String commonNotWired(String what);
 
   /// No description provided for @studioScopePersonal.
   ///
@@ -928,41 +876,31 @@ abstract class AppLocalizations {
   ///
   /// In zh, this message translates to:
   /// **'API Key 密钥池 · {code}（该品牌下所有模型共用）'**
-  String relayKeyPoolTitle(
-    String code,
-  );
+  String relayKeyPoolTitle(String code);
 
   /// No description provided for @relaySyncConfirmMaster.
   ///
   /// In zh, this message translates to:
   /// **'从 {code} 厂商接口同步最新模型列表？'**
-  String relaySyncConfirmMaster(
-    String code,
-  );
+  String relaySyncConfirmMaster(String code);
 
   /// No description provided for @relaySyncConfirmPersonal.
   ///
   /// In zh, this message translates to:
   /// **'直连 {code} 的接口拉取模型列表？需先填好 Base URL 并添加密钥。'**
-  String relaySyncConfirmPersonal(
-    String code,
-  );
+  String relaySyncConfirmPersonal(String code);
 
   /// No description provided for @relayScopeHintMaster.
   ///
   /// In zh, this message translates to:
   /// **'共 {n} 个模型 · 保存/同步后自动对所有用户生效'**
-  String relayScopeHintMaster(
-    int n,
-  );
+  String relayScopeHintMaster(int n);
 
   /// No description provided for @relayScopeHintPersonal.
   ///
   /// In zh, this message translates to:
   /// **'共 {n} 个模型 · 仅本人可见 · 对话时由 sgcode 直连厂商，不经平台后端'**
-  String relayScopeHintPersonal(
-    int n,
-  );
+  String relayScopeHintPersonal(int n);
 
   /// No description provided for @relayLocalBadge.
   ///
@@ -1286,59 +1224,27 @@ abstract class AppLocalizations {
   ///
   /// In zh, this message translates to:
   /// **'编辑于 {when}'**
-  String artifactsEdited(
-    String when,
-  );
+  String artifactsEdited(String when);
 }
 
 class _AppLocalizationsDelegate
-    extends
-        LocalizationsDelegate<
-          AppLocalizations
-        > {
+    extends LocalizationsDelegate<AppLocalizations> {
   const _AppLocalizationsDelegate();
 
   @override
-  Future<
-    AppLocalizations
-  >
-  load(
-    Locale locale,
-  ) {
-    return SynchronousFuture<
-      AppLocalizations
-    >(
-      lookupAppLocalizations(
-        locale,
-      ),
-    );
+  Future<AppLocalizations> load(Locale locale) {
+    return SynchronousFuture<AppLocalizations>(lookupAppLocalizations(locale));
   }
 
   @override
-  bool
-  isSupported(
-    Locale locale,
-  ) =>
-      <
-            String
-          >[
-            'en',
-            'zh',
-          ]
-          .contains(
-            locale.languageCode,
-          );
+  bool isSupported(Locale locale) =>
+      <String>['en', 'zh'].contains(locale.languageCode);
 
   @override
-  bool shouldReload(
-    _AppLocalizationsDelegate old,
-  ) => false;
+  bool shouldReload(_AppLocalizationsDelegate old) => false;
 }
 
-AppLocalizations
-lookupAppLocalizations(
-  Locale locale,
-) {
+AppLocalizations lookupAppLocalizations(Locale locale) {
   // Lookup logic when only language code is specified.
   switch (locale.languageCode) {
     case 'en':
