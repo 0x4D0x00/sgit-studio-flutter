@@ -101,16 +101,59 @@ class _ArtifactsPageState
       ),
       child: Row(
         children: [
-          if (!_searchOpen) ...[
-            Text(
-              l10n.artifactsTitle,
-              style: TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.w700,
-                color: skin.text,
-              ),
+          Text(
+            l10n.artifactsTitle,
+            style: TextStyle(
+              fontSize: 20,
+              fontWeight: FontWeight.w700,
+              color: skin.text,
             ),
-            const Spacer(),
+          ),
+          const Spacer(),
+          if (_searchOpen)
+            SizedBox(
+              width: 240,
+              height: 36,
+              child: TextField(
+                controller: _searchController,
+                autofocus: true,
+                style: const TextStyle(fontSize: 14),
+                decoration: InputDecoration(
+                  isDense: true,
+                  hintText: l10n.artifactsSearchHint,
+                  prefixIcon: Icon(
+                    Icons.search,
+                    size: 18,
+                    color: skin.textSecondary,
+                  ),
+                  suffixIcon: IconButton(
+                    icon: const Icon(Icons.close),
+                    iconSize: 16,
+                    tooltip: l10n.artifactsSearchClose,
+                    color: skin.textSecondary,
+                    onPressed: () {
+                      setState(
+                        () => _searchOpen = false,
+                      );
+                      _searchController.clear();
+                      ctrl.setSearchQuery(
+                        '',
+                      );
+                    },
+                  ),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(
+                      AppRadius.sm,
+                    ),
+                  ),
+                  contentPadding: const EdgeInsets.symmetric(
+                    horizontal: AppSpacing.sm,
+                  ),
+                ),
+                onChanged: ctrl.setSearchQuery,
+              ),
+            )
+          else
             IconButton(
               icon: const Icon(
                 Icons.search,
@@ -122,44 +165,6 @@ class _ArtifactsPageState
                 () => _searchOpen = true,
               ),
             ),
-          ] else ...[
-            Expanded(
-              child: TextField(
-                controller: _searchController,
-                autofocus: true,
-                decoration: InputDecoration(
-                  hintText: l10n.artifactsSearchHint,
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(
-                      AppRadius.sm,
-                    ),
-                  ),
-                  contentPadding: const EdgeInsets.symmetric(
-                    horizontal: AppSpacing.sm,
-                    vertical: AppSpacing.xs,
-                  ),
-                ),
-                onChanged: ctrl.setSearchQuery,
-              ),
-            ),
-            IconButton(
-              icon: const Icon(
-                Icons.close,
-              ),
-              iconSize: 20,
-              tooltip: l10n.artifactsSearchClose,
-              color: skin.textSecondary,
-              onPressed: () {
-                setState(
-                  () => _searchOpen = false,
-                );
-                _searchController.clear();
-                ctrl.setSearchQuery(
-                  '',
-                );
-              },
-            ),
-          ],
           const SizedBox(width: AppSpacing.xs),
           _rangeMenu(l10n, skin, state.range, ctrl),
         ],
