@@ -9,13 +9,35 @@ import 'package:sgit_studio_flutter/ui/components/menu/app_menu_entry.dart';
 /// 映射成 [NavEntry] 再喂给 `NavPanel`。布局层因此不反向依赖 features。
 @immutable
 class NavEntry {
-  const NavEntry({required this.id, required this.icon, required this.label});
+  const NavEntry({
+    required this.id,
+    required this.icon,
+    required this.label,
+    this.menu = const [],
+  });
 
   /// 选中态比对用的标识。容器自己决定它是路由、是 studio key、还是别的什么。
   final String id;
 
   final IconData icon;
   final String label;
+
+  /// 悬停弹出的菜单（智能体行的九个子页）。非空时这一行**不再**触发
+  /// `onSelect` —— 它本身没有落地页，只是一组入口的把手。
+  ///
+  /// 菜单内容（几项、点了去哪）属于业务，由容器声明；布局层只管把它挂上。
+  final List<AppMenuEntry> menu;
+
+  /// 这一行是不是「菜单把手」而非可导航项。
+  bool get hasMenu => menu.isNotEmpty;
+
+  /// 菜单里有项被勾上 = 当前正停在这一行的某个子页里。
+  ///
+  /// 把手行的 id 和子页的 id 天生不相等（`nav.agent` vs `scenes`），
+  /// 光靠 `activeId == id` 那一比，进了子页反而整行变灰。这里从菜单的
+  /// 勾选态反推，不必让容器再传一份「哪些 id 算这一行」的清单。
+  bool get menuHasChecked =>
+      menu.any((e) => e is AppMenuAction && e.checked);
 }
 
 /// 组标题右侧的操作按钮。语义由容器声明，布局层不从标题文案猜。

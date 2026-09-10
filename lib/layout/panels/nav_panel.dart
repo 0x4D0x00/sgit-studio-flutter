@@ -83,6 +83,9 @@ class _NavPanelState
         > {
   bool _chatsCollapsed = false;
 
+  /// 当前弹着菜单的导航行 id（智能体行）。用来让那一行在菜单开着时保持高亮。
+  String? _openMenuId;
+
   @override
   Widget build(
     BuildContext context,
@@ -332,6 +335,10 @@ class _NavPanelState
   );
 
   /// 导航行：height 48 / 圆角 8 / paddingInline 16 / gap 8 / 图标 18。
+  ///
+  /// 带 [NavEntry.menu] 的行走悬停菜单（智能体行）：`AppMenuAnchor` 自带
+  /// 触发器的点击/悬停，所以那种行不能再套一层自己的 `InkWell` —— 两层点击
+  /// 手势会互相吃掉，菜单钉不住。
   Widget _row(
     AppSkin skin,
     NavEntry e,
@@ -339,61 +346,84 @@ class _NavPanelState
     final selected =
         widget.activeId ==
         e.id;
-    final fg = selected
+    // 菜单开着时这一行保持高亮，否则菜单飘在外面、行是灰的，看着不像一对。
+    // 停在某个子页里时也算 —— 那一行是子页的归属。
+    final highlighted = selected || _openMenuId == e.id || e.menuHasChecked;
+    final fg = highlighted
         ? skin.text
         : skin.textSecondary;
+
+    final content = SizedBox(
+      height: WorkspaceMetrics.navItemHeight,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(
+          horizontal: WorkspaceMetrics.navItemPaddingInline,
+        ),
+        child: Row(
+          children: [
+            Icon(
+              e.icon,
+              size: WorkspaceMetrics.navIconSize,
+              color: fg,
+            ),
+            const SizedBox(
+              width: WorkspaceMetrics.navItemGap,
+            ),
+            Expanded(
+              child: Text(
+                e.label,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: highlighted
+                      ? FontWeight.w600
+                      : FontWeight.w400,
+                  color: fg,
+                ),
+              ),
+            ),
+            // 有子菜单就给个「往右还有」的提示，否则用户不知道这行能悬停。
+            if (e.hasMenu)
+              Icon(
+                Icons.chevron_right,
+                size: 16,
+                color: fg,
+              ),
+          ],
+        ),
+      ),
+    );
 
     return Padding(
       padding: const EdgeInsets.only(
         bottom: 0.5,
       ),
       child: Material(
-        color: selected
+        color: highlighted
             ? skin.navItemActive
             : Colors.transparent,
         borderRadius: BorderRadius.circular(
           WorkspaceMetrics.navItemRadius,
         ),
         clipBehavior: Clip.antiAlias,
-        child: InkWell(
-          onTap: () => widget.onSelect(
-            e.id,
-          ),
-          child: SizedBox(
-            height: WorkspaceMetrics.navItemHeight,
-            child: Padding(
-              padding: const EdgeInsets.symmetric(
-                horizontal: WorkspaceMetrics.navItemPaddingInline,
+        child: e.hasMenu
+            ? AppMenuAnchor(
+                entries: e.menu,
+                trigger: AppMenuTrigger.hover,
+                align: AppMenuAlign.end,
+                semanticLabel: e.label,
+                onOpenChanged: (open) => setState(
+                  () => _openMenuId = open ? e.id : null,
+                ),
+                child: content,
+              )
+            : InkWell(
+                onTap: () => widget.onSelect(
+                  e.id,
+                ),
+                child: content,
               ),
-              child: Row(
-                children: [
-                  Icon(
-                    e.icon,
-                    size: WorkspaceMetrics.navIconSize,
-                    color: fg,
-                  ),
-                  const SizedBox(
-                    width: WorkspaceMetrics.navItemGap,
-                  ),
-                  Expanded(
-                    child: Text(
-                      e.label,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: TextStyle(
-                        fontSize: 14,
-                        fontWeight: selected
-                            ? FontWeight.w600
-                            : FontWeight.w400,
-                        color: fg,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ),
       ),
     );
   }

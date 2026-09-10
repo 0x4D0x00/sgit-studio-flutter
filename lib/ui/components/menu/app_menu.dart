@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 
 import 'package:sgit_studio_flutter/design/extensions/app_skin.dart';
@@ -11,8 +13,14 @@ enum AppMenuTrigger {
   /// 左键点击（下拉框、按钮菜单）。
   tap,
 
-  /// 右键 / 长按（列表条目的上下文菜单）。
-  secondaryTap,
+  /// 鼠标悬停即弹出，左键点击**钉住**（移开也不关，直到点空白或选了一项）。
+  ///
+  /// 给「一行本身没有落地页、只是一组子页入口」的导航行用（左栏的智能体行）：
+  /// 悬停就能扫一眼有哪些子页，想反复点几项时点一下钉住。
+  ///
+  /// ⚠️ 触屏没有 hover，钉住那一下就是它唯一的入口 —— 所以点击必须也能开，
+  /// 不能只做「点击=关」。
+  hover,
 }
 
 /// 菜单相对触发器的位置。
@@ -54,6 +62,7 @@ class AppMenuAnchor extends StatefulWidget {
     this.maxHeight,
     this.semanticLabel,
     this.enabled = true,
+    this.onOpenChanged,
   });
 
   final List<AppMenuEntry> entries;
@@ -78,30 +87,70 @@ class AppMenuAnchor extends StatefulWidget {
   /// 调用方在外面判空。
   final bool enabled;
 
+  /// 菜单开合变化。触发器要跟着变样（比如导航行菜单开着时保持高亮）时用。
+  final ValueChanged<bool>? onOpenChanged;
+
   @override
   State<AppMenuAnchor> createState() => _AppMenuAnchorState();
 }
 
 class _AppMenuAnchorState extends State<AppMenuAnchor> {
   final _triggerKey = GlobalKey();
+  final _controller = MenuController();
+
+  /// 悬停打开的菜单是否被点击「钉住」。钉住后移开鼠标不关。
+  bool _pinned = false;
+
+  /// 关闭的防抖。鼠标从触发器移到菜单面板上，中间那道缝会先发一次
+  /// `onExit`（面板是 overlay，不是触发器的子树）—— 立刻关就永远点不到菜单项。
+  Timer? _closeTimer;
+
+  @override
+  void dispose() {
+    _closeTimer?.cancel();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
     final skin = AppSkin.of(context);
 
-    return MenuAnchor(
+    final anchor = MenuAnchor(
+      controller: _controller,
       style: appMenuStyle(
         skin,
         minWidth: widget.minWidth,
         maxHeight: widget.maxHeight,
+        alignment: widget.align == AppMenuAlign.end
+            ? Alignment.topRight
+            : null,
       ),
       alignmentOffset: _offset,
-      menuChildren: buildAppMenuChildren(context, skin, widget.entries),
+      onOpen: () => widget.onOpenChanged?.call(true),
+      onClose: () {
+        _pinned = false;
+        widget.onOpenChanged?.call(false);
+      },
+      menuChildren: _menuChildren(context, skin),
       builder: (context, controller, child) {
         void toggle() {
           if (!widget.enabled) return;
           controller.isOpen ? controller.close() : controller.open();
         }
+
+        // hover 模式下点击 = 钉住（已钉住再点则取消钉住并关闭）。
+        void pin() {
+          if (!widget.enabled) return;
+          if (_pinned) {
+            controller.close();
+            return;
+          }
+          _pinned = true;
+          _closeTimer?.cancel();
+          if (!controller.isOpen) controller.open();
+        }
+
+        final isHover = widget.trigger == AppMenuTrigger.hover;
 
         return Semantics(
           label: widget.semanticLabel,
@@ -109,11 +158,11 @@ class _AppMenuAnchorState extends State<AppMenuAnchor> {
           enabled: widget.enabled,
           child: InkWell(
             key: _triggerKey,
-            onTap: widget.trigger == AppMenuTrigger.tap ? toggle : null,
-            onSecondaryTap:
-                widget.trigger == AppMenuTrigger.secondaryTap ? toggle : null,
-            onLongPress:
-                widget.trigger == AppMenuTrigger.secondaryTap ? toggle : null,
+            onTap: switch (widget.trigger) {
+              AppMenuTrigger.tap => toggle,
+              AppMenuTrigger.hover => pin,
+            },
+            onHover: isHover ? _onTriggerHover : null,
             borderRadius: BorderRadius.circular(AppRadius.sm),
             child: child,
           ),
@@ -121,6 +170,60 @@ class _AppMenuAnchorState extends State<AppMenuAnchor> {
       },
       child: widget.child,
     );
+
+    return anchor;
+  }
+
+  /// 触发器上的进出。进 → 开；出 → 延时关（除非钉住）。
+  void _onTriggerHover(bool hovering) {
+    if (!widget.enabled) return;
+    if (hovering) {
+      _closeTimer?.cancel();
+      if (!_controller.isOpen) _controller.open();
+    } else {
+      _scheduleClose();
+    }
+  }
+
+  /// 延时关闭。钉住则不关。
+  void _scheduleClose() {
+    if (_pinned) return;
+    _closeTimer?.cancel();
+    _closeTimer = Timer(AppMenuMetrics.hoverCloseDelay, () {
+      if (!mounted || _pinned) return;
+      _controller.close();
+    });
+  }
+
+  /// 光标进出的守卫层。
+  Widget _hoverMenuGuard({
+    required VoidCallback onEnter,
+    required VoidCallback onExit,
+    required Widget child,
+  }) =>
+      MouseRegion(
+        onEnter: (_) => onEnter(),
+        onExit: (_) => onExit(),
+        child: child,
+      );
+
+  /// 菜单项。hover 模式下每一项都要包一层守卫 —— 面板是 overlay，不在
+  /// 触发器子树里，光标进了面板，触发器那边收到的是「移出」。
+  ///
+  /// 逐项包而不是整块包：`menuChildren` 是由 `MenuAnchor` 自己塞进面板的，
+  /// 我们拿不到面板那一层容器。项与项之间的缝靠 [AppMenuMetrics.hoverCloseDelay]
+  /// 的防抖吃掉（移出下一瞬就移入了，定时器还没到点就被取消）。
+  List<Widget> _menuChildren(BuildContext context, AppSkin skin) {
+    final children = buildAppMenuChildren(context, skin, widget.entries);
+    if (widget.trigger != AppMenuTrigger.hover) return children;
+    return [
+      for (final c in children)
+        _hoverMenuGuard(
+          onEnter: () => _closeTimer?.cancel(),
+          onExit: _scheduleClose,
+          child: c,
+        ),
+    ];
   }
 
   /// 偏移量。`underEnd` 需要测量触发器宽度，其余固定。
@@ -152,8 +255,13 @@ MenuStyle appMenuStyle(
   AppSkin skin, {
   double? minWidth,
   double? maxHeight,
+  AlignmentGeometry? alignment,
 }) =>
     MenuStyle(
+      // 菜单贴在触发器的哪个角上。默认（null）是下方 —— 下拉框那种。
+      // 侧向飞出（`AppMenuAlign.end`）要 `topRight`，这样不用去实测触发器宽度：
+      // 左栏是可拖拽的，宽度按估算值写死必然错。
+      alignment: alignment,
       backgroundColor: WidgetStatePropertyAll(skin.containerBg),
       surfaceTintColor: const WidgetStatePropertyAll(Colors.transparent),
       elevation: const WidgetStatePropertyAll(8),

@@ -52,6 +52,13 @@ class AppMenuMetrics {
 
   /// 触发器与菜单之间的缝。
   static const double gap = 6;
+
+  /// 悬停菜单「鼠标移开后多久关」的容差。
+  ///
+  /// 菜单面板是 overlay，不在触发器的子树里 —— 鼠标从触发器移到面板上，
+  /// 中间那道 [gap] 会先发一次「移出」。这段容差就是让光标有时间跨过那道缝，
+  /// 太短会关不掉手、太长会觉得菜单赖着不走。
+  static const Duration hoverCloseDelay = Duration(milliseconds: 220);
 }
 
 /// 响应式断点。

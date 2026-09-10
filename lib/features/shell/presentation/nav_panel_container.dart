@@ -3,7 +3,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import 'package:sgit_studio_flutter/features/auth/application/auth_controller.dart';
+import 'package:sgit_studio_flutter/domain/models/studio/resource_item.dart';
 import 'package:sgit_studio_flutter/features/studio/application/studio_controllers.dart';
+import 'package:sgit_studio_flutter/features/studio/studio_feature.dart';
 import 'package:sgit_studio_flutter/features/studio/studio_page_specs.dart';
 import 'package:sgit_studio_flutter/l10n/generated/app_localizations.dart';
 import 'package:sgit_studio_flutter/layout/panels/models/nav_entry.dart';
@@ -13,6 +15,7 @@ import 'package:sgit_studio_flutter/services/chat/chat_controller.dart';
 import 'package:sgit_studio_flutter/services/brand/brand_assets.dart';
 import 'package:sgit_studio_flutter/services/brand/brand_config.dart';
 import 'package:sgit_studio_flutter/services/layout/layout_controller.dart';
+import 'package:sgit_studio_flutter/ui/components/dialogs/search_chats_dialog.dart';
 import 'package:sgit_studio_flutter/ui/components/menu/app_menu.dart';
 
 /// 左栏容器 —— 把 provider / 路由 / 品牌 / l10n 喂给纯组件 `NavPanel`。
@@ -46,6 +49,10 @@ class NavPanelContainer
     final l10n = AppLocalizations.of(
       context,
     );
+    // 智能体行的九个子页。判权由 provider 管（拒绝式），这里只管排版。
+    final studioPages = ref.watch(
+      visibleStudioPagesProvider,
+    );
     // 助理 = 场景（scene）。与「场景」子页同一个数据源，不另开一条取列表的路。
     final scenes = ref
         .watch(
@@ -73,10 +80,30 @@ class NavPanelContainer
           icon: Icons.widgets_outlined,
           label: l10n.shellOutputTitle,
         ),
+        // 智能体：这一行**本身没有落地页**，只是九个子页的把手 ——
+        // 悬停弹菜单、左键点击把菜单钉住。所以它带 menu 而不进 _onSelect。
         NavEntry(
           id: _idAgent,
           icon: Icons.tune,
           label: l10n.navStudioGroup,
+          menu: [
+            for (final p in studioPages)
+              AppMenuAction(
+                icon: p.icon,
+                label: p.label(
+                  l10n,
+                ),
+                // 选中的子页打勾，菜单开着时能看出当前在哪一页。
+                checked:
+                    activeNavId ==
+                    p.key,
+                onTap: () => context.go(
+                  RouteNames.studio(
+                    p.key,
+                  ),
+                ),
+              ),
+          ],
         ),
       ],
       sections: [
@@ -85,7 +112,7 @@ class NavPanelContainer
         NavSection(
           title: '置顶',
           action: NavSectionAction.add,
-          emptyHint: 'Pin projects to keep them here',
+          emptyHint: 'Pin chats to keep them here',
           emptyHintIcon: Icons.push_pin_outlined,
           entries: const [
             // TODO: 接置顶对话列表（内核还没放开 thread/pin）。
@@ -101,20 +128,46 @@ class NavPanelContainer
               label: l10n.chatGroupBy,
               trailingValue: l10n.chatGroupNone,
               entries: [
-                AppMenuAction(label: l10n.chatGroupNone, checked: true, onTap: () {}),
-                AppMenuAction(label: l10n.chatGroupDate, onTap: () {}),
-                AppMenuAction(label: l10n.chatGroupUnread, onTap: () {}),
-                AppMenuAction(label: l10n.chatGroupState, onTap: () {}),
-                AppMenuAction(label: l10n.chatGroupCustom, onTap: () {}),
+                AppMenuAction(
+                  label: l10n.chatGroupNone,
+                  checked: true,
+                  onTap: () {},
+                ),
+                AppMenuAction(
+                  label: l10n.chatGroupDate,
+                  onTap: () {},
+                ),
+                AppMenuAction(
+                  label: l10n.chatGroupUnread,
+                  onTap: () {},
+                ),
+                AppMenuAction(
+                  label: l10n.chatGroupState,
+                  onTap: () {},
+                ),
+                AppMenuAction(
+                  label: l10n.chatGroupCustom,
+                  onTap: () {},
+                ),
               ],
             ),
             AppMenuSubmenu(
               label: l10n.chatSortBy,
               trailingValue: l10n.chatSortLastActivity,
               entries: [
-                AppMenuAction(label: l10n.chatSortName, onTap: () {}),
-                AppMenuAction(label: l10n.chatSortDateCreated, onTap: () {}),
-                AppMenuAction(label: l10n.chatSortLastActivity, checked: true, onTap: () {}),
+                AppMenuAction(
+                  label: l10n.chatSortName,
+                  onTap: () {},
+                ),
+                AppMenuAction(
+                  label: l10n.chatSortDateCreated,
+                  onTap: () {},
+                ),
+                AppMenuAction(
+                  label: l10n.chatSortLastActivity,
+                  checked: true,
+                  onTap: () {},
+                ),
               ],
             ),
           ],
@@ -131,28 +184,56 @@ class NavPanelContainer
           ],
         ),
       ],
-      onSelect: (id) => _onSelect(context, ref, l10n, id),
+      onSelect:
+          (
+            id,
+          ) => _onSelect(
+            context,
+            ref,
+            l10n,
+            id,
+          ),
       userName: BrandConfig.instance.orgName,
       searchTooltip: l10n.navSearch,
       collapseTooltip: l10n.shellCollapseNav,
       userMenu: [
-        AppMenuLabel(BrandConfig.instance.orgName),
+        AppMenuLabel(
+          BrandConfig.instance.orgName,
+        ),
         const AppMenuDivider(),
         AppMenuAction(
           icon: Icons.settings_outlined,
           label: l10n.navSettings,
-          onTap: () => context.go(RouteNames.settings),
+          onTap: () => context.go(
+            RouteNames.settings,
+          ),
         ),
         const AppMenuDivider(),
         AppMenuAction(
           icon: Icons.logout,
           label: l10n.navLogout,
-          onTap: () => ref.read(authControllerProvider.notifier).logout(),
+          onTap: () => ref
+              .read(
+                authControllerProvider.notifier,
+              )
+              .logout(),
         ),
       ],
-      onSearch: () => _notWired(context, l10n, 'search'),
-      onCollapse: () => ref.read(layoutControllerProvider.notifier).toggleNav(),
-      onAddProject: () => _notWired(context, l10n, 'add-project'),
+      onSearch: () => _onSearch(
+        context,
+        ref,
+        scenes,
+      ),
+      onCollapse: () => ref
+          .read(
+            layoutControllerProvider.notifier,
+          )
+          .toggleNav(),
+      onAddProject: () => _notWired(
+        context,
+        l10n,
+        'add-project',
+      ),
     );
   }
 
@@ -191,7 +272,9 @@ class NavPanelContainer
           RouteNames.artifacts,
         );
       case _idAgent:
-        // 这些功能待实现
+        // 走不到这里 —— 这一行挂的是悬停菜单，`NavPanel` 不给带菜单的行接
+        // onSelect。留着分支是为了万一将来把菜单摘掉时，这里不会静默变成
+        // default 分支跳到 `/studio/nav.agent`。
         _notWired(
           context,
           l10n,
@@ -225,7 +308,34 @@ class NavPanelContainer
     }
   }
 
-  void _notWired(BuildContext context, AppLocalizations l10n, String id) {
+  void _onSearch(
+    BuildContext context,
+    WidgetRef ref,
+    List<ResourceItem> scenes,
+  ) {
+    showSearchChatsDialog(
+      context,
+      items: [
+        for (final sc in scenes)
+          SearchChatsDialogItem(
+            id: '$_assistantPrefix${sc.id}',
+            label: sc.name.isEmpty ? sc.id : sc.name,
+          ),
+      ],
+      onSelect: (id) => _onSelect(
+        context,
+        ref,
+        AppLocalizations.of(context),
+        id,
+      ),
+    );
+  }
+
+  void _notWired(
+    BuildContext context,
+    AppLocalizations l10n,
+    String id,
+  ) {
     ScaffoldMessenger.of(
       context,
     ).showSnackBar(

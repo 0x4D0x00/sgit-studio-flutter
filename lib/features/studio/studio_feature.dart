@@ -17,6 +17,7 @@ class StudioPageDef {
     required this.key,
     required this.icon,
     required this.label,
+    this.backendGated = true,
   });
 
   final String key;
@@ -24,6 +25,16 @@ class StudioPageDef {
 
   /// 文案走 l10n，不在这里写死字面量。
   final String Function(AppLocalizations) label;
+
+  /// 是否受后端 `menu_key` 判权。
+  ///
+  /// 默认 `true`：与 studio 同名的 8 个 key 必须由后端放行。
+  /// 只有**后端菜单表里根本没有这个 key** 的本端新增页才置 `false` ——
+  /// 否则它会被拒绝式过滤永久挡掉（后端不认识的 key 一律不放行）。
+  ///
+  /// ⚠️ 这不是「绕过判权」的后门：置 `false` 的页自己不许读受控数据，
+  /// 真正的数据权限在各页调用的端点上。
+  final bool backendGated;
 
   static const List<StudioPageDef> all = <StudioPageDef>[
     StudioPageDef(key: 'scenes', icon: Icons.grid_view_rounded, label: _scenes),
@@ -36,6 +47,14 @@ class StudioPageDef {
     StudioPageDef(
         key: 'knowledge', icon: Icons.menu_book_outlined, label: _knowledge),
     StudioPageDef(key: 'llm-relay', icon: Icons.hub_outlined, label: _llmRelay),
+    // 第 9 项。studio 的 `StudioNav.tsx` 只有 8 项，这一项是本端新增的入口
+    // （端点 `ApiEndpoints.apiKey*` 早就有了，只是还没有落地页）。
+    StudioPageDef(
+      key: 'api-key',
+      icon: Icons.vpn_key_outlined,
+      label: _apiKey,
+      backendGated: false,
+    ),
   ];
 }
 
@@ -47,6 +66,7 @@ String _tools(AppLocalizations l) => l.studioTools;
 String _memory(AppLocalizations l) => l.studioMemory;
 String _knowledge(AppLocalizations l) => l.studioKnowledge;
 String _llmRelay(AppLocalizations l) => l.studioLlmRelay;
+String _apiKey(AppLocalizations l) => l.studioApiKey;
 
 /// 当前可见的「智能体」子页。
 ///
@@ -61,6 +81,7 @@ final visibleStudioPagesProvider = Provider<List<StudioPageDef>>((ref) {
   final menus = ref.watch(accessibleMenusProvider).asData?.value;
   if (menus == null || !menus.resolved) return const <StudioPageDef>[];
   return StudioPageDef.all
-      .where((p) => menus.accessibleKeys.contains(p.key))
+      .where((p) =>
+          !p.backendGated || menus.accessibleKeys.contains(p.key))
       .toList(growable: false);
 });
