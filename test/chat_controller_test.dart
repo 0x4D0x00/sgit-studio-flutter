@@ -7,6 +7,7 @@ import 'package:sgit_studio_flutter/core/contracts/kernel_client.dart';
 import 'package:sgit_studio_flutter/core/contracts/kernel_ops.dart';
 import 'package:sgit_studio_flutter/data/transport/kernel/kernel_frame.dart';
 import 'package:sgit_studio_flutter/domain/models/chat/chat_item.dart';
+import 'package:sgit_studio_flutter/domain/models/chat/chat_session.dart';
 import 'package:sgit_studio_flutter/services/chat/chat_controller.dart';
 
 /// 会话控制器的**性能契约**测试。
