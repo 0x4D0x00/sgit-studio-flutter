@@ -149,6 +149,18 @@ class AppLocalizationsZh extends AppLocalizations {
   String get chatReconnect => '重连';
 
   @override
+  String get chatAddMenu => '更多选项';
+
+  @override
+  String get chatAttachFiles => '附件';
+
+  @override
+  String get chatWebSearch => '联网搜索';
+
+  @override
+  String get chatAgentGateway => 'Agent Gateway';
+
+  @override
   String get chatStop => '停止';
 
   @override

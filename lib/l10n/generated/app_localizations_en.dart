@@ -149,6 +149,18 @@ class AppLocalizationsEn extends AppLocalizations {
   String get chatReconnect => 'Reconnect';
 
   @override
+  String get chatAddMenu => 'More options';
+
+  @override
+  String get chatAttachFiles => 'Attachments';
+
+  @override
+  String get chatWebSearch => 'Web search';
+
+  @override
+  String get chatAgentGateway => 'Agent Gateway';
+
+  @override
   String get chatStop => 'Stop';
 
   @override

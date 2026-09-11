@@ -1,12 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 import 'package:sgit_studio_flutter/design/extensions/app_skin.dart';
 import 'package:sgit_studio_flutter/design/tokens/app_spacing.dart';
 import 'package:sgit_studio_flutter/l10n/generated/app_localizations.dart';
 import 'package:sgit_studio_flutter/layout/metrics/workspace_metrics.dart';
 import 'package:sgit_studio_flutter/features/chat/presentation/model_selector.dart';
+import 'package:sgit_studio_flutter/router/route_names.dart';
 import 'package:sgit_studio_flutter/services/chat/chat_controller.dart';
+import 'package:sgit_studio_flutter/ui/components/menu/app_menu.dart';
 
 /// 输入区。三个状态，全靠 `busy` 一个字段切：
 ///
@@ -98,8 +101,10 @@ class _ChatComposerState extends ConsumerState<ChatComposer> {
                 ),
               ),
             Container(
-              constraints: const BoxConstraints(minHeight: 60),
-              padding: const EdgeInsets.all(AppSpacing.md),
+              padding: const EdgeInsets.symmetric(
+                horizontal: AppSpacing.md,
+                vertical: AppSpacing.xs,
+              ),
               decoration: BoxDecoration(
                 color: skin.inputBg,
                 borderRadius:
@@ -107,43 +112,49 @@ class _ChatComposerState extends ConsumerState<ChatComposer> {
                 border: Border.all(color: skin.inputBorder),
                 boxShadow: skin.inputShadow,
               ),
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.end,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  Expanded(
-                    child: TextField(
-                      controller: _ctl,
-                      focusNode: _focus,
-                      maxLines: 6,
-                      minLines: 1,
-                      onSubmitted: (_) => _submit(ctrl, busy),
-                      // ⚠️ 不能用 InputDecoration.collapsed：它不设 filled，会继承全局
-                      // inputDecorationTheme 的 filled+fillColor+border，在玻璃框里
-                      // 又套出一个灰底输入框。这里逐项显式关掉。
-                      decoration: InputDecoration(
-                        isCollapsed: true,
-                        filled: false,
-                        border: InputBorder.none,
-                        enabledBorder: InputBorder.none,
-                        focusedBorder: InputBorder.none,
-                        contentPadding: EdgeInsets.zero,
-                        hintText: busy
-                            ? l10n.chatSteerHint
-                            : l10n.workspaceInputHint,
-                        hintStyle: TextStyle(color: skin.textTertiary),
-                      ),
+                  // 文本输入框
+                  TextField(
+                    controller: _ctl,
+                    focusNode: _focus,
+                    maxLines: 6,
+                    minLines: 1,
+                    onSubmitted: (_) => _submit(ctrl, busy),
+                    // ⚠️ 不能用 InputDecoration.collapsed：它不设 filled，会继承全局
+                    // inputDecorationTheme 的 filled+fillColor+border，在玻璃框里
+                    // 又套出一个灰底输入框。这里逐项显式关掉。
+                    decoration: InputDecoration(
+                      isCollapsed: true,
+                      filled: false,
+                      border: InputBorder.none,
+                      enabledBorder: InputBorder.none,
+                      focusedBorder: InputBorder.none,
+                      contentPadding: EdgeInsets.zero,
+                      hintText: busy
+                          ? l10n.chatSteerHint
+                          : l10n.workspaceInputHint,
+                      hintStyle: TextStyle(color: skin.textTertiary),
                     ),
                   ),
-                  const SizedBox(width: AppSpacing.xs),
-                  // 模型选择器在输入框内时显示
-                  if (widget.showModelInside) ...[
-                    ModelSelector(
-                      selected: _model,
-                      onChanged: (m) => setState(() => _model = m),
-                    ),
-                    const SizedBox(width: AppSpacing.xs),
-                  ],
-                  _action(ctrl, l10n, busy, hasText),
+                  const SizedBox(height: AppSpacing.xs),
+                  // 「+」菜单 + 模型选择器 + 发送按钮
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      _addMenu(context, skin, l10n),
+                      const Spacer(),
+                      if (widget.showModelInside) ...[
+                        ModelSelector(
+                          selected: _model,
+                          onChanged: (m) => setState(() => _model = m),
+                        ),
+                        const SizedBox(width: AppSpacing.xs),
+                      ],
+                      _action(ctrl, l10n, busy, hasText),
+                    ],
+                  ),
                 ],
               ),
             ),
@@ -161,6 +172,44 @@ class _ChatComposerState extends ConsumerState<ChatComposer> {
               ),
           ],
         ),
+      ),
+    );
+  }
+
+  /// 「+」菜单：附件 / 联网搜索目前内核还没放开对应能力，先留占位提示；
+  /// Agent Gateway 直接跳大模型中转站页（已有落地页，不需要占位）。
+  Widget _addMenu(BuildContext context, AppSkin skin, AppLocalizations l10n) {
+    void comingSoon() => ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(l10n.commonComingSoon),
+            duration: const Duration(seconds: 1),
+          ),
+        );
+
+    return AppMenuAnchor(
+      align: AppMenuAlign.above,
+      semanticLabel: l10n.chatAddMenu,
+      entries: [
+        AppMenuAction(
+          icon: Icons.attach_file,
+          label: l10n.chatAttachFiles,
+          onTap: comingSoon,
+        ),
+        AppMenuAction(
+          icon: Icons.public,
+          label: l10n.chatWebSearch,
+          checked: true,
+          onTap: comingSoon,
+        ),
+        AppMenuAction(
+          icon: Icons.hub_outlined,
+          label: l10n.chatAgentGateway,
+          onTap: () => context.go(RouteNames.studio('llm-relay')),
+        ),
+      ],
+      child: Padding(
+        padding: const EdgeInsets.all(AppSpacing.xxs),
+        child: Icon(Icons.add, size: 20, color: skin.textSecondary),
       ),
     );
   }

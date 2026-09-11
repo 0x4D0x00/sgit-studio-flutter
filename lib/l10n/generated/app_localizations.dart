@@ -374,6 +374,30 @@ abstract class AppLocalizations {
   /// **'重连'**
   String get chatReconnect;
 
+  /// No description provided for @chatAddMenu.
+  ///
+  /// In zh, this message translates to:
+  /// **'更多选项'**
+  String get chatAddMenu;
+
+  /// No description provided for @chatAttachFiles.
+  ///
+  /// In zh, this message translates to:
+  /// **'附件'**
+  String get chatAttachFiles;
+
+  /// No description provided for @chatWebSearch.
+  ///
+  /// In zh, this message translates to:
+  /// **'联网搜索'**
+  String get chatWebSearch;
+
+  /// No description provided for @chatAgentGateway.
+  ///
+  /// In zh, this message translates to:
+  /// **'Agent Gateway'**
+  String get chatAgentGateway;
+
   /// No description provided for @chatStop.
   ///
   /// In zh, this message translates to:
