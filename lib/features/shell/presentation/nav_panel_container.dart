@@ -15,6 +15,7 @@ import 'package:sgit_studio_flutter/services/chat/chat_controller.dart';
 import 'package:sgit_studio_flutter/services/brand/brand_assets.dart';
 import 'package:sgit_studio_flutter/services/brand/brand_config.dart';
 import 'package:sgit_studio_flutter/services/layout/layout_controller.dart';
+import 'package:sgit_studio_flutter/ui/components/confirm.dart';
 import 'package:sgit_studio_flutter/ui/components/dialogs/search_chats_dialog.dart';
 import 'package:sgit_studio_flutter/ui/components/menu/app_menu.dart';
 
@@ -180,6 +181,12 @@ class NavPanelContainer
                 label: sc.name.isEmpty
                     ? sc.id
                     : sc.name,
+                trailingMenu: _chatItemMenu(
+                  context,
+                  ref,
+                  l10n,
+                  sc,
+                ),
               ),
           ],
         ),
@@ -311,7 +318,10 @@ class NavPanelContainer
   void _onSearch(
     BuildContext context,
     WidgetRef ref,
-    List<ResourceItem> scenes,
+    List<
+      ResourceItem
+    >
+    scenes,
   ) {
     showSearchChatsDialog(
       context,
@@ -319,16 +329,104 @@ class NavPanelContainer
         for (final sc in scenes)
           SearchChatsDialogItem(
             id: '$_assistantPrefix${sc.id}',
-            label: sc.name.isEmpty ? sc.id : sc.name,
+            label: sc.name.isEmpty
+                ? sc.id
+                : sc.name,
           ),
       ],
-      onSelect: (id) => _onSelect(
-        context,
-        ref,
-        AppLocalizations.of(context),
-        id,
-      ),
+      onSelect:
+          (
+            id,
+          ) => _onSelect(
+            context,
+            ref,
+            AppLocalizations.of(
+              context,
+            ),
+            id,
+          ),
     );
+  }
+
+  /// 历史对话项行尾「⋯」菜单。只有 Delete 真落地（场景资源有
+  /// `/sgcode-scene/remove`），其余四项后端还没开放，先弹「功能待接」。
+  List<
+    AppMenuEntry
+  >
+  _chatItemMenu(
+    BuildContext context,
+    WidgetRef ref,
+    AppLocalizations l10n,
+    ResourceItem sc,
+  ) {
+    final label = sc.name.isEmpty
+        ? sc.id
+        : sc.name;
+    return [
+      AppMenuAction(
+        icon: Icons.push_pin_outlined,
+        label: l10n.navChatPin,
+        shortcut: 'P',
+        onTap: () => _notWired(
+          context,
+          l10n,
+          'pin',
+        ),
+      ),
+      AppMenuAction(
+        icon: Icons.edit_outlined,
+        label: l10n.navChatRename,
+        shortcut: 'R',
+        onTap: () => _notWired(
+          context,
+          l10n,
+          'rename',
+        ),
+      ),
+      AppMenuAction(
+        icon: Icons.delete_outline,
+        label: l10n.commonDelete,
+        shortcut: 'D',
+        danger: true,
+        onTap: () => _onDeleteChat(
+          context,
+          ref,
+          l10n,
+          sc.id,
+          label,
+        ),
+      ),
+    ];
+  }
+
+  Future<
+    void
+  >
+  _onDeleteChat(
+    BuildContext context,
+    WidgetRef ref,
+    AppLocalizations l10n,
+    String id,
+    String label,
+  ) async {
+    // 删除不可逆，走全站统一的危险确认框（同 resource_list_page 的做法）。
+    final ok = await confirmDanger(
+      context,
+      title: l10n.studioRemoveConfirm(
+        label,
+      ),
+      confirmText: l10n.commonDelete,
+    );
+    if (!ok) return;
+    await ref
+        .read(
+          resourceListProvider(
+            StudioPageSpecs.scenes,
+          ).notifier,
+        )
+        .remove(
+          id,
+        );
   }
 
   void _notWired(

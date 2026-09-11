@@ -24,6 +24,12 @@ class AppLocalizationsZh extends AppLocalizations {
   String get navHistory => '历史对话';
 
   @override
+  String get navChatPin => '置顶';
+
+  @override
+  String get navChatRename => '重命名';
+
+  @override
   String get navAssistants => '助理';
 
   @override

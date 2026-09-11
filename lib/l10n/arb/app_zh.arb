@@ -7,6 +7,8 @@
   "navSearchDialogEmpty": "未找到匹配的会话",
   "navNewChat": "新建对话",
   "navHistory": "历史对话",
+  "navChatPin": "置顶",
+  "navChatRename": "重命名",
   "navAssistants": "助理",
   "assistantPentest": "渗透助理",
   "assistantDefense": "防护助理",

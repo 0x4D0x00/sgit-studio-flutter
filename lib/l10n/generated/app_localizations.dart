@@ -128,6 +128,18 @@ abstract class AppLocalizations {
   /// **'历史对话'**
   String get navHistory;
 
+  /// No description provided for @navChatPin.
+  ///
+  /// In zh, this message translates to:
+  /// **'置顶'**
+  String get navChatPin;
+
+  /// No description provided for @navChatRename.
+  ///
+  /// In zh, this message translates to:
+  /// **'重命名'**
+  String get navChatRename;
+
   /// No description provided for @navAssistants.
   ///
   /// In zh, this message translates to:

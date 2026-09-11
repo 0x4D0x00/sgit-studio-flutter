@@ -24,6 +24,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get navHistory => 'History';
 
   @override
+  String get navChatPin => 'Pin';
+
+  @override
+  String get navChatRename => 'Rename';
+
+  @override
   String get navAssistants => 'Assistants';
 
   @override

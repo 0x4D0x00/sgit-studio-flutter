@@ -14,6 +14,7 @@ class NavEntry {
     required this.icon,
     required this.label,
     this.menu = const [],
+    this.trailingMenu = const [],
   });
 
   /// 选中态比对用的标识。容器自己决定它是路由、是 studio key、还是别的什么。
@@ -28,8 +29,18 @@ class NavEntry {
   /// 菜单内容（几项、点了去哪）属于业务，由容器声明；布局层只管把它挂上。
   final List<AppMenuEntry> menu;
 
+  /// 行尾「⋯」按钮的菜单（历史对话项：Pin / Rename / Delete 等）。
+  ///
+  /// 跟 [menu] 不是一回事：这一行**仍然**可点选中（`onSelect` 照常触发），
+  /// 「⋯」只是行内独立的第二个热区，悬停才露出来。两者可以同时非空吗？
+  /// 目前没有这种行，但字段各管各的，将来要叠加也不用改数据结构。
+  final List<AppMenuEntry> trailingMenu;
+
   /// 这一行是不是「菜单把手」而非可导航项。
   bool get hasMenu => menu.isNotEmpty;
+
+  /// 是否带行尾「⋯」按钮。
+  bool get hasTrailingMenu => trailingMenu.isNotEmpty;
 
   /// 菜单里有项被勾上 = 当前正停在这一行的某个子页里。
   ///

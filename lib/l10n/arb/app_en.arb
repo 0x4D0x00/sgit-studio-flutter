@@ -6,6 +6,8 @@
   "navSearchDialogEmpty": "No matching chats found",
   "navNewChat": "New chat",
   "navHistory": "History",
+  "navChatPin": "Pin",
+  "navChatRename": "Rename",
   "navAssistants": "Assistants",
   "assistantPentest": "Pentest assistant",
   "assistantDefense": "Defense assistant",
