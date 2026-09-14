@@ -7,6 +7,7 @@ import 'package:sgit_studio_flutter/features/auth/application/auth_controller.da
 import 'package:sgit_studio_flutter/features/auth/presentation/pages/login_page.dart';
 import 'package:sgit_studio_flutter/features/settings/presentation/pages/settings_page.dart';
 import 'package:sgit_studio_flutter/features/shell/presentation/app_shell_container.dart';
+import 'package:sgit_studio_flutter/features/shell/presentation/history_page.dart';
 import 'package:sgit_studio_flutter/features/shell/presentation/nav_panel_container.dart';
 import 'package:sgit_studio_flutter/features/studio/presentation/pages/studio_page.dart';
 import 'package:sgit_studio_flutter/features/workspace/presentation/pages/workspace_page.dart';
@@ -32,9 +33,11 @@ final routerProvider = Provider<GoRouter>((ref) {
         builder: (context, state, child) {
           // 确定当前激活的导航项：产物页 / studio 子页 / 默认 null（工作台）。
           final path = state.uri.path;
-          final activeNavId = path == RouteNames.artifacts
-              ? NavPanelContainer.idArtifacts
-              : state.pathParameters['key'];
+          final activeNavId = switch (path) {
+            RouteNames.artifacts => NavPanelContainer.idArtifacts,
+            RouteNames.history => NavPanelContainer.idHistory,
+            _ => state.pathParameters['key'],
+          };
 
           return AppShellContainer(
             activeNavId: activeNavId,
@@ -46,6 +49,10 @@ final routerProvider = Provider<GoRouter>((ref) {
           GoRoute(
             path: RouteNames.artifacts,
             builder: (_, _) => const ArtifactsPage(),
+          ),
+          GoRoute(
+            path: RouteNames.history,
+            builder: (_, _) => const HistoryPage(),
           ),
           GoRoute(
             path: '${RouteNames.studioPrefix}/:key',
