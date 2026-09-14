@@ -10,12 +10,10 @@ class SearchChatsDialogItem {
   const SearchChatsDialogItem({
     required this.id,
     required this.label,
-    this.icon = Icons.chat_bubble_outline,
   });
 
   final String id;
   final String label;
-  final IconData icon;
 }
 
 /// 居中搜索弹窗：顶部搜索框 + 下方历史会话列表，随输入实时过滤。
@@ -148,8 +146,6 @@ class _SearchChatsDialogState extends State<_SearchChatsDialog> {
         ),
         child: Row(
           children: [
-            Icon(item.icon, size: 18, color: skin.textSecondary),
-            const SizedBox(width: AppSpacing.xs),
             Expanded(
               child: Text(
                 item.label,
