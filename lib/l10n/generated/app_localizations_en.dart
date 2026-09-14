@@ -30,6 +30,26 @@ class AppLocalizationsEn extends AppLocalizations {
   String get navChatRename => 'Rename';
 
   @override
+  String get navViewAll => 'View all';
+
+  @override
+  String get navSelect => 'Select';
+
+  @override
+  String get navSelectAll => 'Select all';
+
+  @override
+  String get navDeselectAll => 'Deselect all';
+
+  @override
+  String navSelectedCount(int count) {
+    return '$count selected';
+  }
+
+  @override
+  String get commonClose => 'Close';
+
+  @override
   String get navAssistants => 'Assistants';
 
   @override
@@ -243,6 +263,11 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String studioRemoveConfirm(String name) {
     return 'Delete “$name”?';
+  }
+
+  @override
+  String studioRemoveConfirmMany(int count) {
+    return 'Delete $count selected items?';
   }
 
   @override

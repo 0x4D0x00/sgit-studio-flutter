@@ -53,6 +53,23 @@ class NavSectionHeader extends StatelessWidget {
           else
             _title(skin),
           const Spacer(),
+          // 「查看全部」箭头 —— 画在操作按钮**前面**，两者是独立热区。
+          if (section.viewAllTooltip != null && section.onViewAll != null)
+            InkWell(
+              onTap: section.onViewAll,
+              borderRadius: BorderRadius.circular(4),
+              child: Tooltip(
+                message: section.viewAllTooltip!,
+                child: Padding(
+                  padding: const EdgeInsets.all(4),
+                  child: Icon(
+                    Icons.north_east,
+                    size: 15,
+                    color: skin.textSecondary,
+                  ),
+                ),
+              ),
+            ),
           // 操作按钮
           if (section.action == NavSectionAction.add && onAddProject != null)
             InkWell(

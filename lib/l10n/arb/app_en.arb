@@ -8,6 +8,19 @@
   "navHistory": "History",
   "navChatPin": "Pin",
   "navChatRename": "Rename",
+  "navViewAll": "View all",
+  "navSelect": "Select",
+  "navSelectAll": "Select all",
+  "navDeselectAll": "Deselect all",
+  "navSelectedCount": "{count} selected",
+  "@navSelectedCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "commonClose": "Close",
   "navAssistants": "Assistants",
   "assistantPentest": "Pentest assistant",
   "assistantDefense": "Defense assistant",
@@ -130,6 +143,14 @@
     "placeholders": {
       "name": {
         "type": "String"
+      }
+    }
+  },
+  "studioRemoveConfirmMany": "Delete {count} selected items?",
+  "@studioRemoveConfirmMany": {
+    "placeholders": {
+      "count": {
+        "type": "int"
       }
     }
   },

@@ -9,6 +9,19 @@
   "navHistory": "历史对话",
   "navChatPin": "置顶",
   "navChatRename": "重命名",
+  "navViewAll": "查看全部",
+  "navSelect": "选择",
+  "navSelectAll": "全选",
+  "navDeselectAll": "取消全选",
+  "navSelectedCount": "已选择 {count} 项",
+  "@navSelectedCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "commonClose": "关闭",
   "navAssistants": "助理",
   "assistantPentest": "渗透助理",
   "assistantDefense": "防护助理",
@@ -132,6 +145,14 @@
     "placeholders": {
       "name": {
         "type": "String"
+      }
+    }
+  },
+  "studioRemoveConfirmMany": "确定删除选中的 {count} 项？",
+  "@studioRemoveConfirmMany": {
+    "placeholders": {
+      "count": {
+        "type": "int"
       }
     }
   },

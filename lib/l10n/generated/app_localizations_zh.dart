@@ -30,6 +30,26 @@ class AppLocalizationsZh extends AppLocalizations {
   String get navChatRename => '重命名';
 
   @override
+  String get navViewAll => '查看全部';
+
+  @override
+  String get navSelect => '选择';
+
+  @override
+  String get navSelectAll => '全选';
+
+  @override
+  String get navDeselectAll => '取消全选';
+
+  @override
+  String navSelectedCount(int count) {
+    return '已选择 $count 项';
+  }
+
+  @override
+  String get commonClose => '关闭';
+
+  @override
   String get navAssistants => '助理';
 
   @override
@@ -242,6 +262,11 @@ class AppLocalizationsZh extends AppLocalizations {
   @override
   String studioRemoveConfirm(String name) {
     return '确定删除「$name」？';
+  }
+
+  @override
+  String studioRemoveConfirmMany(int count) {
+    return '确定删除选中的 $count 项？';
   }
 
   @override

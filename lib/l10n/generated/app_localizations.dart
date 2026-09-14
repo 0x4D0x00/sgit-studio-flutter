@@ -140,6 +140,42 @@ abstract class AppLocalizations {
   /// **'重命名'**
   String get navChatRename;
 
+  /// No description provided for @navViewAll.
+  ///
+  /// In zh, this message translates to:
+  /// **'查看全部'**
+  String get navViewAll;
+
+  /// No description provided for @navSelect.
+  ///
+  /// In zh, this message translates to:
+  /// **'选择'**
+  String get navSelect;
+
+  /// No description provided for @navSelectAll.
+  ///
+  /// In zh, this message translates to:
+  /// **'全选'**
+  String get navSelectAll;
+
+  /// No description provided for @navDeselectAll.
+  ///
+  /// In zh, this message translates to:
+  /// **'取消全选'**
+  String get navDeselectAll;
+
+  /// No description provided for @navSelectedCount.
+  ///
+  /// In zh, this message translates to:
+  /// **'已选择 {count} 项'**
+  String navSelectedCount(int count);
+
+  /// No description provided for @commonClose.
+  ///
+  /// In zh, this message translates to:
+  /// **'关闭'**
+  String get commonClose;
+
   /// No description provided for @navAssistants.
   ///
   /// In zh, this message translates to:
@@ -541,6 +577,12 @@ abstract class AppLocalizations {
   /// In zh, this message translates to:
   /// **'确定删除「{name}」？'**
   String studioRemoveConfirm(String name);
+
+  /// No description provided for @studioRemoveConfirmMany.
+  ///
+  /// In zh, this message translates to:
+  /// **'确定删除选中的 {count} 项？'**
+  String studioRemoveConfirmMany(int count);
 
   /// No description provided for @studioStale.
   ///

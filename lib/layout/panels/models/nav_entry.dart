@@ -78,6 +78,8 @@ class NavSection {
     this.collapsible = false,
     this.emptyHint,
     this.emptyHintIcon,
+    this.viewAllTooltip,
+    this.onViewAll,
   });
 
   final String? title;
@@ -92,6 +94,12 @@ class NavSection {
 
   /// `action == menu` 时的菜单内容（图2 的 Group by / Sort by 子菜单）。
   final List<AppMenuEntry> menu;
+
+  /// 标题行「查看全部」斜向箭头按钮的 tooltip。跟 [action] 的菜单按钮是**独立的
+  /// 第二个按钮**（画在它前面），点击打开该组的全屏列表（历史对话组用）。
+  /// 为空则不渲染这颗按钮。
+  final String? viewAllTooltip;
+  final VoidCallback? onViewAll;
 
   /// 标题后是否带展开/收起箭头。
   final bool collapsible;

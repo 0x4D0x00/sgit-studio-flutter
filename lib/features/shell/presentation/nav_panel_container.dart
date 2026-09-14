@@ -37,6 +37,7 @@ class NavPanelContainer
   // 非 studio 的固定项 id。用常量而非字面量，避免和 studio key 撞。
   static const String _idNewChat = 'nav.new-chat';
   static const String idArtifacts = 'nav.artifacts';
+  static const String idHistory = 'nav.history';
   static const String _idAgent = 'nav.agent';
 
   /// 助理项的 id 前缀，避免与 studio 的 key 撞。
@@ -123,6 +124,10 @@ class NavPanelContainer
         NavSection(
           title: l10n.navHistory,
           collapsible: true,
+          viewAllTooltip: l10n.navViewAll,
+          onViewAll: () => _onViewAllHistory(
+            context,
+          ),
           action: NavSectionAction.menu,
           menu: [
             AppMenuSubmenu(
@@ -313,6 +318,16 @@ class NavPanelContainer
           ),
         );
     }
+  }
+
+  /// 「历史对话」标题行的斜向箭头 —— 在中栏打开完整历史列表页（跟输出物页
+  /// 同一种落地方式，不是弹窗）。
+  void _onViewAllHistory(
+    BuildContext context,
+  ) {
+    context.go(
+      RouteNames.history,
+    );
   }
 
   void _onSearch(

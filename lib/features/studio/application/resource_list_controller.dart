@@ -80,6 +80,22 @@ class ResourceListController
     }
   }
 
+  /// 批量删除（历史对话「全选删除」用）。逐个调用现有的单删端点 ——
+  /// 后端没有批量接口，串行发是唯一安全的做法；结束后统一 reload 一次，
+  /// 不必每删一条就刷一次列表。
+  Future<void> removeMany(Iterable<String> ids) async {
+    final path = arg.removePath;
+    if (path == null) return;
+    try {
+      for (final id in ids) {
+        await _repo.post(path, {'id': id});
+      }
+      await reload();
+    } catch (e) {
+      state = state.copyWith(error: _msg(e));
+    }
+  }
+
   Future<void> refreshOne(String id) async {
     final path = arg.refreshPath;
     if (path == null) return;
