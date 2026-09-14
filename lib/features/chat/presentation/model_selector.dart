@@ -34,7 +34,7 @@ class ModelSelector extends ConsumerWidget {
       enabled: enabled,
       semanticLabel: l10n.modelSelector,
       minWidth: 260,
-      maxWidth: 360,
+      maxWidth: 340,
       maxHeight: 420,
       entries: [
         AppMenuAction(
