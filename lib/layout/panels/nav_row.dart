@@ -83,24 +83,28 @@ class _NavRowState
 
     // 菜单开着时这一行保持高亮，否则菜单飘在外面、行是灰的，看着不像一对。
     // 停在某个子页里时也算 —— 那一行是子页的归属。
-    //
     // ⚠️ 历史对话项（isChatItem）例外：它们的选中态**不显示高亮**，只有
-    // 悬停时才显示灰底（菜单开着也不保持灰底）—— 跟 ChatGPT/Claude 左栏行为一致。
+    // 悬停时才显示灰底（菜单开着也不保持灰底）
     final highlighted =
         !isChatItem &&
         (selected ||
             menuOpen ||
             entry.menuHasChecked);
-    // 历史对话项：悬停就出灰底；直到点了菜单项或点了空白处把菜单关掉。
+    // 智能体行和历史对话项：悬停都出灰底（不再用蓝底）
+    final hoverBg = skin.text.withValues(
+      alpha: 0.06,
+    );
+    // 智能体行悬停或菜单开着时也用灰底；选中态（进入子页）才用蓝底
     final showBackground = isChatItem
         ? (_hovering ||
               menuOpen)
-        : highlighted;
-    final chatHoverBg = skin.text.withValues(
-      alpha: 0.06,
-    );
-    final backgroundColor = isChatItem
-        ? chatHoverBg
+        : (highlighted ||
+              _hovering);
+    final backgroundColor =
+        (isChatItem ||
+            _hovering ||
+            menuOpen)
+        ? hoverBg
         : skin.navItemActive;
     final fg = highlighted
         ? skin.text
@@ -190,7 +194,7 @@ class _NavRowState
                     child: AppMenuAnchor(
                       entries: entry.trailingMenu,
                       trigger: AppMenuTrigger.tap,
-                      align: AppMenuAlign.end,
+                      align: AppMenuAlign.underEnd,
                       semanticLabel: entry.label,
                       onOpenChanged: onMenuOpenChanged,
                       child: Icon(
