@@ -189,6 +189,7 @@
   "loginPasswordRequired": "Please enter your password",
   "loginCaptchaRequired": "Please enter the image captcha",
   "settingsTitle": "Settings",
+  "settingsGeneral": "General",
   "settingsThemeMode": "Theme mode",
   "settingsThemeTransparent": "Transparent",
   "settingsThemeLight": "Light",

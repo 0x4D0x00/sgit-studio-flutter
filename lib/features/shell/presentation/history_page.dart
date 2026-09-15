@@ -12,10 +12,6 @@ import 'package:sgit_studio_flutter/services/chat/chat_controller.dart';
 import 'package:sgit_studio_flutter/ui/components/confirm.dart';
 
 /// 历史对话「查看全部」页 —— 左栏「历史对话」标题行那颗斜向箭头点开的完整列表。
-///
-/// 跟 [ArtifactsPage] 同一种落地方式：在中栏就地渲染整页，不是弹窗覆盖。
-/// 顶栏结构也照抄 artifacts 那一套（标题 + 搜索按钮/内嵌搜索框 + 选择/关闭）。
-///
 /// 右上角「选择」进入多选态：整页变成 checkbox 列表 + 全选 + 批量删除；
 /// 多选态下右上角 X 退出多选（不关页面），非多选态下 X 才返回工作台。
 class HistoryPage extends ConsumerStatefulWidget {

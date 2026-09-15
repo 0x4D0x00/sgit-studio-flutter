@@ -358,6 +358,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settingsTitle => 'Settings';
 
   @override
+  String get settingsGeneral => 'General';
+
+  @override
   String get settingsThemeMode => 'Theme mode';
 
   @override

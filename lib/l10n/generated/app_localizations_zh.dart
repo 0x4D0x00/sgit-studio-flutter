@@ -356,6 +356,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settingsTitle => '设置';
 
   @override
+  String get settingsGeneral => '通用';
+
+  @override
   String get settingsThemeMode => '主题模式';
 
   @override

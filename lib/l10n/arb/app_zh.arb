@@ -191,6 +191,7 @@
   "loginPasswordRequired": "请输入密码",
   "loginCaptchaRequired": "请输入图形验证码",
   "settingsTitle": "设置",
+  "settingsGeneral": "通用",
   "settingsThemeMode": "主题模式",
   "settingsThemeTransparent": "透明",
   "settingsThemeLight": "浅色",

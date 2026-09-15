@@ -752,6 +752,12 @@ abstract class AppLocalizations {
   /// **'设置'**
   String get settingsTitle;
 
+  /// No description provided for @settingsGeneral.
+  ///
+  /// In zh, this message translates to:
+  /// **'通用'**
+  String get settingsGeneral;
+
   /// No description provided for @settingsThemeMode.
   ///
   /// In zh, this message translates to:
