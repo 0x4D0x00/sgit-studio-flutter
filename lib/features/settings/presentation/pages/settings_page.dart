@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:sgit_studio_flutter/l10n/generated/app_localizations.dart';
-import 'package:sgit_studio_flutter/services/i18n/locale_controller.dart';
 import 'package:sgit_studio_flutter/design/tokens/app_colors.dart';
 import 'package:sgit_studio_flutter/design/tokens/app_spacing.dart';
 import 'package:sgit_studio_flutter/services/theme/theme_controller.dart';
@@ -19,7 +18,6 @@ class SettingsPage extends ConsumerWidget {
     final theme = Theme.of(context);
     final ts = ref.watch(themeControllerProvider);
     final tc = ref.read(themeControllerProvider.notifier);
-    final locale = ref.watch(localeControllerProvider);
 
     // 主题模式面板
     final modeSection = _section(theme, l10n.settingsThemeMode, SegmentedButton<AppThemeMode>(
@@ -32,19 +30,6 @@ class SettingsPage extends ConsumerWidget {
       selected: {ts.mode},
       onSelectionChanged: (s) => tc.setMode(s.first),
       showSelectedIcon: false,
-    ));
-
-    // 语言面板
-    final langSection = _section(theme, l10n.settingsLanguage, Wrap(
-      spacing: AppSpacing.sm,
-      children: [
-        ChoiceChip(label: Text(l10n.settingsLanguageZh), selected: locale?.languageCode == 'zh',
-            onSelected: (_) => ref.read(localeControllerProvider.notifier).setLocale(const Locale('zh'))),
-        ChoiceChip(label: Text(l10n.settingsLanguageEn), selected: locale?.languageCode == 'en',
-            onSelected: (_) => ref.read(localeControllerProvider.notifier).setLocale(const Locale('en'))),
-        ChoiceChip(label: Text(l10n.settingsThemeSystem), selected: locale == null,
-            onSelected: (_) => ref.read(localeControllerProvider.notifier).setLocale(null)),
-      ],
     ));
 
     // 主题色面板
@@ -100,17 +85,8 @@ class SettingsPage extends ConsumerWidget {
         Text(l10n.settingsTitle, style: theme.textTheme.headlineMedium),
         const SizedBox(height: AppSpacing.lg),
 
-        // 第一行：主题模式 | 语言
-        IntrinsicHeight(
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Expanded(child: modeSection),
-              const SizedBox(width: AppSpacing.md),
-              Expanded(child: langSection),
-            ],
-          ),
-        ),
+        // 第一行：主题模式（整行，语言已挪到侧栏用户菜单）
+        modeSection,
 
         // 第二行：主题色 | 次主题色
         IntrinsicHeight(

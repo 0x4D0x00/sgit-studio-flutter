@@ -10,6 +10,7 @@ import 'package:sgit_studio_flutter/features/studio/studio_page_specs.dart';
 import 'package:sgit_studio_flutter/l10n/generated/app_localizations.dart';
 import 'package:sgit_studio_flutter/layout/panels/models/nav_entry.dart';
 import 'package:sgit_studio_flutter/layout/panels/nav_panel.dart';
+import 'package:sgit_studio_flutter/features/settings/presentation/widgets/language_dialog.dart';
 import 'package:sgit_studio_flutter/features/settings/presentation/widgets/settings_dialog.dart';
 import 'package:sgit_studio_flutter/router/route_names.dart';
 import 'package:sgit_studio_flutter/services/chat/chat_controller.dart';
@@ -218,6 +219,11 @@ class NavPanelContainer
           icon: Icons.settings_outlined,
           label: l10n.navSettings,
           onTap: () => showSettingsDialog(context),
+        ),
+        AppMenuAction(
+          icon: Icons.language,
+          label: l10n.settingsLanguage,
+          onTap: () => showLanguageDialog(context),
         ),
         const AppMenuDivider(),
         AppMenuAction(
