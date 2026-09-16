@@ -26,8 +26,8 @@ class _SettingsDialog extends StatelessWidget {
     final skin = AppSkin.of(context);
     final l10n = AppLocalizations.of(context);
     final size = MediaQuery.sizeOf(context);
-    final width = math.min(1100.0, size.width * 0.9);
-    final height = math.min(760.0, size.height * 0.85);
+    final width = math.min(800.0, size.width * 0.9);
+    final height = math.min(660.0, size.height * 0.8);
 
     return Dialog(
       backgroundColor: skin.containerBg,
@@ -47,7 +47,7 @@ class _SettingsDialog extends StatelessWidget {
                 VerticalDivider(width: 1, thickness: 1, color: skin.borderSecondary),
                 Expanded(
                   child: Padding(
-                    padding: const EdgeInsets.all(AppSpacing.lg),
+                    padding: const EdgeInsets.all(AppSpacing.md),
                     child: SettingsPage(),
                   ),
                 ),

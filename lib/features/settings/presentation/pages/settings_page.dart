@@ -82,7 +82,7 @@ class SettingsPage extends ConsumerWidget {
 
     return ListView(
       children: [
-        Text(l10n.settingsTitle, style: theme.textTheme.headlineMedium),
+        Text(l10n.settingsTitle, style: theme.textTheme.headlineSmall),
         const SizedBox(height: AppSpacing.lg),
 
         // 第一行：主题模式（整行，语言已挪到侧栏用户菜单）
