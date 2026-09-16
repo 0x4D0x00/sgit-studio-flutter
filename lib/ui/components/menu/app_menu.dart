@@ -14,12 +14,6 @@ enum AppMenuTrigger {
   tap,
 
   /// 鼠标悬停即弹出，左键点击**钉住**（移开也不关，直到点空白或选了一项）。
-  ///
-  /// 给「一行本身没有落地页、只是一组子页入口」的导航行用（左栏的智能体行）：
-  /// 悬停就能扫一眼有哪些子页，想反复点几项时点一下钉住。
-  ///
-  /// ⚠️ 触屏没有 hover，钉住那一下就是它唯一的入口 —— 所以点击必须也能开，
-  /// 不能只做「点击=关」。
   hover,
 }
 
@@ -59,7 +53,7 @@ class AppMenuAnchor
     required this.entries,
     required this.child,
     this.trigger = AppMenuTrigger.tap,
-    this.align = AppMenuAlign.under,
+    this.align = AppMenuAlign.underEnd,
     this.minWidth = AppMenuMetrics.minWidth,
     this.maxWidth,
     this.maxHeight,
@@ -257,13 +251,9 @@ class _AppMenuAnchorState
     required Widget child,
   }) => MouseRegion(
     onEnter:
-        (
-          _,
-        ) => onEnter(),
+        (_,) => onEnter(),
     onExit:
-        (
-          _,
-        ) => onExit(),
+        (_,) => onExit(),
     child: child,
   );
 
@@ -303,10 +293,7 @@ class _AppMenuAnchorState
   Offset get _offset {
     switch (widget.align) {
       case AppMenuAlign.under:
-        return const Offset(
-          0,
-          AppMenuMetrics.gap,
-        );
+        return const Offset(0,AppMenuMetrics.gap,);
       case AppMenuAlign.underEnd:
         // 菜单**右**边缘对齐触发器**右**边缘。
         //
@@ -319,10 +306,7 @@ class _AppMenuAnchorState
           AppMenuMetrics.gap,
         );
       case AppMenuAlign.above:
-        return const Offset(
-          0,
-          -AppMenuMetrics.gap,
-        );
+        return const Offset(0, -AppMenuMetrics.gap);
       case AppMenuAlign.end:
         return const Offset(
           AppMenuMetrics.gap,
@@ -372,24 +356,16 @@ appMenuStyle(
     ),
   ),
   minimumSize: WidgetStatePropertyAll(
-    Size(
-      minWidth ??
-          AppMenuMetrics.minWidth,
-      0,
-    ),
+    Size(minWidth ??AppMenuMetrics.minWidth,0,),
   ),
   maximumSize:
-      (maxWidth ==
-              null &&
-          maxHeight ==
-              null)
+      (maxWidth ==null &&
+          maxHeight ==null)
       ? null
       : WidgetStatePropertyAll(
           Size(
-            maxWidth ??
-                double.infinity,
-            maxHeight ??
-                double.infinity,
+            maxWidth ?? double.infinity,
+            maxHeight ?? double.infinity,
           ),
         ),
 );
@@ -413,10 +389,7 @@ buildAppMenuChildren(
   entries, {
   double? maxWidth,
 }) {
-  final out =
-      <
-        Widget
-      >[];
+  final out =<Widget>[];
   for (final e in entries) {
     switch (e) {
       case AppMenuAction():
@@ -487,29 +460,19 @@ _action(
       : maxWidth -
             AppMenuMetrics.itemPadStart -
             AppMenuMetrics.itemPadEnd -
-            (e.icon ==
-                    null
-                ? 0
-                : 28) -
-            (e.shortcut !=
-                        null ||
-                    e.trailingValue !=
-                        null ||
-                    e.checked
-                ? 60
-                : 0);
+            (e.icon ==null? 0: 28) -
+            (e.shortcut !=null ||e.trailingValue !=null ||
+            e.checked
+                ? 60: 0);
 
   return MenuItemButton(
     style: _itemStyle(
       skin,
       minHeight: AppMenuMetrics.itemHeight,
     ),
-    onPressed: e.enabled
-        ? e.onTap
-        : null,
+    onPressed: e.enabled? e.onTap: null,
     leadingIcon:
-        e.icon ==
-            null
+        e.icon ==null
         ? null
         : Icon(
             e.icon,
