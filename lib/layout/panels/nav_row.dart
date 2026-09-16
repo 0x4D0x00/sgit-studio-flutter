@@ -124,8 +124,8 @@ class _NavRowState
       ),
       child: Row(
         children: [
-          // 历史对话列表项显示圆点而非图标
-          if (isChatItem)
+          // 历史对话列表项显示圆点而非图标，特殊操作行例外（如「查看全部」）
+          if (isChatItem && !entry.isSpecialAction)
             Container(
               width: 6,
               height: 6,
@@ -145,7 +145,7 @@ class _NavRowState
               size: WorkspaceMetrics.navIconSize,
               color: fg,
             ),
-          if (!isChatItem)
+          if (!isChatItem || entry.isSpecialAction)
             const SizedBox(
               width: WorkspaceMetrics.navItemGap,
             ),

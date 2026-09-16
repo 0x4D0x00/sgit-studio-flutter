@@ -41,6 +41,10 @@ class NavPanelContainer
   static const String idArtifacts = 'nav.artifacts';
   static const String idHistory = 'nav.history';
   static const String _idAgent = 'nav.agent';
+  static const String _idHistoryMore = 'nav.history-more';
+
+  /// 左栏历史对话最多显示这么多条，超出的用「查看全部」行代替（跳去全量列表页）。
+  static const int _historyLimit = 20;
 
   /// 助理项的 id 前缀，避免与 studio 的 key 撞。
   static const String _assistantPrefix = 'assistant:';
@@ -115,7 +119,7 @@ class NavPanelContainer
         // 否则用户不知道有「置顶」这回事。
         NavSection(
           title: '置顶',
-          action: NavSectionAction.add,
+          // action: NavSectionAction.add,
           emptyHint: 'Pin chats to keep them here',
           emptyHintIcon: Icons.push_pin_outlined,
           entries: const [
@@ -181,7 +185,7 @@ class NavPanelContainer
           ],
           entries: [
             // TODO: 换成 thread/list 的真实历史，scenes 只是临时占位。
-            for (final sc in scenes)
+            for (final sc in scenes.take(_historyLimit))
               NavEntry(
                 id: '$_assistantPrefix${sc.id}',
                 icon: Icons.chat_bubble_outline,
@@ -194,6 +198,14 @@ class NavPanelContainer
                   l10n,
                   sc,
                 ),
+              ),
+            // 超出上限：末尾加一行「查看全部」，点了跳去历史列表页。
+            if (scenes.length > _historyLimit)
+              NavEntry(
+                id: _idHistoryMore,
+                icon: Icons.more_horiz,
+                label: l10n.navViewAll,
+                isSpecialAction: true,
               ),
           ],
         ),
@@ -246,11 +258,11 @@ class NavPanelContainer
             layoutControllerProvider.notifier,
           )
           .toggleNav(),
-      onAddProject: () => _notWired(
-        context,
-        l10n,
-        'add-project',
-      ),
+      // onAddProject: () => _notWired(
+      //   context,
+      //   l10n,
+      //   'add-project',
+      // ),
     );
   }
 
@@ -287,6 +299,11 @@ class NavPanelContainer
       case idArtifacts:
         context.go(
           RouteNames.artifacts,
+        );
+      case _idHistoryMore:
+        // 「查看全部」占位行 —— 跳转至历史列表页
+        _onViewAllHistory(
+          context,
         );
       case _idAgent:
         // 走不到这里 —— 这一行挂的是悬停菜单，`NavPanel` 不给带菜单的行接
@@ -419,9 +436,7 @@ class NavPanelContainer
     ];
   }
 
-  Future<
-    void
-  >
+  Future<void>
   _onDeleteChat(
     BuildContext context,
     WidgetRef ref,
@@ -444,9 +459,7 @@ class NavPanelContainer
             StudioPageSpecs.scenes,
           ).notifier,
         )
-        .remove(
-          id,
-        );
+        .remove(id,);
   }
 
   void _notWired(
@@ -459,10 +472,8 @@ class NavPanelContainer
     ).showSnackBar(
       SnackBar(
         content: Text(
-          l10n.commonNotWired(
-            id,
+          l10n.commonNotWired(id,),
           ),
-        ),
         duration: const Duration(
           seconds: 1,
         ),

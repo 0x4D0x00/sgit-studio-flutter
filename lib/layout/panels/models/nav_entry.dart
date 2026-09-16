@@ -15,6 +15,7 @@ class NavEntry {
     required this.label,
     this.menu = const [],
     this.trailingMenu = const [],
+    this.isSpecialAction = false,
   });
 
   /// 选中态比对用的标识。容器自己决定它是路由、是 studio key、还是别的什么。
@@ -22,6 +23,10 @@ class NavEntry {
 
   final IconData icon;
   final String label;
+
+  /// 特殊操作行（如「查看全部」）：不显示圆点，和顶部导航对齐，
+  /// 即使在 chat item 区域里也按普通行渲染。
+  final bool isSpecialAction;
 
   /// 悬停弹出的菜单（智能体行的九个子页）。非空时这一行**不再**触发
   /// `onSelect` —— 它本身没有落地页，只是一组入口的把手。
