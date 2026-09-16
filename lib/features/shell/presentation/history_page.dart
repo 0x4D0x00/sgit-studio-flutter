@@ -10,6 +10,7 @@ import 'package:sgit_studio_flutter/l10n/generated/app_localizations.dart';
 import 'package:sgit_studio_flutter/router/route_names.dart';
 import 'package:sgit_studio_flutter/services/chat/chat_controller.dart';
 import 'package:sgit_studio_flutter/ui/components/confirm.dart';
+import 'package:sgit_studio_flutter/ui/components/menu/app_menu.dart';
 
 /// 历史对话「查看全部」页 —— 左栏「历史对话」标题行那颗斜向箭头点开的完整列表。
 /// 右上角「选择」进入多选态：整页变成 checkbox 列表 + 全选 + 批量删除；
@@ -102,7 +103,7 @@ class _HistoryPageState extends ConsumerState<HistoryPage> {
       child: Row(
         children: [
           Text(
-            _selecting ? l10n.navSelectedCount(count) : l10n.navHistory,
+            l10n.navHistory,
             style: TextStyle(
               fontSize: 20,
               fontWeight: FontWeight.w700,
@@ -111,12 +112,20 @@ class _HistoryPageState extends ConsumerState<HistoryPage> {
           ),
           const Spacer(),
           if (_selecting) ...[
+            Text(
+              l10n.navSelectedCount(count),
+              style: TextStyle(
+                fontSize: 14,
+                color: skin.textSecondary,
+              ),
+            ),
+            const SizedBox(width: AppSpacing.sm),
             OutlinedButton(
               onPressed: _toggleSelectAll,
               child: Text(allSelected ? l10n.navDeselectAll : l10n.navSelectAll),
             ),
-            if (count > 0) ...[
-              const SizedBox(width: AppSpacing.xs),
+            const SizedBox(width: AppSpacing.xs),
+            if (count > 0)
               FilledButton(
                 style: FilledButton.styleFrom(
                   backgroundColor: Theme.of(context).colorScheme.error,
@@ -124,7 +133,6 @@ class _HistoryPageState extends ConsumerState<HistoryPage> {
                 onPressed: () => _delete(context, l10n),
                 child: Text(l10n.commonDelete),
               ),
-            ],
             const SizedBox(width: AppSpacing.xs),
             IconButton(
               icon: const Icon(Icons.close),
@@ -200,38 +208,14 @@ class _HistoryPageState extends ConsumerState<HistoryPage> {
 
   Widget _row(AppSkin skin, _HistoryItem item) {
     final selected = _selectedIds.contains(item.id);
-    return Material(
-      color: selected ? skin.navItemActive : Colors.transparent,
-      child: InkWell(
-        onTap: () =>
-            _selecting ? _toggleOne(item.id) : _pick(context, item.id),
-        hoverColor: skin.text.withValues(alpha: 0.06),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(
-            horizontal: AppSpacing.lg,
-            vertical: AppSpacing.sm,
-          ),
-          child: Row(
-            children: [
-              if (_selecting) ...[
-                Checkbox(
-                  value: selected,
-                  onChanged: (_) => _toggleOne(item.id),
-                ),
-                const SizedBox(width: AppSpacing.xs),
-              ],
-              Expanded(
-                child: Text(
-                  item.label,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: TextStyle(fontSize: 14, color: skin.text),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
+    return _HistoryRow(
+      item: item,
+      selected: selected,
+      selecting: _selecting,
+      skin: skin,
+      onTap: () => _selecting ? _toggleOne(item.id) : _pick(context, item.id),
+      onToggleSelect: () => _toggleOne(item.id),
+      onMenuAction: (action) => _handleMenuAction(context, action, item),
     );
   }
 
@@ -287,6 +271,161 @@ class _HistoryPageState extends ConsumerState<HistoryPage> {
       _selecting = false;
       _selectedIds.clear();
     });
+  }
+
+  void _handleMenuAction(BuildContext context, String action, _HistoryItem item) {
+    final l10n = AppLocalizations.of(context);
+    final sceneId = item.id.substring(_assistantPrefix.length);
+
+    switch (action) {
+      case 'select':
+        setState(() {
+          _selecting = true;
+          _selectedIds.add(item.id);
+        });
+      case 'pin':
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(l10n.commonNotWired('pin')),
+            duration: const Duration(seconds: 1),
+          ),
+        );
+      case 'rename':
+        ScaffoldMessenger.of(context,).showSnackBar(
+          SnackBar(
+            content: Text(l10n.commonNotWired('rename')),
+            duration: const Duration(seconds: 1),
+          ),
+        );
+      case 'delete':
+        _deleteSingle(context, l10n, sceneId, item.label);
+    }
+  }
+
+  Future<void> _deleteSingle(
+    BuildContext context,
+    AppLocalizations l10n,
+    String sceneId,
+    String label,
+  ) async {
+    final ok = await confirmDanger(
+      context,
+      title: l10n.studioRemoveConfirm(label),
+      confirmText: l10n.commonDelete,
+    );
+    if (!ok) return;
+
+    await ref
+        .read(resourceListProvider(StudioPageSpecs.scenes).notifier)
+        .remove(sceneId);
+  }
+}
+
+class _HistoryRow extends StatefulWidget {
+  const _HistoryRow({
+    required this.item,
+    required this.selected,
+    required this.selecting,
+    required this.skin,
+    required this.onTap,
+    required this.onToggleSelect,
+    required this.onMenuAction,
+  });
+
+  final _HistoryItem item;
+  final bool selected;
+  final bool selecting;
+  final AppSkin skin;
+  final VoidCallback onTap;
+  final VoidCallback onToggleSelect;
+  final ValueChanged<String> onMenuAction;
+
+  @override
+  State<_HistoryRow> createState() => _HistoryRowState();
+}
+
+class _HistoryRowState extends State<_HistoryRow> {
+  bool _hovering = false;
+  bool _menuOpen = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final showMenu = !widget.selecting && (_hovering || _menuOpen);
+
+    return MouseRegion(
+      onEnter: (_) => setState(() => _hovering = true),
+      onExit: (_) => setState(() => _hovering = false),
+      child: Material(
+        color: widget.selected ? widget.skin.navItemActive : Colors.transparent,
+        child: InkWell(
+          onTap: widget.onTap,
+          hoverColor: widget.skin.text.withValues(alpha: 0.06),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(
+              horizontal: AppSpacing.lg,
+              vertical: AppSpacing.sm,
+            ),
+            child: Row(
+              children: [
+                if (widget.selecting) ...[
+                  Checkbox(
+                    value: widget.selected,
+                    onChanged: (_) => widget.onToggleSelect(),
+                  ),
+                  const SizedBox(width: AppSpacing.xs),
+                ],
+                Expanded(
+                  child: Text(
+                    widget.item.label,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(fontSize: 14, color: widget.skin.text),
+                  ),
+                ),
+                if (showMenu)
+                  AppMenuAnchor(
+                    entries: [
+                      AppMenuAction(
+                        icon: Icons.check,
+                        label: l10n.navSelect,
+                        onTap: () => widget.onMenuAction('select'),
+                      ),
+                      AppMenuAction(
+                        icon: Icons.push_pin_outlined,
+                        label: l10n.navChatPin,
+                        shortcut: 'P',
+                        onTap: () => widget.onMenuAction('pin'),
+                      ),
+                      AppMenuAction(
+                        icon: Icons.edit_outlined,
+                        label: l10n.navChatRename,
+                        shortcut: 'R',
+                        onTap: () => widget.onMenuAction('rename'),
+                      ),
+                      AppMenuAction(
+                        icon: Icons.delete_outline,
+                        label: l10n.commonDelete,
+                        shortcut: 'D',
+                        danger: true,
+                        onTap: () => widget.onMenuAction('delete'),
+                      ),
+                    ],
+                    trigger: AppMenuTrigger.tap,
+                    align: AppMenuAlign.underEnd,
+                    onOpenChanged: (open) => setState(() => _menuOpen = open),
+                    child: Icon(
+                      Icons.more_horiz,
+                      size: 18,
+                      color: widget.skin.textSecondary,
+                    ),
+                  ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
   }
 }
 
