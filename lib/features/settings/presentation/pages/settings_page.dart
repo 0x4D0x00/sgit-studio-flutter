@@ -5,7 +5,7 @@ import 'package:sgit_studio_flutter/l10n/generated/app_localizations.dart';
 import 'package:sgit_studio_flutter/design/tokens/app_colors.dart';
 import 'package:sgit_studio_flutter/design/tokens/app_spacing.dart';
 import 'package:sgit_studio_flutter/services/theme/theme_controller.dart';
-import 'package:sgit_studio_flutter/features/auth/application/auth_controller.dart';
+// import 'package:sgit_studio_flutter/features/auth/application/auth_controller.dart';
 import 'package:sgit_studio_flutter/ui/components/glass_card.dart';
 
 /// 设置页(基础设施演示)。主题模式 / 主色 / 次色 / 字号缩放 / 语言，全部实时 + 持久化。
@@ -104,18 +104,18 @@ class SettingsPage extends ConsumerWidget {
         fontSection,
 
         // 退出登录
-        _section(theme, l10n.navLogout, Align(
-          alignment: Alignment.centerLeft,
-          child: FilledButton.icon(
-            style: FilledButton.styleFrom(
-              backgroundColor: theme.colorScheme.error,
-              foregroundColor: Colors.white,
-            ),
-            icon: const Icon(Icons.logout_rounded, size: 18),
-            label: Text(l10n.navLogout),
-            onPressed: () => ref.read(authControllerProvider.notifier).logout(),
-          ),
-        )),
+        // _section(theme, l10n.navLogout, Align(
+        //   alignment: Alignment.centerLeft,
+        //   child: FilledButton.icon(
+        //     style: FilledButton.styleFrom(
+        //       backgroundColor: theme.colorScheme.error,
+        //       foregroundColor: Colors.white,
+        //     ),
+        //     icon: const Icon(Icons.logout_rounded, size: 18),
+        //     label: Text(l10n.navLogout),
+        //     onPressed: () => ref.read(authControllerProvider.notifier).logout(),
+        //   ),
+        // )),
       ],
     );
   }

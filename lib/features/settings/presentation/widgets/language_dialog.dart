@@ -70,6 +70,7 @@ class _LanguageDialog extends ConsumerWidget {
                   ),
                 ],
               ),
+              Divider(height: 1, thickness: 1, color: skin.borderSecondary),
               const SizedBox(height: AppSpacing.sm),
               Wrap(
                 spacing: AppSpacing.sm,
@@ -94,7 +95,7 @@ class _LanguageDialog extends ConsumerWidget {
   }
 }
 
-class _LanguageCard extends StatelessWidget {
+class _LanguageCard extends StatefulWidget {
   const _LanguageCard({required this.label, required this.selected, required this.onTap});
 
   final String label;
@@ -102,42 +103,66 @@ class _LanguageCard extends StatelessWidget {
   final VoidCallback onTap;
 
   @override
+  State<_LanguageCard> createState() => _LanguageCardState();
+}
+
+class _LanguageCardState extends State<_LanguageCard> {
+  bool _hovering = false;
+
+  @override
   Widget build(BuildContext context) {
     final skin = AppSkin.of(context);
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(AppRadius.md),
-      child: Container(
-        width: 180,
-        padding: const EdgeInsets.symmetric(
-          horizontal: AppSpacing.md,
-          vertical: AppSpacing.sm,
-        ),
-        decoration: BoxDecoration(
-          color: selected ? skin.navItemActive : skin.containerBgSecondary,
-          borderRadius: BorderRadius.circular(AppRadius.md),
-          border: Border.all(color: selected ? skin.accentChip : skin.border),
-        ),
-        child: Row(
-          children: [
-            Expanded(
-              child: Text(
-                label,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w600,
-                  color: skin.text,
+    final theme = Theme.of(context);
+
+    Color bgColor;
+    if (widget.selected) {
+      bgColor = theme.colorScheme.primary.withValues(alpha: 0.12);
+    } else if (_hovering) {
+      bgColor = skin.text.withValues(alpha: 0.06);
+    } else {
+      bgColor = Colors.transparent;
+    }
+
+    return MouseRegion(
+      onEnter: (_) => setState(() => _hovering = true),
+      onExit: (_) => setState(() => _hovering = false),
+      child: InkWell(
+        onTap: widget.onTap,
+        borderRadius: BorderRadius.circular(AppRadius.md),
+        hoverColor: Colors.transparent,
+        splashColor: Colors.transparent,
+        highlightColor: Colors.transparent,
+        child: Container(
+          width: 180,
+          padding: const EdgeInsets.symmetric(
+            horizontal: AppSpacing.md,
+            vertical: AppSpacing.sm,
+          ),
+          decoration: BoxDecoration(
+            color: bgColor,
+            borderRadius: BorderRadius.circular(AppRadius.md),
+          ),
+          child: Row(
+            children: [
+              Expanded(
+                child: Text(
+                  widget.label,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                    color: skin.text,
+                  ),
                 ),
               ),
-            ),
-            if (selected)
-              Padding(
-                padding: const EdgeInsets.only(left: AppSpacing.xs),
-                child: Icon(Icons.check, size: 18, color: skin.accentChip),
-              ),
-          ],
+              if (widget.selected)
+                Padding(
+                  padding: const EdgeInsets.only(left: AppSpacing.xs),
+                  child: Icon(Icons.check, size: 18, color: theme.colorScheme.primary),
+                ),
+            ],
+          ),
         ),
       ),
     );
