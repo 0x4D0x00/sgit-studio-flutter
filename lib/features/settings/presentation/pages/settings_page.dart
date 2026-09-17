@@ -6,7 +6,6 @@ import 'package:sgit_studio_flutter/design/tokens/app_colors.dart';
 import 'package:sgit_studio_flutter/design/tokens/app_spacing.dart';
 import 'package:sgit_studio_flutter/services/theme/theme_controller.dart';
 // import 'package:sgit_studio_flutter/features/auth/application/auth_controller.dart';
-import 'package:sgit_studio_flutter/ui/components/glass_card.dart';
 
 /// 设置页(基础设施演示)。主题模式 / 主色 / 次色 / 字号缩放 / 语言，全部实时 + 持久化。
 class SettingsPage extends ConsumerWidget {
@@ -19,88 +18,123 @@ class SettingsPage extends ConsumerWidget {
     final ts = ref.watch(themeControllerProvider);
     final tc = ref.read(themeControllerProvider.notifier);
 
-    // 主题模式面板
-    final modeSection = _section(theme, l10n.settingsThemeMode, SegmentedButton<AppThemeMode>(
-      segments: [
-        ButtonSegment(value: AppThemeMode.transparent, label: Text(l10n.settingsThemeTransparent)),
-        ButtonSegment(value: AppThemeMode.light, label: Text(l10n.settingsThemeLight)),
-        ButtonSegment(value: AppThemeMode.dark, label: Text(l10n.settingsThemeDark)),
-        ButtonSegment(value: AppThemeMode.system, label: Text(l10n.settingsThemeSystem)),
-      ],
-      selected: {ts.mode},
-      onSelectionChanged: (s) => tc.setMode(s.first),
-      showSelectedIcon: false,
-    ));
-
-    // 主题色面板
-    final primarySection = _section(theme, l10n.settingsPrimaryColor, Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        _dots(AppColors.primarySwatches, ts.primary, tc.setPrimary),
-        const SizedBox(height: AppSpacing.sm),
-        TextButton.icon(
-          onPressed: tc.resetPrimary,
-          icon: const Icon(Icons.refresh_rounded, size: 16),
-          label: Text(l10n.settingsResetDefault),
-          style: TextButton.styleFrom(padding: EdgeInsets.zero),
-        ),
-      ],
-    ));
-
-    // 次主题色面板
-    final secondarySection = _section(theme, l10n.settingsSecondaryColor, Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        _dots(AppColors.secondarySwatches, ts.secondary, tc.setSecondary),
-        const SizedBox(height: AppSpacing.sm),
-        TextButton.icon(
-          onPressed: tc.resetSecondary,
-          icon: const Icon(Icons.refresh_rounded, size: 16),
-          label: Text(l10n.settingsResetDefault),
-          style: TextButton.styleFrom(padding: EdgeInsets.zero),
-        ),
-      ],
-    ));
-
-    // 字体缩放面板（占满整行）
-    final fontSection = _section(theme, l10n.settingsFontScale, Row(
-      children: [
-        Expanded(
-          child: Slider(
-            min: ThemeController.minFontScale,
-            max: ThemeController.maxFontScale,
-            divisions: 8,
-            value: ts.fontScale,
-            label: '${(ts.fontScale * 100).round()}%',
-            onChanged: tc.setFontScale,
+    // 主题模式面板 - 使用图标按钮样式
+    final modeSection = _section(
+      theme,
+      l10n.settingsThemeMode,
+      Align(
+        alignment: Alignment.centerRight,
+        child: Container(
+          decoration: BoxDecoration(
+            border: Border.all(color: theme.colorScheme.outlineVariant),
+            borderRadius: BorderRadius.circular(AppRadius.md),
           ),
-        ),
-        const SizedBox(width: AppSpacing.sm),
-        Text('${(ts.fontScale * 100).round()}%', style: theme.textTheme.labelLarge),
-      ],
-    ));
-
-    return ListView(
-      children: [
-        Text(l10n.settingsTitle, style: theme.textTheme.headlineSmall),
-        const SizedBox(height: AppSpacing.lg),
-
-        // 第一行：主题模式（整行，语言已挪到侧栏用户菜单）
-        modeSection,
-
-        // 第二行：主题色 | 次主题色
-        IntrinsicHeight(
           child: Row(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
+            mainAxisSize: MainAxisSize.min,
             children: [
-              Expanded(child: primarySection),
-              const SizedBox(width: AppSpacing.md),
-              Expanded(child: secondarySection),
+              _ThemeModeButton(
+                icon: Icons.desktop_windows_outlined,
+                selected: ts.mode == AppThemeMode.system,
+                onTap: () => tc.setMode(AppThemeMode.system),
+              ),
+              _ThemeModeButton(
+                icon: Icons.wb_sunny_outlined,
+                selected: ts.mode == AppThemeMode.light,
+                onTap: () => tc.setMode(AppThemeMode.light),
+              ),
+              _ThemeModeButton(
+                icon: Icons.dark_mode_outlined,
+                selected: ts.mode == AppThemeMode.dark,
+                onTap: () => tc.setMode(AppThemeMode.dark),
+              ),
             ],
           ),
         ),
+      ),
+    );
 
-        // 第三行：字体缩放（整行）
+    // 主题色面板
+    final primarySection = _section(
+      theme,
+      l10n.settingsPrimaryColor,
+      Row(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          _dots(AppColors.primarySwatches, ts.primary, tc.setPrimary),
+          const SizedBox(width: AppSpacing.sm),
+          TextButton.icon(
+            onPressed: tc.resetPrimary,
+            icon: const Icon(Icons.refresh_rounded, size: 16),
+            label: Text(l10n.settingsResetDefault),
+            style: TextButton.styleFrom(padding: EdgeInsets.zero),
+          ),
+        ],
+      ),
+    );
+
+    // 次主题色面板
+    final secondarySection = _section(
+      theme,
+      l10n.settingsSecondaryColor,
+      Row(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          _dots(AppColors.secondarySwatches, ts.secondary, tc.setSecondary),
+          const SizedBox(width: AppSpacing.sm),
+          TextButton.icon(
+            onPressed: tc.resetSecondary,
+            icon: const Icon(Icons.refresh_rounded, size: 16),
+            label: Text(l10n.settingsResetDefault),
+            style: TextButton.styleFrom(padding: EdgeInsets.zero),
+          ),
+        ],
+      ),
+    );
+
+    // 字体缩放面板（占满整行）
+    final fontSection = _section(
+      theme,
+      l10n.settingsFontScale,
+      Expanded(
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Expanded(
+              child: Slider(
+                min: ThemeController.minFontScale,
+                max: ThemeController.maxFontScale,
+                divisions: 8,
+                value: ts.fontScale,
+                label: '${(ts.fontScale * 100).round()}%',
+                onChanged: tc.setFontScale,
+              ),
+            ),
+            const SizedBox(width: AppSpacing.sm),
+            Text('${(ts.fontScale * 100).round()}%', style: theme.textTheme.labelLarge),
+          ],
+        ),
+      ),
+    );
+
+    final dividerColor = theme.colorScheme.outlineVariant.withValues(alpha: 0.4);
+
+    return ListView(
+      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
+      children: [
+        Padding(
+          padding: const EdgeInsets.symmetric(vertical: AppSpacing.lg),
+          child: Text(l10n.settingsGeneral, style: theme.textTheme.headlineSmall),
+        ),
+
+        // 每个部分独占一行，之间有分割线
+        modeSection,
+        Divider(height: 1, thickness: 0.5, color: dividerColor),
+        primarySection,
+        Divider(height: 1, thickness: 0.5, color: dividerColor),
+        secondarySection,
+        Divider(height: 1, thickness: 0.5, color: dividerColor),
         fontSection,
 
         // 退出登录
@@ -121,17 +155,14 @@ class SettingsPage extends ConsumerWidget {
   }
 
   Widget _section(ThemeData theme, String title, Widget child) => Padding(
-        padding: const EdgeInsets.only(bottom: AppSpacing.md),
-        child: GlassCard(
-          padding: const EdgeInsets.all(AppSpacing.lg),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(title, style: theme.textTheme.titleMedium),
-              const SizedBox(height: AppSpacing.md),
-              child,
-            ],
-          ),
+        padding: const EdgeInsets.symmetric(vertical: AppSpacing.md),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            Text(title, style: theme.textTheme.bodyLarge),
+            child,
+          ],
         ),
       );
 
@@ -168,4 +199,38 @@ class _ColorDot extends StatelessWidget {
           child: selected ? const Icon(Icons.check_rounded, color: Colors.white, size: 20) : null,
         ),
       );
+}
+
+class _ThemeModeButton extends StatelessWidget {
+  const _ThemeModeButton({
+    required this.icon,
+    required this.selected,
+    required this.onTap,
+  });
+
+  final IconData icon;
+  final bool selected;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(AppRadius.sm),
+      child: Container(
+        width: 44,
+        height: 44,
+        decoration: BoxDecoration(
+          color: selected ? theme.colorScheme.secondaryContainer : Colors.transparent,
+          borderRadius: BorderRadius.circular(AppRadius.sm),
+        ),
+        child: Icon(
+          icon,
+          size: 20,
+          color: selected ? theme.colorScheme.onSecondaryContainer : theme.colorScheme.onSurface,
+        ),
+      ),
+    );
+  }
 }
