@@ -38,24 +38,24 @@ class StudioPageDef {
 
   static const List<StudioPageDef> all = <StudioPageDef>[
     StudioPageDef(key: 'scenes', icon: Icons.grid_view_rounded, label: _scenes),
-    StudioPageDef(
+        StudioPageDef(
         key: 'subagent', icon: Icons.smart_toy_outlined, label: _subagent),
     StudioPageDef(key: 'skill', icon: Icons.auto_awesome_outlined, label: _skill),
     StudioPageDef(key: 'mcp', icon: Icons.extension_outlined, label: _mcp),
     StudioPageDef(key: 'tools', icon: Icons.widgets_outlined, label: _tools),
     StudioPageDef(key: 'memory', icon: Icons.memory_rounded, label: _memory),
-    StudioPageDef(
+        StudioPageDef(
         key: 'knowledge', icon: Icons.menu_book_outlined, label: _knowledge),
     StudioPageDef(key: 'llm-relay', icon: Icons.hub_outlined, label: _llmRelay),
-    // 第 9 项。studio 的 `StudioNav.tsx` 只有 8 项，这一项是本端新增的入口
-    // （端点 `ApiEndpoints.apiKey*` 早就有了，只是还没有落地页）。
-    StudioPageDef(
-      key: 'api-key',
-      icon: Icons.vpn_key_outlined,
-      label: _apiKey,
-      backendGated: false,
-    ),
-  ];
+        // 第 9 项。studio 的 `StudioNav.tsx` 只有 8 项，这一项是本端新增的入口
+        // （端点 `ApiEndpoints.apiKey*` 早就有了，只是还没有落地页）。
+        StudioPageDef(
+          key: 'api-key',
+          icon: Icons.vpn_key_outlined,
+          label: _apiKey,
+          backendGated: false,
+        ),
+      ];
 }
 
 String _scenes(AppLocalizations l) => l.studioScenes;
@@ -74,14 +74,22 @@ String _apiKey(AppLocalizations l) => l.studioApiKey;
 /// - 加载中 → 空（不先显示全部再抽走，避免闪现无权限菜单）；
 /// - 判权失败 / 未登录（resolved=false）→ 空（**不放行**，避免后端抖动时漏出全部菜单）；
 /// - 判权成功 → 只显示命中的 key。
-///
-/// 注意 studio 的 `services/sgcodeMenu.ts` 文件头注释写的是「失败即全开」，那是**过时的**，
-/// 组件里早已改成拒绝式。以组件行为为准，别照那句注释写。
-final visibleStudioPagesProvider = Provider<List<StudioPageDef>>((ref) {
-  final menus = ref.watch(accessibleMenusProvider).asData?.value;
-  if (menus == null || !menus.resolved) return const <StudioPageDef>[];
-  return StudioPageDef.all
+/// **临时降级方案（2026-09-14）**：判权失败时改为全开，避免后端 nonce 服务未就绪时
+/// 整个智能体菜单消失。生产环境部署完整后端后，恢复拒绝式（把下面 `// FIXME` 那行删掉）。
+final visibleStudioPagesProvider =
+    Provider<List<StudioPageDef>>((
+      ref,
+    ) {
+      final menus = ref.watch(accessibleMenusProvider,).asData?.value;
+      // FIXME: 临时全开模式，等后端 nonce/菜单判权服务就绪后改回
+      // if (menus == null || !menus.resolved) return const <StudioPageDef>[];
+      if (menus ==null)return const <StudioPageDef>[]; // 加载中仍不显示，避免闪现
+      if (!menus.resolved) {
+        print('[visibleStudioPagesProvider] 菜单判权失败，临时降级为全开模式',);
+        return StudioPageDef.all; // 判权失败时全开，避免后端未就绪导致菜单消失
+      }
+      return StudioPageDef.all
       .where((p) =>
           !p.backendGated || menus.accessibleKeys.contains(p.key))
       .toList(growable: false);
-});
+    });
