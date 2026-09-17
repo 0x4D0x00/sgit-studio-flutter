@@ -23,6 +23,8 @@ class LocalStorage {
   static const _kFontScale = 'theme_font_scale';
   static const _kTransparentMode = 'theme_transparent_mode';
   static const _kLocale = 'locale';
+  static const _kUsername = 'user_profile_username';
+  static const _kAvatar = 'user_profile_avatar';
 
   String? get authToken => _prefs.getString(_kAuthToken);
   Future<void> setAuthToken(String? v) async =>
@@ -47,4 +49,12 @@ class LocalStorage {
   String? get locale => _prefs.getString(_kLocale);
   Future<void> setLocale(String? v) async =>
       v == null ? _prefs.remove(_kLocale) : _prefs.setString(_kLocale, v);
+
+  String? get username => _prefs.getString(_kUsername);
+  Future<void> setUsername(String? v) async =>
+      v == null ? _prefs.remove(_kUsername) : _prefs.setString(_kUsername, v);
+
+  String? get avatar => _prefs.getString(_kAvatar);
+  Future<void> setAvatar(String? v) async =>
+      v == null ? _prefs.remove(_kAvatar) : _prefs.setString(_kAvatar, v);
 }

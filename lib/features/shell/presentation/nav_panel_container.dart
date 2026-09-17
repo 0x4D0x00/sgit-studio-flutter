@@ -12,6 +12,7 @@ import 'package:sgit_studio_flutter/layout/panels/models/nav_entry.dart';
 import 'package:sgit_studio_flutter/layout/panels/nav_panel.dart';
 import 'package:sgit_studio_flutter/features/settings/presentation/widgets/language_dialog.dart';
 import 'package:sgit_studio_flutter/features/settings/presentation/widgets/settings_dialog.dart';
+import 'package:sgit_studio_flutter/features/settings/application/user_profile_controller.dart';
 import 'package:sgit_studio_flutter/router/route_names.dart';
 import 'package:sgit_studio_flutter/services/chat/chat_controller.dart';
 import 'package:sgit_studio_flutter/services/brand/brand_assets.dart';
@@ -69,6 +70,9 @@ class NavPanelContainer
           ),
         )
         .items;
+
+    // 从用户配置状态中读取用户名
+    final userProfile = ref.watch(userProfileControllerProvider);
 
     return NavPanel(
       brandMark: BrandAssets.image(
@@ -219,12 +223,12 @@ class NavPanelContainer
             l10n,
             id,
           ),
-      userName: BrandConfig.instance.orgName,
+      userName: userProfile.username,
       searchTooltip: l10n.navSearch,
       collapseTooltip: l10n.shellCollapseNav,
       userMenu: [
         AppMenuLabel(
-          BrandConfig.instance.orgName,
+          userProfile.username,
         ),
         const AppMenuDivider(),
         AppMenuAction(
