@@ -356,11 +356,13 @@ class _HistoryRowState extends State<_HistoryRow> {
     return MouseRegion(
       onEnter: (_) => setState(() => _hovering = true),
       onExit: (_) => setState(() => _hovering = false),
-      child: Material(
-        color: widget.selected ? widget.skin.navItemActive : Colors.transparent,
-        child: InkWell(
+      child: Container(
+        color: (_hovering && !_menuOpen)
+            ? widget.skin.text.withValues(alpha: 0.06)
+            : Colors.transparent,
+        child: GestureDetector(
           onTap: widget.onTap,
-          hoverColor: widget.skin.text.withValues(alpha: 0.06),
+          behavior: HitTestBehavior.opaque,
           child: Padding(
             padding: const EdgeInsets.symmetric(
               horizontal: AppSpacing.lg,
@@ -424,7 +426,7 @@ class _HistoryRowState extends State<_HistoryRow> {
             ),
           ),
         ),
-      ),
+    )
     );
   }
 }
