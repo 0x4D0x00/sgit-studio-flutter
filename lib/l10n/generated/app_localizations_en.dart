@@ -361,6 +361,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settingsGeneral => 'General';
 
   @override
+  String get settingsAccount => 'Account';
+
+  @override
   String get settingsThemeMode => 'Theme mode';
 
   @override
@@ -395,6 +398,55 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get settingsResetDefault => 'Reset to default';
+
+  @override
+  String get accountAvatar => 'Avatar';
+
+  @override
+  String get accountUsername => 'Username';
+
+  @override
+  String get accountPassword => 'Password';
+
+  @override
+  String get accountChangeAvatar => 'Change avatar';
+
+  @override
+  String get accountChangePassword => 'Change password';
+
+  @override
+  String get accountCurrentPassword => 'Current password';
+
+  @override
+  String get accountNewPassword => 'New password';
+
+  @override
+  String get accountConfirmPassword => 'Confirm password';
+
+  @override
+  String get accountUsernamePlaceholder => 'Enter your username';
+
+  @override
+  String get accountCurrentPasswordPlaceholder => 'Enter current password';
+
+  @override
+  String get accountNewPasswordPlaceholder => 'Enter new password';
+
+  @override
+  String get accountConfirmPasswordPlaceholder => 'Enter new password again';
+
+  @override
+  String get accountPasswordMismatch => 'Passwords do not match';
+
+  @override
+  String get accountPasswordTooShort =>
+      'Password must be at least 6 characters';
+
+  @override
+  String get accountUpdateSuccess => 'Updated successfully';
+
+  @override
+  String get accountUpdateFailed => 'Update failed';
 
   @override
   String get commonSave => 'Save';

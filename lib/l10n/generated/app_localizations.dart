@@ -758,6 +758,12 @@ abstract class AppLocalizations {
   /// **'通用'**
   String get settingsGeneral;
 
+  /// No description provided for @settingsAccount.
+  ///
+  /// In zh, this message translates to:
+  /// **'账户'**
+  String get settingsAccount;
+
   /// No description provided for @settingsThemeMode.
   ///
   /// In zh, this message translates to:
@@ -829,6 +835,102 @@ abstract class AppLocalizations {
   /// In zh, this message translates to:
   /// **'恢复默认'**
   String get settingsResetDefault;
+
+  /// No description provided for @accountAvatar.
+  ///
+  /// In zh, this message translates to:
+  /// **'头像'**
+  String get accountAvatar;
+
+  /// No description provided for @accountUsername.
+  ///
+  /// In zh, this message translates to:
+  /// **'用户名'**
+  String get accountUsername;
+
+  /// No description provided for @accountPassword.
+  ///
+  /// In zh, this message translates to:
+  /// **'密码'**
+  String get accountPassword;
+
+  /// No description provided for @accountChangeAvatar.
+  ///
+  /// In zh, this message translates to:
+  /// **'修改头像'**
+  String get accountChangeAvatar;
+
+  /// No description provided for @accountChangePassword.
+  ///
+  /// In zh, this message translates to:
+  /// **'修改密码'**
+  String get accountChangePassword;
+
+  /// No description provided for @accountCurrentPassword.
+  ///
+  /// In zh, this message translates to:
+  /// **'当前密码'**
+  String get accountCurrentPassword;
+
+  /// No description provided for @accountNewPassword.
+  ///
+  /// In zh, this message translates to:
+  /// **'新密码'**
+  String get accountNewPassword;
+
+  /// No description provided for @accountConfirmPassword.
+  ///
+  /// In zh, this message translates to:
+  /// **'确认密码'**
+  String get accountConfirmPassword;
+
+  /// No description provided for @accountUsernamePlaceholder.
+  ///
+  /// In zh, this message translates to:
+  /// **'请输入用户名'**
+  String get accountUsernamePlaceholder;
+
+  /// No description provided for @accountCurrentPasswordPlaceholder.
+  ///
+  /// In zh, this message translates to:
+  /// **'请输入当前密码'**
+  String get accountCurrentPasswordPlaceholder;
+
+  /// No description provided for @accountNewPasswordPlaceholder.
+  ///
+  /// In zh, this message translates to:
+  /// **'请输入新密码'**
+  String get accountNewPasswordPlaceholder;
+
+  /// No description provided for @accountConfirmPasswordPlaceholder.
+  ///
+  /// In zh, this message translates to:
+  /// **'请再次输入新密码'**
+  String get accountConfirmPasswordPlaceholder;
+
+  /// No description provided for @accountPasswordMismatch.
+  ///
+  /// In zh, this message translates to:
+  /// **'两次输入的密码不一致'**
+  String get accountPasswordMismatch;
+
+  /// No description provided for @accountPasswordTooShort.
+  ///
+  /// In zh, this message translates to:
+  /// **'密码长度至少为6位'**
+  String get accountPasswordTooShort;
+
+  /// No description provided for @accountUpdateSuccess.
+  ///
+  /// In zh, this message translates to:
+  /// **'更新成功'**
+  String get accountUpdateSuccess;
+
+  /// No description provided for @accountUpdateFailed.
+  ///
+  /// In zh, this message translates to:
+  /// **'更新失败'**
+  String get accountUpdateFailed;
 
   /// No description provided for @commonSave.
   ///

@@ -359,6 +359,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settingsGeneral => '通用';
 
   @override
+  String get settingsAccount => '账户';
+
+  @override
   String get settingsThemeMode => '主题模式';
 
   @override
@@ -393,6 +396,54 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get settingsResetDefault => '恢复默认';
+
+  @override
+  String get accountAvatar => '头像';
+
+  @override
+  String get accountUsername => '用户名';
+
+  @override
+  String get accountPassword => '密码';
+
+  @override
+  String get accountChangeAvatar => '修改头像';
+
+  @override
+  String get accountChangePassword => '修改密码';
+
+  @override
+  String get accountCurrentPassword => '当前密码';
+
+  @override
+  String get accountNewPassword => '新密码';
+
+  @override
+  String get accountConfirmPassword => '确认密码';
+
+  @override
+  String get accountUsernamePlaceholder => '请输入用户名';
+
+  @override
+  String get accountCurrentPasswordPlaceholder => '请输入当前密码';
+
+  @override
+  String get accountNewPasswordPlaceholder => '请输入新密码';
+
+  @override
+  String get accountConfirmPasswordPlaceholder => '请再次输入新密码';
+
+  @override
+  String get accountPasswordMismatch => '两次输入的密码不一致';
+
+  @override
+  String get accountPasswordTooShort => '密码长度至少为6位';
+
+  @override
+  String get accountUpdateSuccess => '更新成功';
+
+  @override
+  String get accountUpdateFailed => '更新失败';
 
   @override
   String get commonSave => '保存';
