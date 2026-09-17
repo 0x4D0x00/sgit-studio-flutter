@@ -9,11 +9,12 @@ import 'package:sgit_studio_flutter/core/storage/local_storage.dart';
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // 本地存储(主题/语言/token 持久化)。
-  await LocalStorage.init();
-
-  // 品牌文本配置(产品名/版权)。必须在 runApp 前拿到——窗口标题/标签页标题要用。
-  await BrandConfig.load();
+  // 本地存储(主题/语言/token 持久化) + 品牌文本配置(产品名/版权)。
+  // 两者互不依赖，并行预热；都要在 runApp 前拿到——品牌名窗口标题/标签页标题要用。
+  await Future.wait([
+    LocalStorage.init(),
+    BrandConfig.load(),
+  ]);
 
   runApp(const ProviderScope(child: SgitStudioApp()));
 
