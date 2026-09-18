@@ -40,7 +40,11 @@ dependencies:
   # 注:Web 端加密**不引任何 Dart 加密库** —— 加载同一份 Rust 编出的 WASM
   # (web/pkg/,见 deploy/build-wasm.sh),与桌面 .so / Windows .dll 三端同源。
   # 绑定层在 lib/core/network/crypto/browser_crypto.dart,只做 js_interop 转发。
+  # 文件选择器(桌面/移动端)
+  file_picker: ^13.1.0
 
+  # 中文拼音转换(用于名称排序)
+  lpinyin: ^2.0.3
 dev_dependencies:
   flutter_test:
     sdk: flutter
