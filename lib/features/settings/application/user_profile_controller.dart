@@ -68,6 +68,12 @@ class UserProfileController extends Notifier<UserProfile> {
     state = state.copyWith(avatarUrl: avatarUrl);
   }
 
+  /// 恢复默认头像（清除已设置的头像）
+  Future<void> resetAvatar() async {
+    await LocalStorage.instance.setAvatar(null);
+    state = UserProfile(username: state.username);
+  }
+
   String _mimeTypeFor(String extension) {
     switch (extension.toLowerCase()) {
       case 'jpg':

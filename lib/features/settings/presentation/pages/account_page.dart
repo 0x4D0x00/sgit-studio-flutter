@@ -95,6 +95,16 @@ class _AccountPageState extends ConsumerState<AccountPage> {
     );
   }
 
+  Future<void> _resetAvatar() async {
+    final l10n = AppLocalizations.of(context);
+    await ref.read(userProfileControllerProvider.notifier).resetAvatar();
+
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(l10n.accountUpdateSuccess)),
+    );
+  }
+
   Future<void> _changeAvatar() async {
     final l10n = AppLocalizations.of(context);
 
@@ -144,39 +154,77 @@ class _AccountPageState extends ConsumerState<AccountPage> {
         _section(
           theme,
           l10n.accountAvatar,
-          InkWell(
-            onTap: _changeAvatar,
-            borderRadius: BorderRadius.circular(32),
+          SizedBox(
+            width: 76,
+            height: 76,
             child: Stack(
-              alignment: Alignment.center,
+              clipBehavior: Clip.none,
               children: [
-                CircleAvatar(
-                  radius: 32,
-                  backgroundColor: theme.colorScheme.primaryContainer,
-                  backgroundImage: profile.avatarBytes != null
-                      ? MemoryImage(profile.avatarBytes!)
-                      : null,
-                  child: profile.avatarBytes == null
-                      ? Icon(
-                          Icons.person_rounded,
-                          size: 36,
-                          color: theme.colorScheme.onPrimaryContainer,
-                        )
-                      : null,
-                ),
-                // 中心相机图标
-                Container(
-                  decoration: BoxDecoration(
-                    color: Colors.black.withValues(alpha: 0.5),
-                    shape: BoxShape.circle,
+                Positioned(
+                  left: 6,
+                  top: 6,
+                  child: InkWell(
+                    onTap: _changeAvatar,
+                    borderRadius: BorderRadius.circular(32),
+                    child: Stack(
+                      alignment: Alignment.center,
+                      children: [
+                        CircleAvatar(
+                          radius: 32,
+                          backgroundColor: theme.colorScheme.primaryContainer,
+                          backgroundImage: profile.avatarBytes != null
+                              ? MemoryImage(profile.avatarBytes!)
+                              : null,
+                          child: profile.avatarBytes == null
+                              ? Icon(
+                                  Icons.person_rounded,
+                                  size: 36,
+                                  color: theme.colorScheme.onPrimaryContainer,
+                                )
+                              : null,
+                        ),
+                        // 中心相机图标
+                        Container(
+                          decoration: BoxDecoration(
+                            color: Colors.black.withValues(alpha: 0.5),
+                            shape: BoxShape.circle,
+                          ),
+                          padding: const EdgeInsets.all(8),
+                          child: const Icon(
+                            Icons.photo_camera_outlined,
+                            size: 20,
+                            color: Colors.white,
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
-                  padding: const EdgeInsets.all(8),
-                  child: const Icon(
-                    Icons.photo_camera_outlined,
-                    size: 20,
-                    color: Colors.white,
-                  ),
                 ),
+                // 右上角关闭按钮 - 恢复默认头像
+                if (profile.avatarBytes != null)
+                  Positioned(
+                    right: 0,
+                    top: 0,
+                    child: InkWell(
+                      onTap: _resetAvatar,
+                      borderRadius: BorderRadius.circular(10),
+                      child: Container(
+                        padding: const EdgeInsets.all(2),
+                        decoration: BoxDecoration(
+                          color: theme.colorScheme.surface,
+                          shape: BoxShape.circle,
+                          border: Border.all(
+                            color: dividerColor,
+                          ),
+                        ),
+                        child: Icon(
+                          Icons.close_rounded,
+                          size: 12,
+                          color: theme.colorScheme.onSurfaceVariant,
+                        ),
+                      ),
+                    ),
+                  ),
               ],
             ),
           ),
