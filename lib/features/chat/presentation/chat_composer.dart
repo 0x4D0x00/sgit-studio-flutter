@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:file_picker/file_picker.dart';
 
 import 'package:sgit_studio_flutter/design/extensions/app_skin.dart';
 import 'package:sgit_studio_flutter/design/tokens/app_spacing.dart';
@@ -39,6 +40,9 @@ class _ChatComposerState extends ConsumerState<ChatComposer> {
   /// 选中的模型（null = 用内核默认）。随 turn/start 一起发。
   String? _model;
 
+  /// 已选择的附件列表
+  final List<PlatformFile> _attachments = [];
+
   @override
   void initState() {
     super.initState();
@@ -48,6 +52,52 @@ class _ChatComposerState extends ConsumerState<ChatComposer> {
   }
 
   void _onTextChanged() => setState(() {});
+
+  Future<void> _pickFiles() async {
+    try {
+      final result = await FilePicker.pickFiles(
+        type: FileType.any,
+      );
+
+      if (result.isNotEmpty) {
+        setState(() {
+          _attachments.addAll(result);
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('选择文件失败: $e')),
+        );
+      }
+    }
+  }
+
+  Future<void> _pickImages() async {
+    try {
+      final result = await FilePicker.pickFiles(
+        type: FileType.image,
+      );
+
+      if (result.isNotEmpty) {
+        setState(() {
+          _attachments.addAll(result);
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('选择图片失败: $e')),
+        );
+      }
+    }
+  }
+
+  void _removeAttachment(int index) {
+    setState(() {
+      _attachments.removeAt(index);
+    });
+  }
 
   @override
   void dispose() {
@@ -115,6 +165,65 @@ class _ChatComposerState extends ConsumerState<ChatComposer> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
+                  // 附件列表
+                  if (_attachments.isNotEmpty)
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: AppSpacing.xs),
+                      child: Wrap(
+                        spacing: AppSpacing.xs,
+                        runSpacing: AppSpacing.xs,
+                        children: _attachments.asMap().entries.map((entry) {
+                          final index = entry.key;
+                          final file = entry.value;
+                          final isImage = file.extension != null &&
+                              ['jpg', 'jpeg', 'png', 'gif', 'bmp', 'webp']
+                                  .contains(file.extension!.toLowerCase());
+
+                          return Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: AppSpacing.xs,
+                              vertical: AppSpacing.xxs,
+                            ),
+                            decoration: BoxDecoration(
+                              color: skin.containerBgSecondary,
+                              borderRadius: BorderRadius.circular(4),
+                              border: Border.all(color: skin.border),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(
+                                  isImage ? Icons.image : Icons.insert_drive_file,
+                                  size: 16,
+                                  color: skin.textSecondary,
+                                ),
+                                const SizedBox(width: AppSpacing.xxs),
+                                ConstrainedBox(
+                                  constraints: const BoxConstraints(maxWidth: 150),
+                                  child: Text(
+                                    file.name,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      color: skin.text,
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(width: AppSpacing.xxs),
+                                InkWell(
+                                  onTap: () => _removeAttachment(index),
+                                  child: Icon(
+                                    Icons.close,
+                                    size: 14,
+                                    color: skin.textSecondary,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          );
+                        }).toList(),
+                      ),
+                    ),
                   // 文本输入框
                   TextField(
                     controller: _ctl,
@@ -190,10 +299,21 @@ class _ChatComposerState extends ConsumerState<ChatComposer> {
       align: AppMenuAlign.above,
       semanticLabel: l10n.chatAddMenu,
       entries: [
-        AppMenuAction(
+        AppMenuSubmenu(
           icon: Icons.attach_file,
           label: l10n.chatAttachFiles,
-          onTap: comingSoon,
+          entries: [
+            AppMenuAction(
+              icon: Icons.insert_drive_file,
+              label: '选择文件',
+              onTap: _pickFiles,
+            ),
+            AppMenuAction(
+              icon: Icons.image,
+              label: '选择图片',
+              onTap: _pickImages,
+            ),
+          ],
         ),
         AppMenuAction(
           icon: Icons.public,
