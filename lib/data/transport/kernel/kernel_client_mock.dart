@@ -106,8 +106,17 @@ final class MockKernelClient implements KernelClient {
     return switch (path) {
       '/sgcode-scene/list' => {
           'scenes': [
-            {'id': 'blueteam~firewall', 'name': '防护助理', 'model': 'glm4:latest'},
-            {'id': 'ops~log', 'name': '日志分析助理', 'subagents': ['a', 'b']},
+            // 今天的数据
+            {'id': 'blueteam~firewall', 'name': '防护助理', 'model': 'glm4:latest', 'updatedAt': _getTodayDate(10, 30)},
+            {'id': 'greeting', 'name': 'Greeting', 'model': 'glm4:latest', 'updatedAt': _getTodayDate(9, 0)},
+            {'id': 'code-review', 'name': '代码审查助手', 'model': 'glm4:latest', 'updatedAt': _getTodayDate(14, 15)},
+            // 昨天的数据
+            {'id': 'ops~log', 'name': '日志分析助理', 'subagents': ['a', 'b'], 'updatedAt': _getYesterdayDate(15, 20)},
+            {'id': 'data-analysis', 'name': '数据分析助理', 'model': 'glm4:latest', 'updatedAt': _getYesterdayDate(11, 45)},
+            // 更早的数据
+            {'id': 'flutter-example', 'name': 'Flutter代码示例编号', 'model': 'glm4:latest', 'updatedAt': _getOlderDate(3)},
+            {'id': 'api-design', 'name': 'API设计助手', 'model': 'glm4:latest', 'updatedAt': _getOlderDate(5)},
+            {'id': 'test-helper', 'name': '测试助手', 'model': 'glm4:latest', 'updatedAt': _getOlderDate(7)},
           ],
         },
       '/sgcode-subagent/list' => {
@@ -441,4 +450,26 @@ final class _Script {
     ];
     return words[_chunk++ % words.length];
   }
+}
+
+/// 生成今天的日期时间字符串
+String _getTodayDate(int hour, int minute) {
+  final now = DateTime.now();
+  final today = DateTime(now.year, now.month, now.day, hour, minute);
+  // 使用本地时间，但转为 UTC 格式以便 DateTime.parse 正确解析
+  return today.toLocal().toIso8601String();
+}
+
+/// 生成昨天的日期时间字符串
+String _getYesterdayDate(int hour, int minute) {
+  final now = DateTime.now();
+  final yesterday = DateTime(now.year, now.month, now.day - 1, hour, minute);
+  return yesterday.toLocal().toIso8601String();
+}
+
+/// 生成更早日期的字符串（daysAgo: 距今天数）
+String _getOlderDate(int daysAgo) {
+  final now = DateTime.now();
+  final older = DateTime(now.year, now.month, now.day - daysAgo, 10, 0);
+  return older.toLocal().toIso8601String();
 }

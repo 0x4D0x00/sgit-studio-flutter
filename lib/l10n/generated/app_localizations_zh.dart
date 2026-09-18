@@ -89,22 +89,22 @@ class AppLocalizationsZh extends AppLocalizations {
   String get chatGroupDate => '日期';
 
   @override
-  String get chatGroupUnread => '未读';
-
-  @override
-  String get chatGroupState => '状态';
-
-  @override
-  String get chatGroupCustom => '自定义分组';
+  String get chatGroupAssistant => '助理';
 
   @override
   String get chatSortName => '名称';
 
   @override
-  String get chatSortDateCreated => '创建时间';
+  String get chatSortLastActivity => '最近活动';
 
   @override
-  String get chatSortLastActivity => '最近活动';
+  String get chatGroupToday => '今天';
+
+  @override
+  String get chatGroupYesterday => '昨天';
+
+  @override
+  String get chatGroupOlder => '之前';
 
   @override
   String get shellExpandNav => '展开导航';

@@ -89,22 +89,22 @@ class AppLocalizationsEn extends AppLocalizations {
   String get chatGroupDate => 'Date';
 
   @override
-  String get chatGroupUnread => 'Unread';
-
-  @override
-  String get chatGroupState => 'State';
-
-  @override
-  String get chatGroupCustom => 'Custom groups';
+  String get chatGroupAssistant => 'Assistant';
 
   @override
   String get chatSortName => 'Name';
 
   @override
-  String get chatSortDateCreated => 'Date created';
+  String get chatSortLastActivity => 'Last activity';
 
   @override
-  String get chatSortLastActivity => 'Last activity';
+  String get chatGroupToday => 'Today';
+
+  @override
+  String get chatGroupYesterday => 'Yesterday';
+
+  @override
+  String get chatGroupOlder => 'Older';
 
   @override
   String get shellExpandNav => 'Expand navigation';

@@ -74,7 +74,7 @@ abstract final class StudioPageSpecs {
     nameField: 'name',
     removePath: '/sgcode-scene/remove',
     refreshPath: '/sgcode-scene/refresh',
-    extraFields: ['model', 'subagents'],
+    extraFields: ['model', 'subagents', 'updatedAt'],
     detailKind: DetailKind.keyValue,
   );
 

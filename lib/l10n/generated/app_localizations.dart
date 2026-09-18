@@ -254,23 +254,11 @@ abstract class AppLocalizations {
   /// **'日期'**
   String get chatGroupDate;
 
-  /// No description provided for @chatGroupUnread.
+  /// No description provided for @chatGroupAssistant.
   ///
   /// In zh, this message translates to:
-  /// **'未读'**
-  String get chatGroupUnread;
-
-  /// No description provided for @chatGroupState.
-  ///
-  /// In zh, this message translates to:
-  /// **'状态'**
-  String get chatGroupState;
-
-  /// No description provided for @chatGroupCustom.
-  ///
-  /// In zh, this message translates to:
-  /// **'自定义分组'**
-  String get chatGroupCustom;
+  /// **'助理'**
+  String get chatGroupAssistant;
 
   /// No description provided for @chatSortName.
   ///
@@ -278,17 +266,29 @@ abstract class AppLocalizations {
   /// **'名称'**
   String get chatSortName;
 
-  /// No description provided for @chatSortDateCreated.
-  ///
-  /// In zh, this message translates to:
-  /// **'创建时间'**
-  String get chatSortDateCreated;
-
   /// No description provided for @chatSortLastActivity.
   ///
   /// In zh, this message translates to:
   /// **'最近活动'**
   String get chatSortLastActivity;
+
+  /// No description provided for @chatGroupToday.
+  ///
+  /// In zh, this message translates to:
+  /// **'今天'**
+  String get chatGroupToday;
+
+  /// No description provided for @chatGroupYesterday.
+  ///
+  /// In zh, this message translates to:
+  /// **'昨天'**
+  String get chatGroupYesterday;
+
+  /// No description provided for @chatGroupOlder.
+  ///
+  /// In zh, this message translates to:
+  /// **'之前'**
+  String get chatGroupOlder;
 
   /// No description provided for @shellExpandNav.
   ///
