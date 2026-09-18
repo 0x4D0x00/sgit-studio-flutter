@@ -81,6 +81,8 @@ class NavSection {
     this.actionIcon,
     this.menu = const [],
     this.collapsible = false,
+    this.onToggleCollapse,
+    this.isCollapsed,
     this.emptyHint,
     this.emptyHintIcon,
     this.viewAllTooltip,
@@ -109,6 +111,12 @@ class NavSection {
   /// 标题后是否带展开/收起箭头。
   final bool collapsible;
 
+  /// 折叠态回调 —— 用于分组场景。如果提供了这个回调，折叠/展开由容器管理。
+  final VoidCallback? onToggleCollapse;
+
+  /// 折叠状态 —— 用于分组场景。如果提供了这个值，使用它来决定显示/隐藏条目。
+  final bool? isCollapsed;
+
   /// [entries] 为空时的占位提示文案。给了就说明「空也要出现」，
   /// 不给才是 studio 原来的「无权限就彻底不出现」。
   final String? emptyHint;
@@ -116,6 +124,7 @@ class NavSection {
   /// [emptyHint] 前面的图标。
   final IconData? emptyHintIcon;
 
-  /// 整组该不该被跳过：没条目、又没有空态提示，才算真的没有。
-  bool get isEmpty => entries.isEmpty && emptyHint == null;
+  /// 整组该不该被跳过：没条目、又没有空态提示、也不是折叠状态，才算真的没有。
+  /// 折叠状态的分组即使 entries 为空也应该显示标题。
+  bool get isEmpty => entries.isEmpty && emptyHint == null && isCollapsed != true;
 }

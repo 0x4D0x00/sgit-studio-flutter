@@ -21,6 +21,7 @@ import 'package:sgit_studio_flutter/services/layout/layout_controller.dart';
 import 'package:sgit_studio_flutter/ui/components/confirm.dart';
 import 'package:sgit_studio_flutter/ui/components/dialogs/search_chats_dialog.dart';
 import 'package:sgit_studio_flutter/ui/components/menu/app_menu.dart';
+import 'package:sgit_studio_flutter/features/shell/application/history_sort_group_controller.dart';
 
 /// 左栏容器 —— 把 provider / 路由 / 品牌 / l10n 喂给纯组件 `NavPanel`。
 ///
@@ -73,6 +74,9 @@ class NavPanelContainer
 
     // 从用户配置状态中读取用户名
     final userProfile = ref.watch(userProfileControllerProvider);
+
+    // 排序和分组状态
+    final sortGroupState = ref.watch(historySortGroupControllerProvider);
 
     return NavPanel(
       brandMark: BrandAssets.image(
@@ -131,87 +135,12 @@ class NavPanelContainer
           ],
         ),
         // 历史对话：标题带收起箭头，右侧是菜单/排序项。
-        NavSection(
-          title: l10n.navHistory,
-          collapsible: true,
-          viewAllTooltip: l10n.navViewAll,
-          onViewAll: () => _onViewAllHistory(
-            context,
-          ),
-          action: NavSectionAction.menu,
-          menu: [
-            AppMenuSubmenu(
-              label: l10n.chatGroupBy,
-              trailingValue: l10n.chatGroupNone,
-              entries: [
-                AppMenuAction(
-                  label: l10n.chatGroupNone,
-                  checked: true,
-                  onTap: () {},
-                ),
-                AppMenuAction(
-                  label: l10n.chatGroupDate,
-                  onTap: () {},
-                ),
-                AppMenuAction(
-                  label: l10n.chatGroupUnread,
-                  onTap: () {},
-                ),
-                AppMenuAction(
-                  label: l10n.chatGroupState,
-                  onTap: () {},
-                ),
-                AppMenuAction(
-                  label: l10n.chatGroupCustom,
-                  onTap: () {},
-                ),
-              ],
-            ),
-            AppMenuSubmenu(
-              label: l10n.chatSortBy,
-              trailingValue: l10n.chatSortLastActivity,
-              entries: [
-                AppMenuAction(
-                  label: l10n.chatSortName,
-                  onTap: () {},
-                ),
-                AppMenuAction(
-                  label: l10n.chatSortDateCreated,
-                  onTap: () {},
-                ),
-                AppMenuAction(
-                  label: l10n.chatSortLastActivity,
-                  checked: true,
-                  onTap: () {},
-                ),
-              ],
-            ),
-          ],
-          entries: [
-            // TODO: 换成 thread/list 的真实历史，scenes 只是临时占位。
-            for (final sc in scenes.take(_historyLimit))
-              NavEntry(
-                id: '$_assistantPrefix${sc.id}',
-                icon: Icons.chat_bubble_outline,
-                label: sc.name.isEmpty
-                    ? sc.id
-                    : sc.name,
-                trailingMenu: _chatItemMenu(
-                  context,
-                  ref,
-                  l10n,
-                  sc,
-                ),
-              ),
-            // 超出上限：末尾加一行「查看全部」，点了跳去历史列表页。
-            if (scenes.length > _historyLimit)
-              NavEntry(
-                id: _idHistoryMore,
-                icon: Icons.more_horiz,
-                label: l10n.navViewAll,
-                isSpecialAction: true,
-              ),
-          ],
+        ..._buildHistorySections(
+          l10n,
+          ref,
+          scenes,
+          sortGroupState,
+          context,
         ),
       ],
       onSelect:
@@ -484,5 +413,277 @@ class NavPanelContainer
         ),
       ),
     );
+  }
+
+  /// 构建历史对话区域（可能包含多个分组）
+  List<NavSection> _buildHistorySections(
+    AppLocalizations l10n,
+    WidgetRef ref,
+    List<ResourceItem> scenes,
+    HistorySortGroupState sortGroupState,
+    BuildContext context,
+  ) {
+    // 获取当前排序和分组的标签
+    final sortLabel = switch (sortGroupState.sortBy) {
+      ChatSortBy.lastActivity => l10n.chatSortLastActivity,
+      ChatSortBy.name => l10n.chatSortName,
+    };
+
+    final groupLabel = switch (sortGroupState.groupBy) {
+      ChatGroupBy.none => l10n.chatGroupNone,
+      ChatGroupBy.date => l10n.chatGroupDate,
+      ChatGroupBy.assistant => l10n.chatGroupAssistant,
+    };
+
+    // 按照当前排序和分组设置处理数据
+    final grouped = sortAndGroupHistory(
+      scenes,
+      sortGroupState.sortBy,
+      sortGroupState.groupBy,
+      (key) => _getGroupTitle(key, l10n),
+    );
+
+    // 如果不分组，返回单个 section
+    if (sortGroupState.groupBy == ChatGroupBy.none) {
+      final items = grouped.first.items;
+      return [
+        NavSection(
+          title: l10n.navHistory,
+          collapsible: true,
+          viewAllTooltip: l10n.navViewAll,
+          onViewAll: () => _onViewAllHistory(context),
+          action: NavSectionAction.menu,
+          menu: [
+            AppMenuSubmenu(
+              label: l10n.chatGroupBy,
+              trailingValue: groupLabel,
+              entries: [
+                AppMenuAction(
+                  label: l10n.chatGroupNone,
+                  checked: sortGroupState.groupBy == ChatGroupBy.none,
+                  onTap: () => ref
+                      .read(historySortGroupControllerProvider.notifier)
+                      .setGroupBy(ChatGroupBy.none),
+                ),
+                AppMenuAction(
+                  label: l10n.chatGroupDate,
+                  checked: sortGroupState.groupBy == ChatGroupBy.date,
+                  onTap: () => ref
+                      .read(historySortGroupControllerProvider.notifier)
+                      .setGroupBy(ChatGroupBy.date),
+                ),
+                AppMenuAction(
+                  label: l10n.chatGroupAssistant,
+                  checked: sortGroupState.groupBy == ChatGroupBy.assistant,
+                  onTap: () => _notWired(context, l10n, 'group-by-assistant'),
+                ),
+              ],
+            ),
+            AppMenuSubmenu(
+              label: l10n.chatSortBy,
+              trailingValue: sortLabel,
+              entries: [
+                AppMenuAction(
+                  label: l10n.chatSortName,
+                  checked: sortGroupState.sortBy == ChatSortBy.name,
+                  onTap: () => ref
+                      .read(historySortGroupControllerProvider.notifier)
+                      .setSortBy(ChatSortBy.name),
+                ),
+                AppMenuAction(
+                  label: l10n.chatSortLastActivity,
+                  checked: sortGroupState.sortBy == ChatSortBy.lastActivity,
+                  onTap: () => ref
+                      .read(historySortGroupControllerProvider.notifier)
+                      .setSortBy(ChatSortBy.lastActivity),
+                ),
+              ],
+            ),
+          ],
+          entries: [
+            for (final sc in items.take(_historyLimit))
+              NavEntry(
+                id: '$_assistantPrefix${sc.id}',
+                icon: Icons.chat_bubble_outline,
+                label: sc.name.isEmpty ? sc.id : sc.name,
+                trailingMenu: _chatItemMenu(context, ref, l10n, sc),
+              ),
+            if (scenes.length > _historyLimit)
+              NavEntry(
+                id: _idHistoryMore,
+                icon: Icons.more_horiz,
+                label: l10n.navViewAll,
+                isSpecialAction: true,
+              ),
+          ],
+        ),
+      ];
+    }
+
+    // 分组模式：第一个section是主标题，后续的是各个日期分组
+    final sections = <NavSection>[];
+
+    // 主标题section（不可折叠，带菜单和查看全部按钮）
+    sections.add(
+      NavSection(
+        title: l10n.navHistory,
+        collapsible: false,
+        viewAllTooltip: l10n.navViewAll,
+        onViewAll: () => _onViewAllHistory(context),
+        action: NavSectionAction.menu,
+        menu: [
+          AppMenuSubmenu(
+            label: l10n.chatGroupBy,
+            trailingValue: groupLabel,
+            entries: [
+              AppMenuAction(
+                label: l10n.chatGroupNone,
+                checked: sortGroupState.groupBy == ChatGroupBy.none,
+                onTap: () => ref
+                    .read(historySortGroupControllerProvider.notifier)
+                    .setGroupBy(ChatGroupBy.none),
+              ),
+              AppMenuAction(
+                label: l10n.chatGroupDate,
+                checked: sortGroupState.groupBy == ChatGroupBy.date,
+                onTap: () => ref
+                    .read(historySortGroupControllerProvider.notifier)
+                    .setGroupBy(ChatGroupBy.date),
+              ),
+              AppMenuAction(
+                label: l10n.chatGroupAssistant,
+                checked: sortGroupState.groupBy == ChatGroupBy.assistant,
+                onTap: () => _notWired(context, l10n, 'group-by-assistant'),
+              ),
+            ],
+          ),
+          AppMenuSubmenu(
+            label: l10n.chatSortBy,
+            trailingValue: sortLabel,
+            entries: [
+              AppMenuAction(
+                label: l10n.chatSortName,
+                checked: sortGroupState.sortBy == ChatSortBy.name,
+                onTap: () => ref
+                    .read(historySortGroupControllerProvider.notifier)
+                    .setSortBy(ChatSortBy.name),
+              ),
+              AppMenuAction(
+                label: l10n.chatSortLastActivity,
+                checked: sortGroupState.sortBy == ChatSortBy.lastActivity,
+                onTap: () => ref
+                    .read(historySortGroupControllerProvider.notifier)
+                    .setSortBy(ChatSortBy.lastActivity),
+              ),
+            ],
+          ),
+        ],
+        entries: const [], // 主标题section不显示任何条目
+      ),
+    );
+
+    // 为每个日期分组创建可折叠的section
+    for (var i = 0; i < grouped.length; i++) {
+      final group = grouped[i];
+      final isCollapsed = sortGroupState.collapsedGroups.contains(group.groupKey);
+      final isFirstGroup = i == 0; // 第一个分组
+      final hasMore = group.items.length > _historyLimit; // 该分组是否超过20条
+
+      sections.add(
+        NavSection(
+          title: group.groupTitle,
+          collapsible: true, // 每个日期分组都可折叠
+          isCollapsed: isCollapsed, // 传入折叠状态
+          // 只有第一个分组需要"查看全部"和菜单按钮
+          viewAllTooltip: isFirstGroup ? l10n.navViewAll : null,
+          onViewAll: isFirstGroup ? () => _onViewAllHistory(context) : null,
+          action: isFirstGroup ? NavSectionAction.menu : NavSectionAction.none,
+          menu: isFirstGroup ? [
+            AppMenuSubmenu(
+              label: l10n.chatGroupBy,
+              trailingValue: groupLabel,
+              entries: [
+                AppMenuAction(
+                  label: l10n.chatGroupNone,
+                  checked: sortGroupState.groupBy == ChatGroupBy.none,
+                  onTap: () => ref
+                      .read(historySortGroupControllerProvider.notifier)
+                      .setGroupBy(ChatGroupBy.none),
+                ),
+                AppMenuAction(
+                  label: l10n.chatGroupDate,
+                  checked: sortGroupState.groupBy == ChatGroupBy.date,
+                  onTap: () => ref
+                      .read(historySortGroupControllerProvider.notifier)
+                      .setGroupBy(ChatGroupBy.date),
+                ),
+                AppMenuAction(
+                  label: l10n.chatGroupAssistant,
+                  checked: sortGroupState.groupBy == ChatGroupBy.assistant,
+                  onTap: () => _notWired(context, l10n, 'group-by-assistant'),
+                ),
+              ],
+            ),
+            AppMenuSubmenu(
+              label: l10n.chatSortBy,
+              trailingValue: sortLabel,
+              entries: [
+                AppMenuAction(
+                  label: l10n.chatSortName,
+                  checked: sortGroupState.sortBy == ChatSortBy.name,
+                  onTap: () => ref
+                      .read(historySortGroupControllerProvider.notifier)
+                      .setSortBy(ChatSortBy.name),
+                ),
+                AppMenuAction(
+                  label: l10n.chatSortLastActivity,
+                  checked: sortGroupState.sortBy == ChatSortBy.lastActivity,
+                  onTap: () => ref
+                      .read(historySortGroupControllerProvider.notifier)
+                      .setSortBy(ChatSortBy.lastActivity),
+                ),
+              ],
+            ),
+          ] : [],
+          onToggleCollapse: () => ref
+              .read(historySortGroupControllerProvider.notifier)
+              .toggleGroupCollapse(group.groupKey),
+          entries: isCollapsed
+              ? []
+              : [
+                  // 最多显示20条
+                  for (final sc in group.items.take(_historyLimit))
+                    NavEntry(
+                      id: '$_assistantPrefix${sc.id}',
+                      icon: Icons.chat_bubble_outline,
+                      label: sc.name.isEmpty ? sc.id : sc.name,
+                      trailingMenu: _chatItemMenu(context, ref, l10n, sc),
+                    ),
+                  // 超过20条时显示"查看全部"
+                  if (hasMore)
+                    NavEntry(
+                      id: _idHistoryMore,
+                      icon: Icons.more_horiz,
+                      label: l10n.navViewAll,
+                      isSpecialAction: true,
+                    ),
+                ],
+        ),
+      );
+    }
+
+    return sections;
+  }
+
+  /// 获取分组标题
+  String _getGroupTitle(String key, AppLocalizations l10n) {
+    if (key == 'today') return l10n.chatGroupToday;
+    if (key == 'yesterday') return l10n.chatGroupYesterday;
+    if (key == 'older') return l10n.chatGroupOlder;
+    if (key.startsWith('assistant_')) {
+      // TODO: 待实现 - 需要助理名称映射
+      return key.substring('assistant_'.length);
+    }
+    return key;
   }
 }

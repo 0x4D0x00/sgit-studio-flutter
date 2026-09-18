@@ -110,17 +110,20 @@ class _NavPanelState extends State<NavPanel> {
                     if (s.title != null)
                       NavSectionHeader(
                         section: s,
-                        collapsed: _chatsCollapsed,
-                        onToggleCollapse: () =>
-                            setState(() => _chatsCollapsed = !_chatsCollapsed),
+                        collapsed: s.isCollapsed ?? _chatsCollapsed,
+                        onToggleCollapse: s.onToggleCollapse ??
+                            (s.collapsible
+                                ? () => setState(() => _chatsCollapsed = !_chatsCollapsed)
+                                : null),
                         onAddProject: widget.onAddProject,
                       ),
 
                     // 空组走占位提示
-                    if (s.entries.isEmpty)
+                    if (s.entries.isEmpty && s.emptyHint != null)
                       NavSectionEmptyHint(section: s)
-                    else if (!_chatsCollapsed || !s.collapsible)
-                      // 未折叠或不可折叠的组显示条目
+                    else if (s.entries.isNotEmpty &&
+                            (!_chatsCollapsed || !s.collapsible || s.onToggleCollapse != null))
+                      // 显示条目（未折叠 或 不可折叠 或 有自定义折叠回调）
                       for (final e in s.entries)
                         _row(e, isChatItem: s.collapsible),
 
