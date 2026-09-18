@@ -449,6 +449,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get accountUpdateFailed => 'Update failed';
 
   @override
+  String get accountAvatarTooLarge =>
+      'Image is too large, please choose one under 5MB';
+
+  @override
   String get commonSave => 'Save';
 
   @override

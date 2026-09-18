@@ -932,6 +932,12 @@ abstract class AppLocalizations {
   /// **'更新失败'**
   String get accountUpdateFailed;
 
+  /// No description provided for @accountAvatarTooLarge.
+  ///
+  /// In zh, this message translates to:
+  /// **'图片过大，请选择小于 5MB 的图片'**
+  String get accountAvatarTooLarge;
+
   /// No description provided for @commonSave.
   ///
   /// In zh, this message translates to:

@@ -219,6 +219,7 @@
   "accountPasswordTooShort": "Password must be at least 6 characters",
   "accountUpdateSuccess": "Updated successfully",
   "accountUpdateFailed": "Update failed",
+  "accountAvatarTooLarge": "Image is too large, please choose one under 5MB",
   "commonSave": "Save",
   "commonCancel": "Cancel",
   "commonRefresh": "Refresh",

@@ -221,6 +221,7 @@
   "accountPasswordTooShort": "密码长度至少为6位",
   "accountUpdateSuccess": "更新成功",
   "accountUpdateFailed": "更新失败",
+  "accountAvatarTooLarge": "图片过大，请选择小于 5MB 的图片",
   "commonSave": "保存",
   "commonCancel": "取消",
   "commonRefresh": "刷新",

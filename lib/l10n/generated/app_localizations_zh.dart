@@ -446,6 +446,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get accountUpdateFailed => '更新失败';
 
   @override
+  String get accountAvatarTooLarge => '图片过大，请选择小于 5MB 的图片';
+
+  @override
   String get commonSave => '保存';
 
   @override
