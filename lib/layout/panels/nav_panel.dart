@@ -1,3 +1,5 @@
+import 'dart:typed_data';
+
 import 'package:flutter/material.dart';
 
 import 'package:sgit_studio_flutter/design/extensions/app_skin.dart';
@@ -32,6 +34,7 @@ class NavPanel extends StatefulWidget {
     required this.userName,
     required this.searchTooltip,
     required this.collapseTooltip,
+    this.avatarBytes,
     this.userMenu = const [],
     this.onSearch,
     this.onCollapse,
@@ -45,6 +48,7 @@ class NavPanel extends StatefulWidget {
   final String? activeId;
   final ValueChanged<String> onSelect;
   final String userName;
+  final Uint8List? avatarBytes;
 
   /// 用户区右下角搜索按钮的 tooltip。
   final String searchTooltip;
@@ -132,6 +136,7 @@ class _NavPanelState extends State<NavPanel> {
           // 6. 用户区域
           NavUserArea(
             userName: widget.userName,
+            avatarBytes: widget.avatarBytes,
             userMenu: widget.userMenu,
             searchTooltip: widget.searchTooltip,
             collapseTooltip: widget.collapseTooltip,

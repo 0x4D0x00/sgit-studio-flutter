@@ -4,6 +4,8 @@ import 'package:sgit_studio_flutter/design/extensions/app_skin.dart';
 import 'package:sgit_studio_flutter/layout/metrics/workspace_metrics.dart';
 import 'package:sgit_studio_flutter/ui/components/menu/app_menu.dart';
 
+import 'dart:typed_data';
+
 /// 左侧导航栏底部用户区域：左侧头像+名字（点击显示菜单），右侧搜索 + 收起按钮。
 ///
 /// ⚠️ **纯展示组件**：数据与回调全部由外部注入。
@@ -14,11 +16,13 @@ class NavUserArea extends StatelessWidget {
     required this.userMenu,
     required this.searchTooltip,
     required this.collapseTooltip,
+    this.avatarBytes,
     this.onSearch,
     this.onCollapse,
   });
 
   final String userName;
+  final Uint8List? avatarBytes;
   final List<AppMenuEntry> userMenu;
 
   /// 用户区右下角搜索按钮的 tooltip。
@@ -101,7 +105,10 @@ class NavUserArea extends StatelessWidget {
           CircleAvatar(
             radius: 13,
             backgroundColor: skin.navItemActive,
-            child: Icon(Icons.person_rounded, size: 16, color: skin.text),
+            backgroundImage: avatarBytes != null ? MemoryImage(avatarBytes!) : null,
+            child: avatarBytes == null
+                ? Icon(Icons.person_rounded, size: 16, color: skin.text)
+                : null,
           ),
           const SizedBox(width: 8),
           Expanded(

@@ -224,6 +224,7 @@ class NavPanelContainer
             id,
           ),
       userName: userProfile.username,
+      avatarBytes: userProfile.avatarBytes,
       searchTooltip: l10n.navSearch,
       collapseTooltip: l10n.shellCollapseNav,
       userMenu: [

@@ -1,9 +1,13 @@
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:sgit_studio_flutter/l10n/generated/app_localizations.dart';
 import 'package:sgit_studio_flutter/design/tokens/app_spacing.dart';
 import 'package:sgit_studio_flutter/features/settings/application/user_profile_controller.dart';
+
+/// 头像大小上限（字节）：5MB，避免把过大的图片塞进 SharedPreferences。
+const _kMaxAvatarBytes = 5 * 1024 * 1024;
 
 /// 账户设置页：头像、用户名等基本信息管理
 /// 密码还未确定
@@ -91,11 +95,33 @@ class _AccountPageState extends ConsumerState<AccountPage> {
     );
   }
 
-  void _changeAvatar() {
+  Future<void> _changeAvatar() async {
     final l10n = AppLocalizations.of(context);
-    // TODO: 实现头像选择功能
+
+    final result = await FilePicker.pickFiles(
+      type: FileType.image,
+    );
+    if (result.isEmpty) return;
+
+    final file = result.first;
+    final bytes = await file.readAsBytes();
+
+    if (bytes.length > _kMaxAvatarBytes) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(l10n.accountAvatarTooLarge)),
+      );
+      return;
+    }
+
+    final extension = file.extension ?? 'png';
+    await ref
+        .read(userProfileControllerProvider.notifier)
+        .updateAvatar(bytes, extension);
+
+    if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(l10n.commonComingSoon)),
+      SnackBar(content: Text(l10n.accountUpdateSuccess)),
     );
   }
 
@@ -127,11 +153,16 @@ class _AccountPageState extends ConsumerState<AccountPage> {
                 CircleAvatar(
                   radius: 32,
                   backgroundColor: theme.colorScheme.primaryContainer,
-                  child: Icon(
-                    Icons.person_rounded,
-                    size: 36,
-                    color: theme.colorScheme.onPrimaryContainer,
-                  ),
+                  backgroundImage: profile.avatarBytes != null
+                      ? MemoryImage(profile.avatarBytes!)
+                      : null,
+                  child: profile.avatarBytes == null
+                      ? Icon(
+                          Icons.person_rounded,
+                          size: 36,
+                          color: theme.colorScheme.onPrimaryContainer,
+                        )
+                      : null,
                 ),
                 // 中心相机图标
                 Container(
