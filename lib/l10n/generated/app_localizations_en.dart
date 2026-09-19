@@ -258,6 +258,21 @@ class AppLocalizationsEn extends AppLocalizations {
   String get studioRefresh => 'Refresh';
 
   @override
+  String get studioUnsyncedHint =>
+      'Changed locally, not yet synced to the server';
+
+  @override
+  String get studioSyncNow => 'Sync to server';
+
+  @override
+  String get studioSyncDone => 'Synced';
+
+  @override
+  String studioSyncConflicts(int count) {
+    return 'Synced. $count item(s) conflicted: the server version won, your edits were kept as .conflict backups';
+  }
+
+  @override
   String get studioRemove => 'Delete';
 
   @override
@@ -290,6 +305,13 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get relayCustom => 'Custom';
+
+  @override
+  String get relayPlatform => 'Platform';
+
+  @override
+  String get relayPlatformReadonly =>
+      'Platform-provided; read-only on your personal page';
 
   @override
   String get relayBack => 'Back';

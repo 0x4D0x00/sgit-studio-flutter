@@ -5,10 +5,8 @@ import 'package:sgit_studio_flutter/design/extensions/app_skin.dart';
 import 'package:sgit_studio_flutter/design/tokens/app_spacing.dart';
 import 'package:sgit_studio_flutter/domain/models/studio/relay_models.dart';
 import 'package:sgit_studio_flutter/features/studio/application/relay_controller.dart';
-import 'package:sgit_studio_flutter/features/studio/application/studio_scope.dart';
 import 'package:sgit_studio_flutter/features/studio/presentation/widgets/relay_forms.dart';
 import 'package:sgit_studio_flutter/features/studio/presentation/widgets/relay_key_pool.dart';
-import 'package:sgit_studio_flutter/features/studio/presentation/widgets/scope_toggle.dart';
 import 'package:sgit_studio_flutter/l10n/generated/app_localizations.dart';
 import 'package:sgit_studio_flutter/ui/components/async_view.dart';
 import 'package:sgit_studio_flutter/ui/components/confirm.dart';
@@ -33,7 +31,6 @@ class RelayPage extends ConsumerWidget {
     final l10n = AppLocalizations.of(context);
     final skin = AppSkin.of(context);
     final s = ref.watch(relayProvider);
-    final scope = ref.watch(studioScopeProvider);
     final ctrl = ref.read(relayProvider.notifier);
 
     final inL2 = s.selectedProvider != null;
@@ -41,11 +38,10 @@ class RelayPage extends ConsumerWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        const ScopeBanner(),
-        _toolbar(context, ref, skin, l10n, s, scope, ctrl, inL2),
+        _toolbar(context, ref, skin, l10n, s, ctrl, inL2),
         Expanded(
           child: inL2
-              ? _models(context, ref, skin, l10n, s, scope, ctrl)
+              ? _models(context, ref, skin, l10n, s, ctrl)
               : _providers(context, ref, skin, l10n, s, ctrl),
         ),
       ],
@@ -64,21 +60,20 @@ class RelayPage extends ConsumerWidget {
     AppSkin skin,
     AppLocalizations l10n,
     RelayState s,
-    StudioScope scope,
     RelayController ctrl,
     bool inL2,
   ) {
     final active = _activeProvider(s);
-    final actions = _actions(context, l10n, s, scope, ctrl, inL2, active);
+    final actions = _actions(context, l10n, s, ctrl, inL2, active);
 
     return Padding(
       padding: const EdgeInsets.fromLTRB(
           AppSpacing.md, AppSpacing.sm, AppSpacing.md, AppSpacing.xs),
       child: LayoutBuilder(
         builder: (_, c) {
-          // ⚠️ 窄屏下**丢掉冗余元素**，而不是硬挤。「个人（本地）」这个标记
-          // 与旁边的作用域切换器信息重复，宽度不够时第一个该让位的就是它。
-          final showBadge = !scope.isMaster && c.maxWidth >= 420;
+          // ⚠️ 窄屏下**丢掉冗余元素**，而不是硬挤：「个人（本地）」这个标记
+          // 只是说明数据在哪，宽度不够时第一个该让位的就是它。
+          final showBadge = c.maxWidth >= 420;
 
           final title = Row(
             children: [
@@ -113,15 +108,16 @@ class RelayPage extends ConsumerWidget {
                             TextStyle(fontSize: 11, color: skin.textTertiary)),
                   ),
                 ),
-              const ScopeToggle(),
               IconButton(
                 iconSize: 18,
                 tooltip: l10n.studioRefresh,
                 color: skin.textSecondary,
                 icon: const Icon(Icons.refresh_rounded),
+                // L2 是下钻视图，重拉该厂商即可；L1 走整页刷新。
+                // 两条都标成用户主动触发，不能被合并窗口吞掉。
                 onPressed: inL2
-                    ? () => ctrl.openProvider(s.selectedProvider!)
-                    : ctrl.loadProviders,
+                    ? () => ctrl.openProvider(s.selectedProvider!, refetch: true)
+                    : () => ctrl.loadProviders(force: true),
               ),
             ],
           );
@@ -158,7 +154,6 @@ class RelayPage extends ConsumerWidget {
     BuildContext context,
     AppLocalizations l10n,
     RelayState s,
-    StudioScope scope,
     RelayController ctrl,
     bool inL2,
     RelayProvider? active,
@@ -186,7 +181,7 @@ class RelayPage extends ConsumerWidget {
           icon: const Icon(Icons.sync_rounded, size: 15),
           label: Text(l10n.relaySync, style: const TextStyle(fontSize: 12)),
           onPressed: (active?.enabled ?? false)
-              ? () => _sync(context, ctrl, scope, s.selectedProvider!)
+              ? () => _sync(context, ctrl, s.selectedProvider!)
               : null,
         ),
       ),
@@ -243,7 +238,8 @@ class RelayPage extends ConsumerWidget {
         borderRadius: BorderRadius.circular(AppRadius.md),
         clipBehavior: Clip.antiAlias,
         child: InkWell(
-          onTap: () => ctrl.openProvider(p.code),
+          // 传 isCustom：同 code 的平台行与自建行并存，只有 tag 能区分点的是哪一行。
+          onTap: () => ctrl.openProvider(p.code, isCustom: p.isCustom),
           child: Padding(
             padding: const EdgeInsets.fromLTRB(
                 AppSpacing.sm, AppSpacing.xs, AppSpacing.xxs, AppSpacing.xs),
@@ -265,17 +261,26 @@ class RelayPage extends ConsumerWidget {
                           ),
                         ),
                       ),
-                      if (p.isCustom) _tag(context, l10n.relayCustom, false),
+                      if (p.isCustom)
+                        _tag(context, l10n.relayCustom, false)
+                      else
+                        // 平台开放的厂商：标出来并且**全行只读**。个人页的写
+                        // 一律落 tag=custom，改它只会新建一条同名影子行。
+                        _tag(context, l10n.relayPlatform, false),
                       // 启用开关。缩到 0.75：网格项高度固定，全尺寸会顶出内容。
                       Transform.scale(
                         scale: 0.75,
                         child: Tooltip(
-                          message: p.enabled
-                              ? l10n.relayToggleOff
-                              : l10n.relayToggleOn,
+                          message: p.isCustom
+                              ? (p.enabled
+                                  ? l10n.relayToggleOff
+                                  : l10n.relayToggleOn)
+                              : l10n.relayPlatformReadonly,
                           child: Switch(
                             value: p.enabled,
-                            onChanged: (_) => ctrl.toggleProvider(p),
+                            onChanged: p.isCustom
+                                ? (_) => ctrl.toggleProvider(p)
+                                : null,
                             materialTapTargetSize:
                                 MaterialTapTargetSize.shrinkWrap,
                           ),
@@ -296,22 +301,30 @@ class RelayPage extends ConsumerWidget {
                               fontSize: 11, color: skin.textTertiary),
                         ),
                       ),
+                      // 平台行只读：按钮禁用而不是隐藏 —— 隐藏了用户会以为
+                      // 功能没做，禁用 + tooltip 才说得清"为什么不能改"。
                       IconButton(
                         iconSize: 15,
                         visualDensity: VisualDensity.compact,
-                        tooltip: l10n.relayEditProvider,
+                        tooltip: p.isCustom
+                            ? l10n.relayEditProvider
+                            : l10n.relayPlatformReadonly,
                         color: skin.textSecondary,
                         icon: const Icon(Icons.edit_outlined),
-                        onPressed: () =>
-                            _editProvider(context, ctrl, p, isNew: false),
+                        onPressed: p.isCustom
+                            ? () => _editProvider(context, ctrl, p, isNew: false)
+                            : null,
                       ),
                       IconButton(
                         iconSize: 15,
                         visualDensity: VisualDensity.compact,
-                        tooltip: l10n.relayDeleteProvider,
+                        tooltip: p.isCustom
+                            ? l10n.relayDeleteProvider
+                            : l10n.relayPlatformReadonly,
                         color: Theme.of(context).colorScheme.error,
                         icon: const Icon(Icons.delete_outline_rounded),
-                        onPressed: () => _deleteProvider(context, ctrl, p),
+                        onPressed:
+                            p.isCustom ? () => _deleteProvider(context, ctrl, p) : null,
                       ),
                     ],
                   ),
@@ -330,19 +343,16 @@ class RelayPage extends ConsumerWidget {
     AppSkin skin,
     AppLocalizations l10n,
     RelayState s,
-    StudioScope scope,
     RelayController ctrl,
   ) =>
       Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          // 作用域提示：管理版改的是全平台，个人版是本机直连，语义差别很大。
+          // 只做个人页：数据落本机 per-cid 库，平台开放的行只读。
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
             child: Text(
-              scope.isMaster
-                  ? l10n.relayScopeHintMaster(s.models.length)
-                  : l10n.relayScopeHintPersonal(s.models.length),
+              l10n.relayScopeHintPersonal(s.models.length),
               style: TextStyle(fontSize: 11, color: skin.textTertiary),
             ),
           ),
@@ -499,16 +509,13 @@ class RelayPage extends ConsumerWidget {
     if (ok) await ctrl.deleteModel(m);
   }
 
-  Future<void> _sync(BuildContext context, RelayController ctrl,
-      StudioScope scope, String code) async {
+  Future<void> _sync(
+      BuildContext context, RelayController ctrl, String code) async {
     final l10n = AppLocalizations.of(context);
     final ok = await confirmDanger(
       context,
       title: l10n.relaySync,
-      // 两个作用域的同步语义不同：管理版走平台的厂商接口，个人版是本机直连。
-      message: scope.isMaster
-          ? l10n.relaySyncConfirmMaster(code)
-          : l10n.relaySyncConfirmPersonal(code),
+      message: l10n.relaySyncConfirmPersonal(code),
       confirmText: l10n.commonConfirm,
       danger: false,
     );

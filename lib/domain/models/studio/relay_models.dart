@@ -235,8 +235,9 @@ class RelayModel {
 
 /// L3：密钥。
 ///
-/// ⚠️ 后端返回的是**明文**。这里存明文但只对外暴露 [masked] —— 界面永远显示
-/// 后 6 位（memory `relay-three-tables-tag-status-mask` 的约定）。
+/// ⚠️ **两条路都不给明文**：本地 FFI 那边 `relay_local_apikeys_to_json`
+/// 解密后只回尾 6 位，gateway 那边服务端同样下发脱敏串。界面永远显示后 6 位
+/// （memory `relay-three-tables-tag-status-mask` 的约定）。
 /// React studio 那边直接把明文渲染到页面上了，我们不跟。
 @immutable
 class RelayApiKey {
@@ -250,7 +251,13 @@ class RelayApiKey {
 
   final String id;
 
-  /// 后端原文。**不渲染到界面**，只用于判空/长度。
+  /// 后端给的 `api_key` 字段。**不渲染原文**，只用来算 [masked]。
+  ///
+  /// 两种模式下拿到的都**不是明文**：
+  /// - 本地 FFI：`relay_local_apikeys_to_json` 已解密并脱敏成 `***...尾6位`；
+  /// - gateway：服务端同样下发脱敏串。
+  ///
+  /// 两者的尾 6 位一致，所以下面按尾 6 位重新排版后呈现完全相同。
   final String raw;
 
   /// 备注名（`key_name`）。
@@ -261,7 +268,7 @@ class RelayApiKey {
   /// 所属厂商代码。
   final String modelCode;
 
-  /// 界面显示用：只留后 6 位。
+  /// 界面显示用：只留后 6 位。两种模式下呈现一致。
   String get masked {
     if (raw.length <= 6) return raw.isEmpty ? '' : '••••••';
     return '••••••${raw.substring(raw.length - 6)}';

@@ -139,6 +139,13 @@
   },
   "studioEmpty": "暂无内容",
   "studioRefresh": "刷新",
+  "studioUnsyncedHint": "本地已修改，尚未同步到服务器",
+  "studioSyncNow": "同步到服务器",
+  "studioSyncDone": "已同步",
+  "studioSyncConflicts": "已同步，{count} 项有冲突：服务器版本已生效，你的改动存为 .conflict 备份",
+  "@studioSyncConflicts": {
+    "placeholders": { "count": { "type": "int" } }
+  },
   "studioRemove": "删除",
   "studioRemoveConfirm": "确定删除「{name}」？",
   "@studioRemoveConfirm": {
@@ -163,6 +170,8 @@
   "relayKeys": "密钥",
   "relayDisabled": "已停用",
   "relayCustom": "自建",
+  "relayPlatform": "平台",
+  "relayPlatformReadonly": "平台开放的厂商/模型，个人页只读",
   "relayBack": "返回",
   "relayKeyMasked": "密钥仅显示后 6 位",
   "relayContextWindow": "上下文 {n}",

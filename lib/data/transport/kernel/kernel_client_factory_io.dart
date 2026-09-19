@@ -1,12 +1,13 @@
 import 'package:sgit_studio_flutter/core/contracts/kernel_client.dart';
-import 'package:sgit_studio_flutter/data/transport/kernel/kernel_client_mock.dart';
+import 'package:sgit_studio_flutter/data/transport/kernel/kernel_client_io.dart';
 
-/// 桌面（io）侧的内核通道选择。
+/// 桌面 / 移动（io）侧的内核通道：`dart:ffi` 调 `sgit_ffi.dll` / `libsgit_ffi.so`
+/// 的 `sgit_kernel_*` 符号 → gateway `/sgcode-kernel/ws` → 该 cid 的 docker 沙箱。
 ///
-/// ⚠️ 桌面目标是 **Windows**（我们的开发机是 Linux，不出 Linux 桌面包）。
-/// `sgit-ffi` 的内核符号还没写完，所以这里暂时回落到 mock —— 桌面端的对话链
-/// 与 Web 是两条独立的壳，Web 先跑通。
+/// 与 Web 那条是**同一套中继协议、同一份帧格式**，只换了传输壳
+/// （Web 是 wasm + web_sys::WebSocket，这边是 cdylib + tokio + tungstenite）。
 ///
-/// 补完后这里换成 `dart:ffi` 调 `sgit_ffi.dll` 的 `sgit_kernel_*`，
-/// 上层（`ChatController` 及全部 UI）一行不用改。
-KernelClient createKernelClient() => MockKernelClient();
+/// 需要 mock 时由测试自己注入（`ChatController(client: MockKernelClient())`），
+/// 不在这里按编译期开关切 —— 生产路径与测试路径靠同一个 [KernelClient] 接口分开，
+/// 而不是靠这个工厂。
+KernelClient createKernelClient() => IoKernelClient();

@@ -23,10 +23,15 @@ class ResourcePageSpec {
     this.detailKind = DetailKind.none,
   });
 
-  /// 与 `StudioPageDef.key` 一致。
+  /// 与 `StudioPageDef.key` 一致。**读数据用它**（`SettingsRepository.readPage`），
+  /// 桌面按 key 走 FFI 本地读，Web 按 key 查 gateway 端点。
   final String key;
 
   /// 列表端点（GET）。
+  ///
+  /// ⚠️ **只剩 Web 那侧在用**（`settings_repository_web.dart` 的 `_pageEndpoints`
+  /// 才是它的真源）。桌面/移动走 FFI 本地读，与这个路径无关。
+  /// 新增页时留空串即可 —— 空串表示"没有对应的 gateway 端点"。
   final String listPath;
 
   /// 列表数组在响应里的字段名。**各端点不统一**，所以要配。
@@ -125,13 +130,44 @@ abstract final class StudioPageSpecs {
     extraFields: ['scope', 'size', 'updatedAt'],
   );
 
-  /// 按 key 取。未注册（tools / memory / llm-relay 是定制页）返回 null。
+  /// 记忆笔记。数据源是 `memories/**/*.md`（本地直读，已滤掉引擎管线文件）。
+  ///
+  /// 只读：笔记的增删由引擎与 `/memories` 工具管，studio 页不插手。
+  static const memory = ResourcePageSpec(
+    key: 'memory',
+    listPath: '',
+    listField: 'notes',
+    idField: 'id',
+    nameField: 'name',
+    detailKind: DetailKind.markdown,
+  );
+
+  /// 平台密钥。数据源是 `ai_basic_platform.db`（本地直读）。
+  ///
+  /// ⚠️ 密钥明文**不出 Rust 层** —— `masked` 是脱敏后的尾 4 位
+  /// （见 sgit-ffi/src/studio.rs 的 `mask_key`）。
+  static const apiKey = ResourcePageSpec(
+    key: 'api-key',
+    listPath: '',
+    listField: 'keys',
+    idField: 'id',
+    nameField: 'name',
+    descField: 'masked',
+    extraFields: ['createdAt'],
+  );
+
+  /// 按 key 取。
+  ///
+  /// `tools` 与 `llm-relay` 仍不在此表：前者是开关组（不是列表），
+  /// 后者是 L1/L2/L3 三级页（`RelayPage`）—— 硬套通用列表只会更难懂。
   static ResourcePageSpec? of(String key) => switch (key) {
         'scenes' => scenes,
         'subagent' => subagent,
         'skill' => skill,
         'mcp' => mcp,
         'knowledge' => knowledge,
+        'memory' => memory,
+        'api-key' => apiKey,
         _ => null,
       };
 }

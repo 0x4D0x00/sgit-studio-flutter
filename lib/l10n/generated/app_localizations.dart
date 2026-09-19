@@ -566,6 +566,30 @@ abstract class AppLocalizations {
   /// **'刷新'**
   String get studioRefresh;
 
+  /// No description provided for @studioUnsyncedHint.
+  ///
+  /// In zh, this message translates to:
+  /// **'本地已修改，尚未同步到服务器'**
+  String get studioUnsyncedHint;
+
+  /// No description provided for @studioSyncNow.
+  ///
+  /// In zh, this message translates to:
+  /// **'同步到服务器'**
+  String get studioSyncNow;
+
+  /// No description provided for @studioSyncDone.
+  ///
+  /// In zh, this message translates to:
+  /// **'已同步'**
+  String get studioSyncDone;
+
+  /// No description provided for @studioSyncConflicts.
+  ///
+  /// In zh, this message translates to:
+  /// **'已同步，{count} 项有冲突：服务器版本已生效，你的改动存为 .conflict 备份'**
+  String studioSyncConflicts(int count);
+
   /// No description provided for @studioRemove.
   ///
   /// In zh, this message translates to:
@@ -625,6 +649,18 @@ abstract class AppLocalizations {
   /// In zh, this message translates to:
   /// **'自建'**
   String get relayCustom;
+
+  /// No description provided for @relayPlatform.
+  ///
+  /// In zh, this message translates to:
+  /// **'平台'**
+  String get relayPlatform;
+
+  /// No description provided for @relayPlatformReadonly.
+  ///
+  /// In zh, this message translates to:
+  /// **'平台开放的厂商/模型，个人页只读'**
+  String get relayPlatformReadonly;
 
   /// No description provided for @relayBack.
   ///

@@ -1,9 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'package:sgit_studio_flutter/data/repositories/settings_repository.dart';
 import 'package:sgit_studio_flutter/design/extensions/app_skin.dart';
 import 'package:sgit_studio_flutter/design/tokens/app_spacing.dart';
 import 'package:sgit_studio_flutter/domain/models/studio/resource_item.dart';
+import 'package:sgit_studio_flutter/domain/models/studio/studio_group.dart';
+import 'package:sgit_studio_flutter/features/studio/application/settings_repository_provider.dart';
+import 'package:sgit_studio_flutter/features/studio/presentation/widgets/grouped_grid.dart';
+import 'package:sgit_studio_flutter/features/studio/presentation/widgets/resource_card.dart';
 import 'package:sgit_studio_flutter/features/studio/application/resource_list_controller.dart';
 import 'package:sgit_studio_flutter/features/studio/studio_page_specs.dart';
 import 'package:sgit_studio_flutter/l10n/generated/app_localizations.dart';
@@ -30,7 +35,7 @@ class ResourceListPage extends ConsumerWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        _header(context, skin, l10n, s.items.length, ctrl.reload),
+        _header(context, skin, l10n, s, ctrl),
         Expanded(
           child: AsyncView<ResourceItem>(
             loading: s.loading,
@@ -40,19 +45,27 @@ class ResourceListPage extends ConsumerWidget {
             emptyText: l10n.studioEmpty,
             retryText: l10n.commonRetry,
             onRetry: ctrl.reload,
-            builder: (_) => ListView.builder(
-              padding: const EdgeInsets.symmetric(
-                  horizontal: AppSpacing.md, vertical: AppSpacing.xs),
-              itemCount: s.items.length,
-              itemBuilder: (_, i) => _ResourceTile(
-                item: s.items[i],
+            // 分组卡片网格（照 React studio）：这些条目天然分属四个团队，
+            // 目录名就是分组 —— 平铺一列会把"这是渗透的还是防护的"埋掉。
+            builder: (_) => GroupedGrid<ResourceItem>(
+              buckets: groupByIdPrefix<ResourceItem>(
+                s.items,
+                studioGroupsFor(spec.key),
+                (it) => it.id,
+              ),
+              itemBuilder: (ctx, item) => ResourceCard(
+                item: item,
                 spec: spec,
+                group: _groupOf(item),
+                unsynced: s.unsyncedIds.contains(item.id),
                 onRemove: spec.removePath == null
                     ? null
-                    : () => _confirmRemove(context, l10n, ctrl, s.items[i]),
-                onRefresh: spec.refreshPath == null
+                    : () => _confirmRemove(context, l10n, ctrl, item),
+                // 「从母版重置」桌面端暂不支持（母版只在服务器上，
+                // 需要一个新的 Go 接口）—— 没有本地副本的平台（Web）才显示。
+                onRefresh: spec.refreshPath == null || _hasLocalCopy(ref)
                     ? null
-                    : () => ctrl.refreshOne(s.items[i].id),
+                    : () => ctrl.refreshOne(item.id),
               ),
             ),
           ),
@@ -61,8 +74,19 @@ class ResourceListPage extends ConsumerWidget {
     );
   }
 
+  /// 条目所属分组（供卡片取色与图标）。与网格的分桶用同一份判据。
+  StudioGroup _groupOf(ResourceItem item) {
+    final groups = studioGroupsFor(spec.key);
+    final seg = item.id.contains('/') ? item.id.split('/').first : item.id;
+    return groups.firstWhere((g) => g.key == seg,
+        orElse: () => studioGeneralGroup);
+  }
+
+  static bool _hasLocalCopy(WidgetRef ref) =>
+      ref.read(settingsRepositoryProvider).hasLocalCopy;
+
   Widget _header(BuildContext context, AppSkin skin, AppLocalizations l10n,
-          int count, VoidCallback onReload) =>
+          ResourceListState s, ResourceListController ctrl) =>
       Padding(
         padding: const EdgeInsets.fromLTRB(
             AppSpacing.md, AppSpacing.md, AppSpacing.md, AppSpacing.xs),
@@ -72,19 +96,51 @@ class ResourceListPage extends ConsumerWidget {
                 style: TextStyle(
                     fontSize: 16, fontWeight: FontWeight.w600, color: skin.text)),
             const SizedBox(width: AppSpacing.xs),
-            Text('$count',
+            Text('${s.items.length}',
                 style: TextStyle(fontSize: 12, color: skin.textTertiary)),
             const Spacer(),
+            // 同步入口只在**有本地副本**的平台出现（桌面/移动）。
+            // Web 本身就在服务器上，给它一个"同步"按钮只会让人困惑。
+            if (s.unsyncedIds.isNotEmpty || s.syncing)
+              IconButton(
+                iconSize: 18,
+                tooltip: l10n.studioSyncNow,
+                color: skin.textSecondary,
+                icon: s.syncing
+                    ? const SizedBox(
+                        width: 14,
+                        height: 14,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      )
+                    : const Icon(Icons.cloud_upload_outlined),
+                onPressed: s.syncing ? null : () => _runSync(context, l10n, ctrl),
+              ),
             IconButton(
               iconSize: 18,
               tooltip: l10n.studioRefresh,
               color: skin.textSecondary,
               icon: const Icon(Icons.refresh_rounded),
-              onPressed: onReload,
+              // force：用户主动点的，必须真跑，不能被合并窗口吞掉。
+              onPressed: () => ctrl.reload(force: true),
             ),
           ],
         ),
       );
+
+  Future<void> _runSync(BuildContext context, AppLocalizations l10n,
+      ResourceListController ctrl) async {
+    final out = await ctrl.sync();
+    if (!context.mounted) return;
+
+    // 冲突要明确告诉用户，且说清"本地那份还在" —— 否则他会以为自己的改动没了。
+    final text = switch (out) {
+      SyncOutcome(ok: false, reason: final r) => r,
+      SyncOutcome(conflicts: final c) when c.isNotEmpty =>
+        l10n.studioSyncConflicts(c.length),
+      _ => l10n.studioSyncDone,
+    };
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(text)));
+  }
 
   Future<void> _confirmRemove(BuildContext context, AppLocalizations l10n,
       ResourceListController ctrl, ResourceItem item) async {
@@ -108,102 +164,4 @@ class ResourceListPage extends ConsumerWidget {
     );
     if (ok == true) await ctrl.remove(item.id);
   }
-}
-
-class _ResourceTile extends StatelessWidget {
-  const _ResourceTile({
-    required this.item,
-    required this.spec,
-    this.onRemove,
-    this.onRefresh,
-  });
-
-  final ResourceItem item;
-  final ResourcePageSpec spec;
-  final VoidCallback? onRemove;
-  final VoidCallback? onRefresh;
-
-  @override
-  Widget build(BuildContext context) {
-    final skin = AppSkin.of(context);
-    final l10n = AppLocalizations.of(context);
-
-    return Container(
-      margin: const EdgeInsets.only(bottom: AppSpacing.xs),
-      padding: const EdgeInsets.symmetric(
-          horizontal: AppSpacing.sm, vertical: AppSpacing.xs),
-      decoration: BoxDecoration(
-        color: skin.containerBgSecondary,
-        borderRadius: BorderRadius.circular(AppRadius.md),
-        border: Border.all(color: skin.borderSecondary),
-      ),
-      child: Row(
-        children: [
-          if (item.enabled != null)
-            Padding(
-              padding: const EdgeInsets.only(right: AppSpacing.xs),
-              child: Icon(
-                item.enabled!
-                    ? Icons.check_circle_outline_rounded
-                    : Icons.remove_circle_outline_rounded,
-                size: 16,
-                color: item.enabled! ? skin.accentChip : skin.textTertiary,
-              ),
-            ),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(item.name.isEmpty ? item.id : item.name,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w500,
-                        color: skin.text)),
-                if (item.description.isNotEmpty)
-                  Text(item.description,
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                      style:
-                          TextStyle(fontSize: 12, color: skin.textTertiary)),
-              ],
-            ),
-          ),
-          for (final f in spec.extraFields)
-            if ((item.extras[f]?.toString() ?? '').isNotEmpty &&
-                item.extras[f] != false)
-              Padding(
-                padding: const EdgeInsets.only(left: AppSpacing.xs),
-                child: Text(_fmt(f, item),
-                    style:
-                        TextStyle(fontSize: 11, color: skin.textTertiary)),
-              ),
-          if (onRefresh != null)
-            IconButton(
-              iconSize: 15,
-              tooltip: l10n.studioRefresh,
-              color: skin.textTertiary,
-              icon: const Icon(Icons.refresh_rounded),
-              onPressed: onRefresh,
-            ),
-          if (onRemove != null)
-            IconButton(
-              iconSize: 15,
-              tooltip: l10n.studioRemove,
-              color: skin.textTertiary,
-              icon: const Icon(Icons.delete_outline_rounded),
-              onPressed: onRemove,
-            ),
-        ],
-      ),
-    );
-  }
-
-  /// 附加字段的显示。数组显示条数，其余直显。
-  String _fmt(String field, ResourceItem it) => switch (it.extras[field]) {
-        final List<Object?> l => '$field ${l.length}',
-        final Object v => v.toString(),
-        null => '',
-      };
 }

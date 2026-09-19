@@ -137,6 +137,13 @@
   },
   "studioEmpty": "Nothing here yet",
   "studioRefresh": "Refresh",
+  "studioUnsyncedHint": "Changed locally, not yet synced to the server",
+  "studioSyncNow": "Sync to server",
+  "studioSyncDone": "Synced",
+  "studioSyncConflicts": "Synced. {count} item(s) conflicted: the server version won, your edits were kept as .conflict backups",
+  "@studioSyncConflicts": {
+    "placeholders": { "count": { "type": "int" } }
+  },
   "studioRemove": "Delete",
   "studioRemoveConfirm": "Delete “{name}”?",
   "@studioRemoveConfirm": {
@@ -161,6 +168,8 @@
   "relayKeys": "API keys",
   "relayDisabled": "Disabled",
   "relayCustom": "Custom",
+  "relayPlatform": "Platform",
+  "relayPlatformReadonly": "Platform-provided; read-only on your personal page",
   "relayBack": "Back",
   "relayKeyMasked": "Only the last 6 characters are shown",
   "relayContextWindow": "ctx {n}",

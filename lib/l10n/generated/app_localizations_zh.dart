@@ -257,6 +257,20 @@ class AppLocalizationsZh extends AppLocalizations {
   String get studioRefresh => '刷新';
 
   @override
+  String get studioUnsyncedHint => '本地已修改，尚未同步到服务器';
+
+  @override
+  String get studioSyncNow => '同步到服务器';
+
+  @override
+  String get studioSyncDone => '已同步';
+
+  @override
+  String studioSyncConflicts(int count) {
+    return '已同步，$count 项有冲突：服务器版本已生效，你的改动存为 .conflict 备份';
+  }
+
+  @override
   String get studioRemove => '删除';
 
   @override
@@ -289,6 +303,12 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get relayCustom => '自建';
+
+  @override
+  String get relayPlatform => '平台';
+
+  @override
+  String get relayPlatformReadonly => '平台开放的厂商/模型，个人页只读';
 
   @override
   String get relayBack => '返回';

@@ -5,6 +5,7 @@ import 'package:sgit_studio_flutter/design/extensions/app_skin.dart';
 import 'package:sgit_studio_flutter/features/studio/application/accessible_menus_controller.dart';
 import 'package:sgit_studio_flutter/features/studio/presentation/pages/relay_page.dart';
 import 'package:sgit_studio_flutter/features/studio/presentation/pages/resource_list_page.dart';
+import 'package:sgit_studio_flutter/features/studio/presentation/pages/tools_page.dart';
 import 'package:sgit_studio_flutter/features/studio/studio_feature.dart';
 import 'package:sgit_studio_flutter/features/studio/studio_page_specs.dart';
 import 'package:sgit_studio_flutter/l10n/generated/app_localizations.dart';
@@ -54,12 +55,15 @@ class StudioPage extends ConsumerWidget {
     // 中转站单独一页。
     if (pageKey == 'llm-relay') return RelayPage(title: title);
 
-    // 其余：有 spec 就是通用列表页。
+    // 工具是**开关组**而不是列表（config.toml 的 [features]），
+    // 套通用列表页得为每项编一套假 id 与分组，更难懂 —— 单独一页。
+    if (pageKey == 'tools') return ToolsPage(title: title);
+
+    // 其余：有 spec 就是通用列表页（分组卡片网格）。
     final spec = StudioPageSpecs.of(pageKey);
     if (spec != null) return ResourceListPage(spec: spec, title: title);
 
-    // tools / memory 的数据源还没接（工具是开关组、记忆全平台已暂停）。
-    // 明说"待接"，别拿空列表冒充"没数据"。
+    // 兜底：菜单里有、但这里还没接的页。正常不该走到。
     return Center(
       child: _hint(
         icon: page.icon,

@@ -11,7 +11,12 @@ import 'package:sgit_studio_flutter/design/themes/app_theme.dart';
 import 'package:sgit_studio_flutter/design/tokens/app_colors.dart';
 import 'package:sgit_studio_flutter/features/shell/presentation/app_shell_container.dart';
 import 'package:sgit_studio_flutter/features/studio/presentation/pages/relay_page.dart';
+import 'package:sgit_studio_flutter/features/studio/presentation/pages/tools_page.dart';
 import 'package:sgit_studio_flutter/features/studio/presentation/pages/resource_list_page.dart';
+import 'package:sgit_studio_flutter/features/studio/application/kernel_client_provider.dart';
+import 'package:sgit_studio_flutter/features/studio/application/settings_repository_provider.dart';
+
+import 'fakes/fake_settings_repository.dart';
 import 'package:sgit_studio_flutter/features/studio/studio_page_specs.dart';
 import 'package:sgit_studio_flutter/features/settings/presentation/pages/settings_page.dart';
 import 'package:sgit_studio_flutter/features/workspace/presentation/pages/workspace_page.dart';
@@ -35,6 +40,26 @@ void main() {
           chatControllerProvider.overrideWith(
             () => ChatController(client: MockKernelClient()),
           ),
+          // ⚠️ studio 那几个控制器（中转站 / 资源列表 / 模型列表）走的是
+          // `kernelClientProvider` → `GatewayRepository`，**不是** chatController。
+          // 这里必须单独注入 mock：桌面工厂返回的是真 FFI 通道（要加载
+          // sgit_ffi.dll 并连 gateway），测试环境里必然失败。
+          //
+          // 这一条原先是隐式成立的 —— 桌面工厂当时回落 mock，所以没人注意到。
+          // 补完 FFI 内核符号后它就暴露了：**测试要靠注入，不能靠生产工厂的平台默认值**。
+          kernelClientProvider.overrideWithValue(MockKernelClient()),
+          // 同理：生产工厂会去加载 sgit_ffi.dll，测试环境必然失败。
+          // 那个失败会被控制器的 _loadUnsynced catch 掉、测试照样绿 ——
+          // 绿得毫无意义。显式注入假实现。
+          // 中转站在本地模式下从这里读（`sgit_studio_read('llm-relay')`），
+          // 不再打 gateway —— 所以 fixture 要给到 fake，给 MockKernelClient
+          // 已经不够了。
+          settingsRepositoryProvider.overrideWithValue(FakeSettingsRepository(
+            pages: const {
+              'llm-relay': FakeSettingsRepository.relaySnapshot,
+              'tools': FakeSettingsRepository.toolsSnapshot,
+            },
+          )),
         ],
         child: MaterialApp(
           theme: AppTheme.dark(
@@ -107,6 +132,8 @@ void main() {
     '知识库':
         ResourceListPage(spec: StudioPageSpecs.knowledge, title: '知识库'),
     '大模型中转站': const RelayPage(title: '大模型中转站'),
+    // 工具页是开关面板（config.toml 的 [features]），不走通用列表页。
+    '工具': const ToolsPage(title: '工具'),
   };
 
   pages.forEach((label, page) {
@@ -153,17 +180,43 @@ void main() {
     await tester.pumpWidget(app(page: const RelayPage(title: '大模型中转站')));
     await _settle(tester);
 
-    // 默认个人版 → 只该看到 tag=custom 的行。builtin 那行不该露出来
-    // （同 code 两行是现网常态，不过滤就会串）。
-    expect(find.text('Alibaba（个人）'), findsOneWidget);
-    expect(find.text('Alibaba'), findsNothing);
+    // 个人页 = **自建的 ∪ 平台已开放的**（照 React 的 keepProvidersByScope）。
+    //
+    // ⚠️ 这条原先断言的是"只留 tag=custom、builtin 不该露出来" —— 那是错的，
+    // 会把平台开放给用户的厂商全滤掉，用户明明能用的模型一个都看不见。
+    expect(find.text('Alibaba（个人）'), findsOneWidget, reason: '自建的要显示');
+    expect(find.text('Alibaba'), findsOneWidget, reason: '平台已开放(status=1)的也要显示');
+    expect(find.text('自建厂商'), findsOneWidget);
+    // 但**停用的平台厂商不显示** —— 那是管理面的事，摆在个人页只是噪音
+    // （现网 19 个平台厂商里 17 个是停用的）。
+    expect(find.text('DeepSeek'), findsNothing,
+        reason: '平台厂商 status=0，个人页不该显示');
 
-    // L1 → L2
+    // 平台行只读：编辑/删除按钮禁用（onPressed == null）。个人页的写一律落
+    // tag=custom，改平台行只会造出同名影子行、删厂商更会级联删平台模型。
+    final editButtons = tester.widgetList<IconButton>(find.ancestor(
+      of: find.byIcon(Icons.edit_outlined),
+      matching: find.byType(IconButton),
+    ));
+    expect(editButtons.where((b) => b.onPressed == null), isNotEmpty,
+        reason: '平台厂商的编辑按钮必须禁用');
+    expect(editButtons.where((b) => b.onPressed != null), isNotEmpty,
+        reason: '自建厂商的编辑按钮要能点 —— 别一刀切全禁了');
+
+    // L1 → L2。
+    //
+    // ⚠️ 点的这一行与上面的平台行 **model_code 相同**（都是 Qwen）—— 现网常态。
+    // 所以下钻必须带 tag 一起定位：只按 code 查会拿到排序在前的平台行，
+    // 后续请求带错 scope，读到的就是另一批数据。下面断言的是自建那条模型。
     await tester.tap(find.text('Alibaba（个人）').first);
     await _settle(tester);
     expect(tester.takeException(), isNull, reason: 'L2 模型层布局抛异常');
     // include_disabled 生效：**停用**的模型也得列出来，否则没法重新启用。
     expect(find.text('GLM-4（个人·已停用）'), findsOneWidget);
+    // 反向确认 scope 没串：平台那批模型（tag=builtin）不该混进来。
+    expect(find.text('GLM-4'), findsNothing,
+        reason: '下钻自建厂商时带的是 scope=personal，不该出现平台行的模型');
+
 
     // L2 → L3：密钥池弹窗（品牌级，不是下钻）。
     await tester.tap(find.byIcon(Icons.key_rounded).first);
@@ -236,7 +289,7 @@ void main() {
     });
   }
 
-  testWidgets('切到管理版会出警示条并重拉数据', (tester) async {
+  testWidgets('只提供个人页：没有作用域切换，也没有管理版警示条', (tester) async {
     tester.view
       ..physicalSize = const Size(1366, 768)
       ..devicePixelRatio = 1.0;
@@ -245,19 +298,17 @@ void main() {
     await tester.pumpWidget(app(page: const RelayPage(title: '大模型中转站')));
     await _settle(tester);
 
-    // 默认个人版：有「个人（本地）」标记，无警示条。
+    // 有「个人（本地）」标记，说明数据落在本机 per-cid 库。
     expect(find.text('个人（本地）'), findsOneWidget);
-    expect(find.byIcon(Icons.public_rounded), findsNothing);
-    expect(find.text('自建厂商'), findsOneWidget);
 
-    await tester.tap(find.text('管理'));
-    await _settle(tester);
-    expect(tester.takeException(), isNull, reason: '管理版布局抛异常');
-    // 管理版改的是全平台配置，必须有显式警示。
-    expect(find.byIcon(Icons.public_rounded), findsOneWidget);
-    // 切了作用域，显示的行也要跟着换成 builtin 那批。
-    expect(find.text('Alibaba'), findsOneWidget);
-    expect(find.text('自建厂商'), findsNothing);
+    // ⚠️ studio-flutter **只做个人页**，所以这些一个都不该在：
+    // 作用域切换（会让用户误以为能在桌面端改全平台配置）、管理版警示条。
+    expect(find.text('管理'), findsNothing, reason: '不该有作用域切换');
+    expect(find.byIcon(Icons.public_rounded), findsNothing,
+        reason: '没有管理版，就不该有管理版警示条');
+
+    // 自建的行照常在。
+    expect(find.text('自建厂商'), findsOneWidget);
   });
 }
 
