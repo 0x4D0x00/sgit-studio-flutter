@@ -99,12 +99,27 @@ class RuntimeConfig {
     return v;
   }
 
+  /// gateway 的构建期固化值。
+  ///
+  /// ⚠️ **不能少这一条**。漏了它 `--dart-define=SGIT_GATEWAY_BASE_URL=...` 会被
+  /// **静默忽略**并回落到 [apiBaseUrl] —— 踩过：明明传了 18088，日志里却是
+  /// `建连模式=云端引擎 → ws://…:32717/sgcode-kernel/ws`，而 32717 上没有
+  /// `/sgcode-kernel/ws`。两个 getter 的来源必须对称，见 [_compileTimeBase]。
+  static const String _compileTimeGateway =
+      String.fromEnvironment(gatewayEnvVarName);
+
   /// gateway 基址。未单独配置时回落到 [apiBaseUrl]（同机部署的常见情形）。
   ///
   /// 云端引擎模式的 WS、以及 studio 各页的 `gatewayCall` 都打这里。
+  /// 优先级与 [apiBaseUrl] 一致：运行时注入 > 环境变量 > 构建期固化 > 回落。
   static String get gatewayBaseUrl {
-    final v = _gatewayOverride ?? _envGateway();
+    final v = _gatewayOverride ?? _envGateway() ?? _compileGateway();
     return v ?? apiBaseUrl; // 回落；apiBaseUrl 未配置时由它抛错
+  }
+
+  static String? _compileGateway() {
+    final v = _stripTrailingSlash(_compileTimeGateway);
+    return v.isEmpty ? null : v;
   }
 
   static String? _gatewayOverride;

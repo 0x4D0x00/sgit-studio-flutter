@@ -58,6 +58,11 @@ void main() {
     test('未单独配置时回落到 apiBaseUrl（同机部署）', () {
       RuntimeConfig.applyOverride('http://10.100.0.66:32717');
       RuntimeConfig.applyGatewayOverride(null);
+      // 「未单独配置」要名副其实：跑测试时若带了 gateway 的 dart-define，
+      // 它本就该赢过回落（那正是下面那条回归测试要的），这里跳过即可。
+      if (const String.fromEnvironment('SGIT_GATEWAY_BASE_URL').isNotEmpty) {
+        return;
+      }
       expect(RuntimeConfig.gatewayBaseUrl, 'http://10.100.0.66:32717');
     });
 
@@ -71,6 +76,34 @@ void main() {
 
     test('变量名与部署文档一致', () {
       expect(RuntimeConfig.gatewayEnvVarName, 'SGIT_GATEWAY_BASE_URL');
+    });
+
+    // ⚠️ 回归：`--dart-define=SGIT_GATEWAY_BASE_URL=...` 曾被**静默忽略**。
+    //
+    // `gatewayBaseUrl` 当初只看「运行时注入 + 环境变量」两条，漏了编译期
+    // `String.fromEnvironment`，于是传了也不算数，悄悄回落到 apiBaseUrl ——
+    // 实测表现：明明传 18088，日志里却是
+    // `建连模式=云端引擎 → ws://…:32717/sgcode-kernel/ws`，而 32717 上根本
+    // 没有 `/sgcode-kernel/ws`。两个 getter 的来源必须对称。
+    //
+    // 这条在**不带** define 跑时只能验回落（真正的断言进不去）。要验编译期那条，
+    // 跑：`flutter test --dart-define=SGIT_GATEWAY_BASE_URL=http://gw.test:18088`
+    test('构建期 dart-define 必须被采纳，不能静默回落', () {
+      RuntimeConfig.applyOverride('http://api.test:32717');
+      RuntimeConfig.applyGatewayOverride(null);
+
+      const compiled = String.fromEnvironment('SGIT_GATEWAY_BASE_URL');
+      if (compiled.isEmpty) {
+        // 没带 define：只能确认回落这一半仍然对。
+        expect(RuntimeConfig.gatewayBaseUrl, 'http://api.test:32717');
+        return;
+      }
+      expect(
+        RuntimeConfig.gatewayBaseUrl,
+        compiled,
+        reason: 'dart-define 传了 gateway 地址却回落到 apiBaseUrl —— '
+            '云端引擎会打到没有 /sgcode-kernel/ws 的那个端口',
+      );
     });
 
     test('结尾斜杠同样要去掉', () {
