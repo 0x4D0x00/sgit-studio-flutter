@@ -6,6 +6,8 @@
   "navSearchDialogHint": "搜索聊天",
   "navSearchDialogEmpty": "未找到匹配的会话",
   "navNewChat": "新建对话",
+  "navProjects": "Projects",
+  "navCustomize": "Customize",
   "navHistory": "历史对话",
   "navChatPin": "置顶",
   "navChatRename": "重命名",
@@ -429,5 +431,20 @@
         "type": "String"
       }
     }
-  }
+  },
+  "projectsTitle": "Projects",
+  "projectsEmpty": "暂无项目",
+  "projectsCreate": "创建项目",
+  "projectsCreateDialogTitle": "创建新项目",
+  "projectsCreateDialogName": "项目名称",
+  "projectsCreateDialogNameHint": "请输入项目名称",
+  "projectsCreateDialogNameRequired": "请输入项目名称",
+  "projectsCreateDialogDescription": "你想实现什么目标？",
+  "projectsCreateDialogDescriptionHint": "描述你的项目、目标、主题等...",
+  "projectsSearchHint": "搜索项目...",
+  "customizeTitle": "Customize",
+  "customizeTabTheme": "主题",
+  "customizeTabLayout": "布局",
+  "customizeTabShortcuts": "快捷键",
+  "customizeSearchHint": "搜索技能..."
 }

@@ -122,6 +122,18 @@ abstract class AppLocalizations {
   /// **'新建对话'**
   String get navNewChat;
 
+  /// No description provided for @navProjects.
+  ///
+  /// In zh, this message translates to:
+  /// **'Projects'**
+  String get navProjects;
+
+  /// No description provided for @navCustomize.
+  ///
+  /// In zh, this message translates to:
+  /// **'Customize'**
+  String get navCustomize;
+
   /// No description provided for @navHistory.
   ///
   /// In zh, this message translates to:
@@ -1717,6 +1729,96 @@ abstract class AppLocalizations {
   /// In zh, this message translates to:
   /// **'编辑于 {when}'**
   String artifactsEdited(String when);
+
+  /// No description provided for @projectsTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'Projects'**
+  String get projectsTitle;
+
+  /// No description provided for @projectsEmpty.
+  ///
+  /// In zh, this message translates to:
+  /// **'暂无项目'**
+  String get projectsEmpty;
+
+  /// No description provided for @projectsCreate.
+  ///
+  /// In zh, this message translates to:
+  /// **'创建项目'**
+  String get projectsCreate;
+
+  /// No description provided for @projectsCreateDialogTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'创建新项目'**
+  String get projectsCreateDialogTitle;
+
+  /// No description provided for @projectsCreateDialogName.
+  ///
+  /// In zh, this message translates to:
+  /// **'项目名称'**
+  String get projectsCreateDialogName;
+
+  /// No description provided for @projectsCreateDialogNameHint.
+  ///
+  /// In zh, this message translates to:
+  /// **'请输入项目名称'**
+  String get projectsCreateDialogNameHint;
+
+  /// No description provided for @projectsCreateDialogNameRequired.
+  ///
+  /// In zh, this message translates to:
+  /// **'请输入项目名称'**
+  String get projectsCreateDialogNameRequired;
+
+  /// No description provided for @projectsCreateDialogDescription.
+  ///
+  /// In zh, this message translates to:
+  /// **'你想实现什么目标？'**
+  String get projectsCreateDialogDescription;
+
+  /// No description provided for @projectsCreateDialogDescriptionHint.
+  ///
+  /// In zh, this message translates to:
+  /// **'描述你的项目、目标、主题等...'**
+  String get projectsCreateDialogDescriptionHint;
+
+  /// No description provided for @projectsSearchHint.
+  ///
+  /// In zh, this message translates to:
+  /// **'搜索项目...'**
+  String get projectsSearchHint;
+
+  /// No description provided for @customizeTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'Customize'**
+  String get customizeTitle;
+
+  /// No description provided for @customizeTabTheme.
+  ///
+  /// In zh, this message translates to:
+  /// **'主题'**
+  String get customizeTabTheme;
+
+  /// No description provided for @customizeTabLayout.
+  ///
+  /// In zh, this message translates to:
+  /// **'布局'**
+  String get customizeTabLayout;
+
+  /// No description provided for @customizeTabShortcuts.
+  ///
+  /// In zh, this message translates to:
+  /// **'快捷键'**
+  String get customizeTabShortcuts;
+
+  /// No description provided for @customizeSearchHint.
+  ///
+  /// In zh, this message translates to:
+  /// **'搜索技能...'**
+  String get customizeSearchHint;
 }
 
 class _AppLocalizationsDelegate

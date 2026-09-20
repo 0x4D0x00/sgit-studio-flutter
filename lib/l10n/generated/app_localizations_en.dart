@@ -21,6 +21,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get navNewChat => 'New chat';
 
   @override
+  String get navProjects => 'Projects';
+
+  @override
+  String get navCustomize => 'Customize';
+
+  @override
   String get navHistory => 'History';
 
   @override
@@ -879,4 +885,51 @@ class AppLocalizationsEn extends AppLocalizations {
   String artifactsEdited(String when) {
     return 'Edited $when';
   }
+
+  @override
+  String get projectsTitle => 'Projects';
+
+  @override
+  String get projectsEmpty => 'No projects yet';
+
+  @override
+  String get projectsCreate => 'Create project';
+
+  @override
+  String get projectsCreateDialogTitle => 'Create new project';
+
+  @override
+  String get projectsCreateDialogName => 'Project name';
+
+  @override
+  String get projectsCreateDialogNameHint => 'Enter project name';
+
+  @override
+  String get projectsCreateDialogNameRequired => 'Please enter a project name';
+
+  @override
+  String get projectsCreateDialogDescription =>
+      'What are you trying to achieve?';
+
+  @override
+  String get projectsCreateDialogDescriptionHint =>
+      'Describe your project, goals, subject, etc...';
+
+  @override
+  String get projectsSearchHint => 'Search projects...';
+
+  @override
+  String get customizeTitle => 'Customize';
+
+  @override
+  String get customizeTabTheme => 'Theme';
+
+  @override
+  String get customizeTabLayout => 'Layout';
+
+  @override
+  String get customizeTabShortcuts => 'Shortcuts';
+
+  @override
+  String get customizeSearchHint => 'Search skills...';
 }

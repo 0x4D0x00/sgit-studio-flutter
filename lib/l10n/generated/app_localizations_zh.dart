@@ -21,6 +21,12 @@ class AppLocalizationsZh extends AppLocalizations {
   String get navNewChat => '新建对话';
 
   @override
+  String get navProjects => 'Projects';
+
+  @override
+  String get navCustomize => 'Customize';
+
+  @override
   String get navHistory => '历史对话';
 
   @override
@@ -859,4 +865,49 @@ class AppLocalizationsZh extends AppLocalizations {
   String artifactsEdited(String when) {
     return '编辑于 $when';
   }
+
+  @override
+  String get projectsTitle => 'Projects';
+
+  @override
+  String get projectsEmpty => '暂无项目';
+
+  @override
+  String get projectsCreate => '创建项目';
+
+  @override
+  String get projectsCreateDialogTitle => '创建新项目';
+
+  @override
+  String get projectsCreateDialogName => '项目名称';
+
+  @override
+  String get projectsCreateDialogNameHint => '请输入项目名称';
+
+  @override
+  String get projectsCreateDialogNameRequired => '请输入项目名称';
+
+  @override
+  String get projectsCreateDialogDescription => '你想实现什么目标？';
+
+  @override
+  String get projectsCreateDialogDescriptionHint => '描述你的项目、目标、主题等...';
+
+  @override
+  String get projectsSearchHint => '搜索项目...';
+
+  @override
+  String get customizeTitle => 'Customize';
+
+  @override
+  String get customizeTabTheme => '主题';
+
+  @override
+  String get customizeTabLayout => '布局';
+
+  @override
+  String get customizeTabShortcuts => '快捷键';
+
+  @override
+  String get customizeSearchHint => '搜索技能...';
 }

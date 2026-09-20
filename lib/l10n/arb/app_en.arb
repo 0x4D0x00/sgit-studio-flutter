@@ -5,6 +5,8 @@
   "navSearchDialogHint": "Search chats",
   "navSearchDialogEmpty": "No matching chats found",
   "navNewChat": "New chat",
+  "navProjects": "Projects",
+  "navCustomize": "Customize",
   "navHistory": "History",
   "navChatPin": "Pin",
   "navChatRename": "Rename",
@@ -426,5 +428,20 @@
         "type": "String"
       }
     }
-  }
+  },
+  "projectsTitle": "Projects",
+  "projectsEmpty": "No projects yet",
+  "projectsCreate": "Create project",
+  "projectsCreateDialogTitle": "Create new project",
+  "projectsCreateDialogName": "Project name",
+  "projectsCreateDialogNameHint": "Enter project name",
+  "projectsCreateDialogNameRequired": "Please enter a project name",
+  "projectsCreateDialogDescription": "What are you trying to achieve?",
+  "projectsCreateDialogDescriptionHint": "Describe your project, goals, subject, etc...",
+  "projectsSearchHint": "Search projects...",
+  "customizeTitle": "Customize",
+  "customizeTabTheme": "Theme",
+  "customizeTabLayout": "Layout",
+  "customizeTabShortcuts": "Shortcuts",
+  "customizeSearchHint": "Search skills..."
 }
