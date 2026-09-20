@@ -15,6 +15,7 @@ class NavEntry {
     required this.label,
     this.menu = const [],
     this.trailingMenu = const [],
+    this.onTrailingAdd,
     this.isSpecialAction = false,
   });
 
@@ -41,11 +42,20 @@ class NavEntry {
   /// 目前没有这种行，但字段各管各的，将来要叠加也不用改数据结构。
   final List<AppMenuEntry> trailingMenu;
 
+  /// 行尾悬停显示的操作按钮（如 Projects 行的 + 按钮）。
+  ///
+  /// 与 [trailingMenu] 类似，但直接触发回调而非弹出菜单。
+  /// 这一行**仍然**可点选中，按钮只是独立的第二个热区。
+  final VoidCallback? onTrailingAdd;
+
   /// 这一行是不是「菜单把手」而非可导航项。
   bool get hasMenu => menu.isNotEmpty;
 
   /// 是否带行尾「⋯」按钮。
   bool get hasTrailingMenu => trailingMenu.isNotEmpty;
+
+  /// 是否带行尾操作按钮（如 +）。
+  bool get hasTrailingAdd => onTrailingAdd != null;
 
   /// 菜单里有项被勾上 = 当前正停在这一行的某个子页里。
   ///

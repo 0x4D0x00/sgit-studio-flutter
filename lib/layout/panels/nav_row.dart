@@ -118,7 +118,7 @@ class _NavRowState
                 isChatItem
             ? 24
             : WorkspaceMetrics.navItemPaddingInline,
-        right: entry.hasTrailingMenu
+        right: (entry.hasTrailingMenu || entry.hasTrailingAdd)
             ? 0
             : WorkspaceMetrics.navItemPaddingInline,
       ),
@@ -181,8 +181,9 @@ class _NavRowState
       child: core,
     );
 
-    // 「⋯」热区：跟点行选中是**兄弟**，不是父子 —— 否则两层手势会互相吃掉
-    final trailingButton = !entry.hasTrailingMenu
+    // 「⋯」/「+」热区：跟点行选中是**兄弟**，不是父子 —— 否则两层手势会互相吃掉
+    final hasTrailingArea = entry.hasTrailingMenu || entry.hasTrailingAdd;
+    final trailingButton = !hasTrailingArea
         ? null
         : SizedBox(
             width: 32,
@@ -191,18 +192,28 @@ class _NavRowState
                 (_hovering ||
                     menuOpen)
                 ? Center(
-                    child: AppMenuAnchor(
-                      entries: entry.trailingMenu,
-                      trigger: AppMenuTrigger.tap,
-                      align: AppMenuAlign.underEnd,
-                      semanticLabel: entry.label,
-                      onOpenChanged: onMenuOpenChanged,
-                      child: Icon(
-                        Icons.more_horiz,
-                        size: 18,
-                        color: fg,
-                      ),
-                    ),
+                    child: entry.hasTrailingMenu
+                        ? AppMenuAnchor(
+                            entries: entry.trailingMenu,
+                            trigger: AppMenuTrigger.tap,
+                            align: AppMenuAlign.underEnd,
+                            semanticLabel: entry.label,
+                            onOpenChanged: onMenuOpenChanged,
+                            child: Icon(
+                              Icons.more_horiz,
+                              size: 18,
+                              color: fg,
+                            ),
+                          )
+                        : InkWell(
+                            onTap: entry.onTrailingAdd,
+                            borderRadius: BorderRadius.circular(4),
+                            child: Icon(
+                              Icons.add,
+                              size: 18,
+                              color: fg,
+                            ),
+                          ),
                   )
                 : null,
           );
@@ -216,9 +227,9 @@ class _NavRowState
         onOpenChanged: onMenuOpenChanged,
         child: content,
       ),
-      _ when entry.hasTrailingMenu => Row(
+      _ when hasTrailingArea => Row(
         children: [
-          // 「⋯」跟点行选中必须是兄弟节点、不能嵌套 —— 否则点击「⋯」
+          // 「⋯」/「+」跟点行选中必须是兄弟节点、不能嵌套 —— 否则点击它们
           // 或菜单项时，点击会一并冒泡到这个 InkWell 触发 onSelect
           Expanded(
             child: InkWell(
@@ -268,7 +279,7 @@ class _NavRowState
           ),
           clipBehavior: Clip.antiAlias,
           // 历史对话项自己已经在整行外层画了灰底（上面 color）
-          child: entry.hasTrailingMenu
+          child: hasTrailingArea
               ? Theme(
                   data:
                       Theme.of(

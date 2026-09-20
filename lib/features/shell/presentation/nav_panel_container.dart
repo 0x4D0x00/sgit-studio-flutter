@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import 'package:sgit_studio_flutter/features/auth/application/auth_controller.dart';
 import 'package:sgit_studio_flutter/domain/models/studio/resource_item.dart';
+import 'package:sgit_studio_flutter/features/projects/presentation/widgets/create_project_dialog.dart';
 import 'package:sgit_studio_flutter/features/studio/application/resource_list_controller.dart';
 import 'package:sgit_studio_flutter/features/studio/studio_feature.dart';
 import 'package:sgit_studio_flutter/features/studio/studio_page_specs.dart';
@@ -41,6 +42,8 @@ class NavPanelContainer
   // 非 studio 的固定项 id。用常量而非字面量，避免和 studio key 撞。
   static const String _idNewChat = 'nav.new-chat';
   static const String idArtifacts = 'nav.artifacts';
+  static const String idProjects = 'nav.projects';
+  static const String idCustomize = 'nav.customize';
   static const String idHistory = 'nav.history';
   static const String _idAgent = 'nav.agent';
   static const String _idHistoryMore = 'nav.history-more';
@@ -96,11 +99,22 @@ class NavPanelContainer
           icon: Icons.widgets_outlined,
           label: l10n.shellOutputTitle,
         ),
+        NavEntry(
+          id: idProjects,
+          icon: Icons.folder_outlined,
+          label: l10n.navProjects,
+          onTrailingAdd: () => _onCreateProject(context, l10n),
+        ),
+        NavEntry(
+          id: idCustomize,
+          icon: Icons.tune,
+          label: l10n.navCustomize,
+        ),
         // 智能体：这一行**本身没有落地页**，只是九个子页的把手 ——
         // 悬停弹菜单、左键点击把菜单钉住。所以它带 menu 而不进 _onSelect。
         NavEntry(
           id: _idAgent,
-          icon: Icons.tune,
+          icon: Icons.auto_awesome_outlined,
           label: l10n.navStudioGroup,
           menu: [
             for (final p in studioPages)
@@ -234,6 +248,14 @@ class NavPanelContainer
         context.go(
           RouteNames.artifacts,
         );
+      case idProjects:
+        context.go(
+          RouteNames.projects,
+        );
+      case idCustomize:
+        context.go(
+          RouteNames.customize,
+        );
       case _idHistoryMore:
         // 「查看全部」占位行 —— 跳转至历史列表页
         _onViewAllHistory(
@@ -273,6 +295,25 @@ class NavPanelContainer
             id,
           ),
         );
+    }
+  }
+
+  /// Projects 行的 + 按钮：打开创建项目对话框。
+  Future<void> _onCreateProject(
+    BuildContext context,
+    AppLocalizations l10n,
+  ) async {
+    final draft = await showCreateProjectDialog(context);
+    if (draft != null && draft.name.isNotEmpty) {
+      // TODO: 实际创建项目的逻辑
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('创建项目：${draft.name}'),
+            duration: const Duration(seconds: 2),
+          ),
+        );
+      }
     }
   }
 
