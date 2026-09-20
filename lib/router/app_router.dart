@@ -5,6 +5,8 @@ import 'package:go_router/go_router.dart';
 import 'package:sgit_studio_flutter/features/artifacts/presentation/pages/artifacts_page.dart';
 import 'package:sgit_studio_flutter/features/auth/application/auth_controller.dart';
 import 'package:sgit_studio_flutter/features/auth/presentation/pages/login_page.dart';
+import 'package:sgit_studio_flutter/features/customize/presentation/pages/customize_page.dart';
+import 'package:sgit_studio_flutter/features/projects/presentation/pages/projects_page.dart';
 import 'package:sgit_studio_flutter/features/settings/presentation/pages/settings_page.dart';
 import 'package:sgit_studio_flutter/features/shell/presentation/app_shell_container.dart';
 import 'package:sgit_studio_flutter/features/shell/presentation/history_page.dart';
@@ -36,6 +38,8 @@ final routerProvider = Provider<GoRouter>((ref) {
           final activeNavId = switch (path) {
             RouteNames.artifacts => NavPanelContainer.idArtifacts,
             RouteNames.history => NavPanelContainer.idHistory,
+            RouteNames.projects => NavPanelContainer.idProjects,
+            RouteNames.customize => NavPanelContainer.idCustomize,
             _ => state.pathParameters['key'],
           };
 
@@ -49,6 +53,14 @@ final routerProvider = Provider<GoRouter>((ref) {
           GoRoute(
             path: RouteNames.artifacts,
             builder: (_, _) => const ArtifactsPage(),
+          ),
+          GoRoute(
+            path: RouteNames.projects,
+            builder: (_, _) => const ProjectsPage(),
+          ),
+          GoRoute(
+            path: RouteNames.customize,
+            builder: (_, _) => const CustomizePage(),
           ),
           GoRoute(
             path: RouteNames.history,

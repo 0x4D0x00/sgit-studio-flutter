@@ -19,6 +19,12 @@ class RouteNames {
   /// 历史对话「查看全部」页。
   static const String history = '/history';
 
+  /// Projects 页面。
+  static const String projects = '/projects';
+
+  /// Customize 页面。
+  static const String customize = '/customize';
+
   /// 「智能体」子页前缀，完整路径 `/studio/<key>`。
   static const String studioPrefix = '/studio';
   static String studio(String key) => '$studioPrefix/$key';
