@@ -139,7 +139,12 @@ final class IoKernelClient implements KernelClient {
   /// **禁止在此写死任何域名** —— 见 [RuntimeConfig] 开头那段：sgcode 内置端点池
   /// 默认指向我方域名，客户私有化部署后登录/验证码全打回我方，既泄露又打不通。
   static String _kernelWsUrl() {
-    final base = RuntimeConfig.apiBaseUrl; // 未配置会抛 StateError，是刻意的
+    // ⚠️ 用 **gateway** 基址，不是后端 API 基址 —— 两者可能是不同入口：
+    // gateway 只绑 127.0.0.1:8788 不对外，经 nginx 反代出来（如 :18088），
+    // 而 Go 后端 API 在另一个端口（如 :32717）。用错了就是
+    // 「云端对话 404」或「本地推理打到 SPA 首页」。
+    // 同机部署时 gatewayBaseUrl 自动回落到 apiBaseUrl，不用额外配。
+    final base = RuntimeConfig.gatewayBaseUrl; // 未配置会抛 StateError，是刻意的
     final ws = base.startsWith('https://')
         ? base.replaceFirst('https://', 'wss://')
         : base.replaceFirst('http://', 'ws://');
@@ -162,6 +167,10 @@ final class IoKernelClient implements KernelClient {
     // 根据 engineMode 决定调用本地还是云上路径
     if (engineMode == EngineMode.local) {
       // ① 本地路：进程内 LocalEngine（无需后端地址）
+      // ⚠️ 这条日志**别删**：两条路的行为高度相似（同一套帧、同一套动作），
+      // 出问题时光看界面分不清"这次回答到底谁给的"。native 侧的 log 又被
+      // cdylib 吞掉（没装 logger），Dart 这行是唯一能一眼确认走哪条路的地方。
+      debugPrint('[kernel] 建连模式=本地引擎（进程内 app-server，不经 gateway）');
       started = _kOpenLocal();
     } else {
       // ② 云上路：经 gateway 连 docker 沙箱
@@ -172,6 +181,7 @@ final class IoKernelClient implements KernelClient {
         throw KernelException('后端地址未配置：${e.message}', fatal: true);
       }
 
+      debugPrint('[kernel] 建连模式=云端引擎 → $url');
       final urlPtr = url.toNativeUtf8();
       try {
         started = _kOpen(urlPtr);
@@ -208,15 +218,23 @@ final class IoKernelClient implements KernelClient {
 
     while (DateTime.now().isBefore(deadline)) {
       // 先看进度：沙箱冷启动期间只有它在动，界面靠它才有东西显示。
-      if (onProgress != null) {
-        final j = _takeJson(_kConnectStatus());
-        if (j != null) {
-          onProgress(KernelConnectProgress(
-            phase: KernelConnectPhase.fromWire(j['phase']),
-            elapsedSecs: _int(j['elapsedSecs']),
-            timeoutSecs: _int(j['timeoutSecs']),
-          ));
+      final status = _takeJson(_kConnectStatus());
+      if (status != null) {
+        // ⚠️ **握手期就失败要立刻报，别等满 45 秒。**
+        //
+        // 断开是通过帧推的，而这里只轮询 caps/status、不读帧（帧归会话控制器）。
+        // 所以握手阶段的硬失败——比如 nginx 没给 `/sgcode-kernel/ws` 配 WS 升级头、
+        // 直接回 400——对这个循环原本完全不可见，界面会一直停在"正在校验身份"
+        // 直到超时，而真实原因第一秒就知道了（实测踩过）。
+        if (status['phase'] == 'failed') {
+          final reason = status['reason']?.toString() ?? '未知原因';
+          throw KernelException('云端引擎连接失败：$reason');
         }
+        onProgress?.call(KernelConnectProgress(
+          phase: KernelConnectPhase.fromWire(status['phase']),
+          elapsedSecs: _int(status['elapsedSecs']),
+          timeoutSecs: _int(status['timeoutSecs']),
+        ));
       }
 
       final caps = _takeJson(_kCaps());

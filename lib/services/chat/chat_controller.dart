@@ -188,6 +188,25 @@ class ChatController extends Notifier<ChatSessionState> {
     });
   }
 
+  /// 切换引擎模式（本地 ↔ 云端）后重新建连。
+  ///
+  /// ⚠️ **必须走这个入口，不能只调 `connect()`** —— 它是幂等的
+  /// （`capabilities != null && fault == null` 时直接返回），而页面初始化时
+  /// 早已用默认模式连上了。只改设置不断连的话，用户切到云端仍在用本地引擎，
+  /// 而两条路的帧、动作、界面完全一样，**从表现上根本看不出来**。
+  ///
+  /// 这里先把旧连接拆干净（`close()` + 清 capabilities），再让 `connect()`
+  /// 以新模式重建。跑动中的 turn 会被一起掐掉 —— 换引擎本来就意味着换执行环境，
+  /// 让它在旧引擎上跑完再切反而更让人困惑。
+  Future<void> reconnectWithMode() async {
+    _client.close();
+    // 清掉 capabilities，否则 connect() 的幂等判断会直接 return。
+    state = const ChatSessionState();
+    // 绕开重连最小间隔：这是用户显式操作，不是风暴。
+    _lastConnectAt = DateTime.fromMillisecondsSinceEpoch(0);
+    await connect();
+  }
+
   /// 开始新对话：清空当前会话内容，并让下次发消息**新建 thread**。
   ///
   /// 不重连 —— 连接是按用户建的，换会话不需要重握手。

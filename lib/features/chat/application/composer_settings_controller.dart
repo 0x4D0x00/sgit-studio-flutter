@@ -130,8 +130,19 @@ class ComposerSettingsController extends Notifier<ComposerSettingsState> {
 
   /// 切换引擎模式（本地 / 云端）。
   /// ⚠️ 这不是 config.toml 的键，不需要落盘，只改内存状态。
-  void setEngineMode(EngineMode next) {
+  /// ⚠️ **只改设置，不重连。** 调用方必须自己触发重连
+  /// （见 `ChatController.reconnectWithMode`）—— 否则切换不生效：
+  ///
+  /// 页面初始化时就用**默认模式**建好连接了，而 `connect()` 是幂等的
+  /// （`capabilities != null && fault == null` 直接返回）。只改这里的内存状态，
+  /// 已建立的那条连接不会动，用户切到云端却仍在用本地引擎回答 —— 而且两条路
+  /// 的帧、动作、界面完全一样，**从表现上看不出来**。
+  ///
+  /// 返回是否真的变了，省得调用方对"切到当前模式"也做一次无谓的断连。
+  bool setEngineMode(EngineMode next) {
+    if (state.settings.engineMode == next) return false;
     state = state.copyWith(settings: state.settings.copyWith(engineMode: next));
+    return true;
   }
 
   /// 选模型。`null` = 选回"默认模型"（用列表第一个）。

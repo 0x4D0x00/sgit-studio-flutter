@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -573,13 +574,13 @@ class _ChatComposerState extends ConsumerState<ChatComposer> {
           icon: Icons.computer_outlined,
           label: l10n.chatEngineModeLocal,
           checked: current == EngineMode.local,
-          onTap: () => notifier.setEngineMode(EngineMode.local),
+          onTap: () => _switchEngine(notifier, EngineMode.local),
         ),
         AppMenuAction(
           icon: Icons.cloud_outlined,
           label: l10n.chatEngineModeRemote,
           checked: current == EngineMode.remote,
-          onTap: () => notifier.setEngineMode(EngineMode.remote),
+          onTap: () => _switchEngine(notifier, EngineMode.remote),
         ),
       ],
       child: ComposerActionIcon(
@@ -595,6 +596,20 @@ class _ChatComposerState extends ConsumerState<ChatComposer> {
         EngineMode.local => Icons.computer_outlined,
         EngineMode.remote => Icons.cloud_outlined,
       };
+
+  /// 切引擎 = 改设置 **+ 重新建连**。
+  ///
+  /// ⚠️ 少了重连这一步，切换就是个摆设：页面初始化时早已用默认模式连上，
+  /// 而 `connect()` 幂等、不会重建。用户以为切到云端了，实际还在本地引擎上跑
+  /// —— 两条路的帧、动作、界面完全一样，**从表现上看不出来**（实测踩过：
+  /// 选了云端发消息，回答其实是本地引擎给的）。
+  void _switchEngine(
+    ComposerSettingsController notifier,
+    EngineMode next,
+  ) {
+    if (!notifier.setEngineMode(next)) return; // 没变就不折腾连接
+    unawaited(ref.read(chatControllerProvider.notifier).reconnectWithMode());
+  }
 
   static String _granularLabel(AppLocalizations l10n, GranularField f) =>
       switch (f) {
