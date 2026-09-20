@@ -63,7 +63,7 @@ class _WorkspacePageState extends ConsumerState<WorkspacePage> {
               final isEmpty = ctrl.items.isEmpty;
               return isEmpty
                   ? const _EmptyState(
-                      composer: ChatComposer(showModelInside: true),
+                      composer: ChatComposer(variant: ComposerVariant.empty),
                     )
                   : Column(
                       children: [
@@ -75,7 +75,9 @@ class _WorkspacePageState extends ConsumerState<WorkspacePage> {
                             WorkspaceMetrics.contentPaddingInline,
                             WorkspaceMetrics.framePadding * 2,
                           ),
-                          child: const ChatComposer(showModelInside: false),
+                          child: const ChatComposer(
+                            variant: ComposerVariant.conversation,
+                          ),
                         ),
                       ],
                     );

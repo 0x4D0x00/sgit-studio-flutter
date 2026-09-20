@@ -11,6 +11,7 @@ import 'package:sgit_studio_flutter/data/transport/kernel/kernel_client_factory.
 import 'package:sgit_studio_flutter/data/transport/kernel/kernel_frame.dart';
 import 'package:sgit_studio_flutter/domain/models/chat/chat_item.dart';
 import 'package:sgit_studio_flutter/domain/models/chat/chat_session.dart';
+import 'package:sgit_studio_flutter/features/chat/application/composer_settings_controller.dart';
 
 /// 会话控制器 —— 内核帧流的唯一消费者。
 ///
@@ -97,7 +98,14 @@ class ChatController extends Notifier<ChatSessionState> {
     try {
       // 重连前先关旧连接，别留悬空的。
       _client.close();
+
+      // 读取当前的引擎模式设置。
+      // `read` 不配 `select`（后者是给 `watch` 决定重建时机用的，对 read 无意义）。
+      final engineMode =
+          ref.read(composerSettingsProvider).settings.engineMode;
+
       final caps = await _client.open(
+        engineMode: engineMode,
         onProgress: (p) {
           // 建连中途才更新；已经结束就别再改（回调可能晚到）。
           if (state.connecting) state = state.copyWith(progress: p);

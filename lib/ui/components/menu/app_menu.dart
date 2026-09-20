@@ -417,6 +417,20 @@ buildAppMenuChildren(
             maxWidth: maxWidth,
           ),
         );
+      case AppMenuSwitch():
+        out.add(
+          _switchItem(
+            skin,
+            e,
+          ),
+        );
+      case AppMenuRichAction():
+        out.add(
+          _richAction(
+            skin,
+            e,
+          ),
+        );
       case AppMenuLabel():
         out.add(
           _label(
@@ -616,6 +630,138 @@ _submenu(
           ),
         ),
       ],
+    ),
+  );
+}
+
+/// 带尾部开关的一项。
+///
+/// ⚠️ `closeOnActivate: false` 是这一项存在的理由之一 —— 见 [AppMenuSwitch]。
+/// 整行可点（不只是开关本身）：菜单行里那个 Switch 只有 ~40px 宽，
+/// 逼用户瞄准它而不是点整行是纯粹的刁难。
+Widget _switchItem(
+  AppSkin skin,
+  AppMenuSwitch e,
+) {
+  void toggle() => e.onChanged(!e.value);
+
+  return MenuItemButton(
+    style: _itemStyle(
+      skin,
+      minHeight: AppMenuMetrics.itemHeight,
+    ),
+    closeOnActivate: false,
+    onPressed: e.enabled ? toggle : null,
+    leadingIcon: e.icon == null
+        ? null
+        : Icon(
+            e.icon,
+            size: AppMenuMetrics.iconSize,
+            color: skin.text,
+          ),
+    child: Row(
+      children: [
+        Expanded(
+          child: Text(
+            e.label,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: TextStyle(
+              fontSize: 14,
+              color: skin.text,
+            ),
+          ),
+        ),
+        Padding(
+          padding: const EdgeInsets.only(
+            left: AppMenuMetrics.trailingGap,
+          ),
+          // Switch 自己也能点 —— 但它与整行走同一个回调，不会双触发
+          // （点在 Switch 上时 MenuItemButton 收不到 onPressed）。
+          child: Switch(
+            value: e.value,
+            onChanged: e.enabled ? (_) => toggle() : null,
+            materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+          ),
+        ),
+      ],
+    ),
+  );
+}
+
+/// 带描述的两行项。
+Widget _richAction(
+  AppSkin skin,
+  AppMenuRichAction e,
+) {
+  return MenuItemButton(
+    style: _itemStyle(
+      skin,
+      // 两行内容装不进 36 —— 标题 20 + 描述 17 + 上下 8 ≈ 56。
+      minHeight: AppMenuMetrics.richItemHeight,
+    ),
+    onPressed: e.enabled ? e.onTap : null,
+    child: Padding(
+      padding: const EdgeInsets.symmetric(vertical: AppSpacing.xs),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          if (e.icon != null) ...[
+            Container(
+              width: AppMenuMetrics.richItemIconBox,
+              height: AppMenuMetrics.richItemIconBox,
+              alignment: Alignment.center,
+              decoration: BoxDecoration(
+                color: skin.containerBg,
+                borderRadius: BorderRadius.circular(AppMenuMetrics.radius),
+                border: Border.all(color: skin.borderSecondary),
+              ),
+              child: Icon(
+                e.icon,
+                size: AppMenuMetrics.richItemIconSize,
+                color: skin.text,
+              ),
+            ),
+            const SizedBox(width: AppSpacing.sm),
+          ],
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  e.title,
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w500,
+                    height: 1.4,
+                    color: skin.text,
+                  ),
+                ),
+                Text(
+                  e.description,
+                  style: TextStyle(
+                    fontSize: 12,
+                    height: 1.4,
+                    color: skin.textTertiary,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          if (e.checked)
+            Padding(
+              padding: const EdgeInsets.only(
+                left: AppMenuMetrics.trailingGap,
+              ),
+              child: Icon(
+                Icons.check,
+                size: 16,
+                color: skin.accentChip,
+              ),
+            ),
+        ],
+      ),
     ),
   );
 }

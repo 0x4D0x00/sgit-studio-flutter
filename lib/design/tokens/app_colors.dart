@@ -81,6 +81,11 @@ class AppColors {
   /// 技能标签(青绿),studio SkillChips 写死。
   static const Color skillChip = Color(0xFF009688);
 
+  /// 输入框顶边内高光。studio 用 `inset 0 1px 0 rgba(255,255,255,.5)`(亮)
+  /// / `rgba(255,255,255,.06)`(暗),见 `glassInputStyle.ts:12-14`。
+  static const Color inputInsetHighlightLight = Color(0x80FFFFFF); // 白 @50%
+  static const Color inputInsetHighlightDark = Color(0x0FFFFFFF); // 白 @6%
+
   // ---- 登录页专用(1:1 对齐 sgit-studio 登录页设计稿,不跟随动态主色) ----
   /// 登录按钮品牌蓝渐变(173deg #1677ff → #0958d9)。
   static const Color loginSubmitGradientStart = Color(0xFF1677FF);

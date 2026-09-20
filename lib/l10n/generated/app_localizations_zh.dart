@@ -187,6 +187,135 @@ class AppLocalizationsZh extends AppLocalizations {
   String get chatSteerHint => '插话改方向…';
 
   @override
+  String get chatPickFile => '选择文件';
+
+  @override
+  String get chatPickImage => '选择图片';
+
+  @override
+  String chatPickFileFailed(String reason) {
+    return '选择文件失败：$reason';
+  }
+
+  @override
+  String get chatRemoveAttachment => '移除附件';
+
+  @override
+  String get chatClearScene => '退出场景';
+
+  @override
+  String get chatMemory => '记忆';
+
+  @override
+  String get chatSkills => '技能';
+
+  @override
+  String get chatKnowledge => '知识库';
+
+  @override
+  String get chatContextWindow => '上下文窗口';
+
+  @override
+  String chatContextWindowDetail(int used, int total) {
+    return '已用 $used / 共 $total tokens';
+  }
+
+  @override
+  String get chatApprovalPolicy => '审批策略';
+
+  @override
+  String get chatApprovalUntrusted => '仅信任只读';
+
+  @override
+  String get chatApprovalUntrustedDesc => '只自动批准已知安全的只读命令，其余都问你';
+
+  @override
+  String get chatApprovalOnRequest => '由模型决定';
+
+  @override
+  String get chatApprovalOnRequestDesc => '模型自行判断何时需要你批准（引擎默认）';
+
+  @override
+  String get chatApprovalNever => '从不询问';
+
+  @override
+  String get chatApprovalNeverDesc => '从不打断你，失败直接返回给模型';
+
+  @override
+  String get chatApprovalGranular => '细粒度';
+
+  @override
+  String get chatApprovalGranularDesc => '逐类控制哪些操作需要审批';
+
+  @override
+  String get chatApprovalFieldSandbox => 'Shell 命令';
+
+  @override
+  String get chatApprovalFieldRules => '规则变更';
+
+  @override
+  String get chatApprovalFieldSkill => '技能调用';
+
+  @override
+  String get chatApprovalFieldPermissions => '权限申请';
+
+  @override
+  String get chatApprovalFieldMcp => 'MCP 请求';
+
+  @override
+  String get chatSandboxMode => '沙箱';
+
+  @override
+  String get chatSandboxReadOnly => '只读';
+
+  @override
+  String get chatSandboxReadOnlyDesc => '只能读，不能改动任何文件（引擎默认）';
+
+  @override
+  String get chatSandboxWorkspaceWrite => '可写工作区';
+
+  @override
+  String get chatSandboxWorkspaceWriteDesc => '可以改动工作目录内的文件';
+
+  @override
+  String get chatSandboxDangerFullAccess => '完全放开';
+
+  @override
+  String get chatSandboxDangerFullAccessDesc => '不做任何限制。仅在你清楚风险时使用';
+
+  @override
+  String get chatReasoningEffort => '推理强度';
+
+  @override
+  String get chatEffortNone => '关闭';
+
+  @override
+  String get chatEffortMinimal => '极低';
+
+  @override
+  String get chatEffortLow => '低';
+
+  @override
+  String get chatEffortMedium => '中';
+
+  @override
+  String get chatEffortHigh => '高';
+
+  @override
+  String get chatEffortXhigh => '很高';
+
+  @override
+  String get chatEffortMax => '最高';
+
+  @override
+  String get chatEffortUltra => '极限';
+
+  @override
+  String chatSettingWriteFailed(String reason) {
+    return '设置未保存：$reason';
+  }
+
+  @override
   String get chatTextTruncated => '内容可能不完整';
 
   @override
@@ -209,6 +338,15 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get chatApprovalResolvedDeny => '已拒绝';
+
+  @override
+  String get chatEngineMode => '引擎模式';
+
+  @override
+  String get chatEngineModeLocal => '本地引擎';
+
+  @override
+  String get chatEngineModeRemote => '云端引擎';
 
   @override
   String get chatToolRunning => '执行中…';

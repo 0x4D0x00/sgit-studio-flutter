@@ -48,3 +48,8 @@ app.*.map.json
 # 重建：桌面 ./deploy/sync-native.sh   Web ./deploy/build-wasm.sh
 /native/
 /web/pkg/
+
+# ---- 运行时生成的客户端密钥对，**绝不入库** ----
+# `client_private_key.hex` 是真私钥（hex 解出来是 PEM）。一旦提交，即使之后删掉
+# 也会永久留在 git 历史里，只能靠重写历史 + 轮换密钥收场。
+/keys/

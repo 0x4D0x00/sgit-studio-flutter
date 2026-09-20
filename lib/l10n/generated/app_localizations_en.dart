@@ -187,6 +187,142 @@ class AppLocalizationsEn extends AppLocalizations {
   String get chatSteerHint => 'Steer mid-turn…';
 
   @override
+  String get chatPickFile => 'Choose a file';
+
+  @override
+  String get chatPickImage => 'Choose an image';
+
+  @override
+  String chatPickFileFailed(String reason) {
+    return 'Couldn\'t open the file picker: $reason';
+  }
+
+  @override
+  String get chatRemoveAttachment => 'Remove attachment';
+
+  @override
+  String get chatClearScene => 'Leave scene';
+
+  @override
+  String get chatMemory => 'Memory';
+
+  @override
+  String get chatSkills => 'Skills';
+
+  @override
+  String get chatKnowledge => 'Knowledge';
+
+  @override
+  String get chatContextWindow => 'Context window';
+
+  @override
+  String chatContextWindowDetail(int used, int total) {
+    return '$used of $total tokens used';
+  }
+
+  @override
+  String get chatApprovalPolicy => 'Approvals';
+
+  @override
+  String get chatApprovalUntrusted => 'Trust reads only';
+
+  @override
+  String get chatApprovalUntrustedDesc =>
+      'Auto-approve known-safe read-only commands; ask about everything else';
+
+  @override
+  String get chatApprovalOnRequest => 'Model decides';
+
+  @override
+  String get chatApprovalOnRequestDesc =>
+      'The model judges when to ask you (engine default)';
+
+  @override
+  String get chatApprovalNever => 'Never ask';
+
+  @override
+  String get chatApprovalNeverDesc =>
+      'Never interrupt you; failures go straight back to the model';
+
+  @override
+  String get chatApprovalGranular => 'Fine-grained';
+
+  @override
+  String get chatApprovalGranularDesc =>
+      'Choose which kinds of action need approval';
+
+  @override
+  String get chatApprovalFieldSandbox => 'Shell commands';
+
+  @override
+  String get chatApprovalFieldRules => 'Rule changes';
+
+  @override
+  String get chatApprovalFieldSkill => 'Skill calls';
+
+  @override
+  String get chatApprovalFieldPermissions => 'Permission requests';
+
+  @override
+  String get chatApprovalFieldMcp => 'MCP requests';
+
+  @override
+  String get chatSandboxMode => 'Sandbox';
+
+  @override
+  String get chatSandboxReadOnly => 'Read-only';
+
+  @override
+  String get chatSandboxReadOnlyDesc =>
+      'Can read, cannot change any file (engine default)';
+
+  @override
+  String get chatSandboxWorkspaceWrite => 'Workspace write';
+
+  @override
+  String get chatSandboxWorkspaceWriteDesc =>
+      'Can change files inside the working directory';
+
+  @override
+  String get chatSandboxDangerFullAccess => 'Full access';
+
+  @override
+  String get chatSandboxDangerFullAccessDesc =>
+      'No restrictions. Only if you understand the risk';
+
+  @override
+  String get chatReasoningEffort => 'Reasoning';
+
+  @override
+  String get chatEffortNone => 'Off';
+
+  @override
+  String get chatEffortMinimal => 'Minimal';
+
+  @override
+  String get chatEffortLow => 'Low';
+
+  @override
+  String get chatEffortMedium => 'Medium';
+
+  @override
+  String get chatEffortHigh => 'High';
+
+  @override
+  String get chatEffortXhigh => 'Very high';
+
+  @override
+  String get chatEffortMax => 'Max';
+
+  @override
+  String get chatEffortUltra => 'Ultra';
+
+  @override
+  String chatSettingWriteFailed(String reason) {
+    return 'Setting not saved: $reason';
+  }
+
+  @override
   String get chatTextTruncated => 'Content may be incomplete';
 
   @override
@@ -209,6 +345,15 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get chatApprovalResolvedDeny => 'Denied';
+
+  @override
+  String get chatEngineMode => 'Engine Mode';
+
+  @override
+  String get chatEngineModeLocal => 'Local Engine';
+
+  @override
+  String get chatEngineModeRemote => 'Remote Engine';
 
   @override
   String get chatToolRunning => 'Running…';

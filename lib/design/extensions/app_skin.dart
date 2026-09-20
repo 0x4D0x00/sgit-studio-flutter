@@ -35,6 +35,7 @@ class AppSkin extends ThemeExtension<AppSkin> {
     required this.inputBg,
     required this.inputBorder,
     required this.inputShadow,
+    required this.inputInsetHighlight,
     required this.showNeon,
     required this.neonIntensity,
     required this.blurSigma,
@@ -70,6 +71,13 @@ class AppSkin extends ThemeExtension<AppSkin> {
   final Color inputBorder;
   final List<BoxShadow> inputShadow;
 
+  /// 输入框顶边的一道内高光。
+  ///
+  /// studio 用 `box-shadow: inset 0 1px 0 ...` 做（`glassInputStyle.ts:12-14`），
+  /// Flutter 的 [BoxDecoration] **没有 inset shadow** —— 只能在内侧画一条 1px 渐变顶边。
+  /// 少了它，磨砂面在暗色下会平得像一块灰卡片。
+  final Color inputInsetHighlight;
+
   /// L2 霓虹层是否绘制。
   final bool showNeon;
   final double neonIntensity;
@@ -101,6 +109,7 @@ class AppSkin extends ThemeExtension<AppSkin> {
     inputShadow: [
       BoxShadow(color: Color(0x24788AAA), blurRadius: 20, offset: Offset(0, 6)),
     ],
+    inputInsetHighlight: AppColors.inputInsetHighlightLight,
     showNeon: true,
     neonIntensity: 0.5,
     blurSigma: 16,
@@ -125,6 +134,7 @@ class AppSkin extends ThemeExtension<AppSkin> {
     inputShadow: [
       BoxShadow(color: Color(0x59000000), blurRadius: 24, offset: Offset(0, 8)),
     ],
+    inputInsetHighlight: AppColors.inputInsetHighlightDark,
     showNeon: true,
     neonIntensity: 1.0,
     blurSigma: 16,
@@ -150,6 +160,7 @@ class AppSkin extends ThemeExtension<AppSkin> {
     inputShadow: [
       BoxShadow(color: Color(0x59000000), blurRadius: 24, offset: Offset(0, 8)),
     ],
+    inputInsetHighlight: AppColors.inputInsetHighlightDark,
     showNeon: false,
     neonIntensity: 0,
     blurSigma: 16,
@@ -173,6 +184,7 @@ class AppSkin extends ThemeExtension<AppSkin> {
     Color? inputBg,
     Color? inputBorder,
     List<BoxShadow>? inputShadow,
+    Color? inputInsetHighlight,
     bool? showNeon,
     double? neonIntensity,
     double? blurSigma,
@@ -194,6 +206,7 @@ class AppSkin extends ThemeExtension<AppSkin> {
         inputBg: inputBg ?? this.inputBg,
         inputBorder: inputBorder ?? this.inputBorder,
         inputShadow: inputShadow ?? this.inputShadow,
+        inputInsetHighlight: inputInsetHighlight ?? this.inputInsetHighlight,
         showNeon: showNeon ?? this.showNeon,
         neonIntensity: neonIntensity ?? this.neonIntensity,
         blurSigma: blurSigma ?? this.blurSigma,
@@ -221,6 +234,7 @@ class AppSkin extends ThemeExtension<AppSkin> {
       inputBorder: c(inputBorder, other.inputBorder),
       inputShadow:
           BoxShadow.lerpList(inputShadow, other.inputShadow, t) ?? inputShadow,
+      inputInsetHighlight: c(inputInsetHighlight, other.inputInsetHighlight),
       // 布尔与强度按 0.5 切换，避免动画中途出现半透霓虹闪烁。
       showNeon: t < 0.5 ? showNeon : other.showNeon,
       neonIntensity: neonIntensity + (other.neonIntensity - neonIntensity) * t,

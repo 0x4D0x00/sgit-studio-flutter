@@ -75,6 +75,71 @@
   "chatAgentGateway": "Agent Gateway",
   "chatStop": "停止",
   "chatSteerHint": "插话改方向…",
+  "chatPickFile": "选择文件",
+  "chatPickImage": "选择图片",
+  "chatPickFileFailed": "选择文件失败：{reason}",
+  "@chatPickFileFailed": {
+    "placeholders": {
+      "reason": {
+        "type": "String"
+      }
+    }
+  },
+  "chatRemoveAttachment": "移除附件",
+  "chatClearScene": "退出场景",
+  "chatMemory": "记忆",
+  "chatSkills": "技能",
+  "chatKnowledge": "知识库",
+  "chatContextWindow": "上下文窗口",
+  "chatContextWindowDetail": "已用 {used} / 共 {total} tokens",
+  "@chatContextWindowDetail": {
+    "placeholders": {
+      "used": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "chatApprovalPolicy": "审批策略",
+  "chatApprovalUntrusted": "仅信任只读",
+  "chatApprovalUntrustedDesc": "只自动批准已知安全的只读命令，其余都问你",
+  "chatApprovalOnRequest": "由模型决定",
+  "chatApprovalOnRequestDesc": "模型自行判断何时需要你批准（引擎默认）",
+  "chatApprovalNever": "从不询问",
+  "chatApprovalNeverDesc": "从不打断你，失败直接返回给模型",
+  "chatApprovalGranular": "细粒度",
+  "chatApprovalGranularDesc": "逐类控制哪些操作需要审批",
+  "chatApprovalFieldSandbox": "Shell 命令",
+  "chatApprovalFieldRules": "规则变更",
+  "chatApprovalFieldSkill": "技能调用",
+  "chatApprovalFieldPermissions": "权限申请",
+  "chatApprovalFieldMcp": "MCP 请求",
+  "chatSandboxMode": "沙箱",
+  "chatSandboxReadOnly": "只读",
+  "chatSandboxReadOnlyDesc": "只能读，不能改动任何文件（引擎默认）",
+  "chatSandboxWorkspaceWrite": "可写工作区",
+  "chatSandboxWorkspaceWriteDesc": "可以改动工作目录内的文件",
+  "chatSandboxDangerFullAccess": "完全放开",
+  "chatSandboxDangerFullAccessDesc": "不做任何限制。仅在你清楚风险时使用",
+  "chatReasoningEffort": "推理强度",
+  "chatEffortNone": "关闭",
+  "chatEffortMinimal": "极低",
+  "chatEffortLow": "低",
+  "chatEffortMedium": "中",
+  "chatEffortHigh": "高",
+  "chatEffortXhigh": "很高",
+  "chatEffortMax": "最高",
+  "chatEffortUltra": "极限",
+  "chatSettingWriteFailed": "设置未保存：{reason}",
+  "@chatSettingWriteFailed": {
+    "placeholders": {
+      "reason": {
+        "type": "String"
+      }
+    }
+  },
   "chatTextTruncated": "内容可能不完整",
   "chatApprovalTitle": "需要你确认",
   "chatApprovalAllowOnce": "允许一次",
@@ -83,6 +148,9 @@
   "chatApprovalResolvedAllow": "已允许",
   "chatApprovalResolvedAlways": "已设为总是允许",
   "chatApprovalResolvedDeny": "已拒绝",
+  "chatEngineMode": "引擎模式",
+  "chatEngineModeLocal": "本地引擎",
+  "chatEngineModeRemote": "云端引擎",
   "chatToolRunning": "执行中…",
   "chatToolTruncated": "输出已截断，完整内容需展开获取",
   "chatNoticeCompacted": "上下文已压缩",

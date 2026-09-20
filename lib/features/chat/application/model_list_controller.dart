@@ -1,14 +1,32 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import 'package:sgit_studio_flutter/data/repositories/gateway_repository.dart';
+import 'package:sgit_studio_flutter/data/repositories/settings_repository.dart';
 import 'package:sgit_studio_flutter/domain/models/studio/relay_models.dart';
-import 'package:sgit_studio_flutter/features/studio/application/kernel_client_provider.dart';
+import 'package:sgit_studio_flutter/features/studio/application/settings_repository_provider.dart';
 
-/// 输入框「可用 chat 模型」的数据源 —— 与 React studio 的 `useEnabledChatModels`
-/// **同一套取法**（两端读同一份 relay 三表，取法不一致就会两边显示不同）。
+/// 输入框「可用 chat 模型」的数据源 —— 与中转站页**读同一份数据、走同一条路**。
 ///
-/// ## 取法（照 studio，四个细节都不能省）
+/// ## ⚠️ 必须走 [SettingsRepository]，不是 `GatewayRepository`
+///
+/// 这里踩过一次很难发现的坑：中转站页（[RelayController]）已经改成
+/// `SettingsRepository.relayManage`（桌面 FFI 直读本机 silicoid.db），而本控制器
+/// 还留在 `GatewayRepository.post('/sgcode-models/manage')`。于是**同一批模型、
+/// 同一个账号**：
+///
+/// ```text
+/// 中转站页   → FFI 直读本地   → 模型都在
+/// 输入框     → 打 gateway     → 本地模式下打不通 → 「暂无可用模型」
+/// ```
+///
+/// 而 [_scope] 的 catch 会把失败咽掉回空列表，所以没有任何报错 —— 用户看到的
+/// 只是"我明明有模型，输入框说没有"。两个入口读同一份数据就必须共用同一条路，
+/// 否则本地/云端两种模式里总有一个是坏的。
+///
+/// `relayManage` 两个实现同形：桌面 `sgit_relay_manage`（本地），Web 转发
+/// gateway 的同一端点 —— 所以换过来不影响 Web。
+///
+/// ## 取法（照 React studio 的 `useEnabledChatModels`，四个细节都不能省）
 /// 1. **先取厂商、再逐个取模型** —— `method:'list'` 不带 `provider` 时后端拿到空 code，
 ///    什么都查不到（我第一版就是这么写的，结果选择器永远是空、静默隐藏）；
 /// 2. **`scope='master'`** —— 否则网关按 personal 短路直读 per-cid、**永不 sync**，
@@ -79,14 +97,31 @@ class ModelListState {
     }
     return null;
   }
+
+  /// 列表里的第一个可用模型 —— **没选过时实际会用的那个**。
+  ///
+  /// 顺序即优先级：`_build` 先放平台（master）后放个人（personal），平台侧由
+  /// silicoid 的 priority 排出，与网关 `resolve_default_model` 同口径。
+  ModelChoice? get first {
+    for (final g in groups) {
+      if (g.models.isNotEmpty) return g.models.first;
+    }
+    return null;
+  }
+
+  /// 界面该显示哪个模型。
+  ///
+  /// ⚠️ 没选过时回落到 [first]，**不是显示「默认模型」四个字**。
+  /// 理由：不选模型时引擎用的就是列表第一个，显示"默认"等于把用户实际在用的
+  /// 模型藏起来 —— 他想知道的是"现在这条消息由谁回答"，不是"我有没有手动选过"。
+  /// React studio 的 ModelLabel 同样如此（`hasStored ? stored : firstModel?.id`）。
+  ModelChoice? effective(String? selected) => find(selected) ?? first;
 }
 
 /// 可用模型列表。SWR：先 cache 秒回，再 sync 刷新。
 class ModelListController extends Notifier<ModelListState> {
-  static const _path = '/sgcode-models/manage';
-
-  late final GatewayRepository _repo =
-      GatewayRepository(ref.read(kernelClientProvider));
+  late final SettingsRepository _settings =
+      ref.read(settingsRepositoryProvider);
 
   @override
   ModelListState build() {
@@ -95,7 +130,7 @@ class ModelListController extends Notifier<ModelListState> {
   }
 
   Future<void> load() async {
-    // 先 cache 秒回。
+    // 先 cache 秒回。这一路是**纯本地** FFI 读，断网也能出数据。
     try {
       final cached = await _build('cache');
       if (cached.isNotEmpty) {
@@ -105,12 +140,50 @@ class ModelListController extends Notifier<ModelListState> {
       // 本地没缓存是常态，交给下面的 sync。
     }
 
+    // 再 sync 刷新。这一路**要打后端**（浏览器加密握手 → nonce），本地模式 /
+    // 断网时必然失败。
     try {
-      state = ModelListState(groups: await _build('sync'), loading: false);
+      final fresh = await _build('sync');
+
+      // ⚠️ **sync 的结果不能无条件盖掉 cache。**
+      //
+      // 这里踩过一次：原本直接 `state = ModelListState(groups: await _build('sync'))`。
+      // 看着像"有异常会被下面的 catch 接住"，但 `_scope()` 的 catch 把失败**咽掉
+      // 回空列表**（那是对的：一个 scope 挂了不该拖累另一个），所以 sync 失败时
+      // 根本不抛异常 —— 而是拿一个空列表**盖掉 cache 刚读出来的好数据**。
+      //
+      // 实测表现：中转站页和输入框同时「暂无可用模型」，而 DLL 探针单独调
+      // `sgit_relay_manage` 一切正常：
+      //   cache/master  len=6597  ✅
+      //   sync/master   {"error":"Request failed: Failed to get nonce"}  ❌
+      //
+      // 本地模式下 sync 永远打不通，所以这个 bug 在本地模式里是**必现**的。
+      //
+      // 而且不能只判"合并后是否为空"：`_build` 是两路合并，**personal 固定走 cache**
+      // （个人模型只落本地），master 挂掉时合并结果仍然非空 —— 只是平台模型全没了。
+      // 所以按**平台组（非 personal）有没有丢**来判断。
+      final hadPlatform = state.groups.any((g) => !g.isPersonal);
+      final freshHasPlatform = fresh.any((g) => !g.isPersonal);
+
+      if (freshHasPlatform || !hadPlatform) {
+        state = ModelListState(groups: fresh, loading: false);
+      } else {
+        // 平台模型丢了 = sync 没成。保留 cache 的结果，只把 loading 收掉。
+        debugPrint('[models] sync 未取到平台模型（本地模式/断网属正常），沿用本地缓存');
+        state = ModelListState(
+          groups: state.groups,
+          loading: false,
+          stale: true,
+        );
+      }
     } catch (e) {
       // 取不到模型**不该挡住对话** —— 不选模型时内核用默认的。
       debugPrint('[models] 取模型列表失败：$e');
-      state = ModelListState(groups: state.groups, loading: false);
+      state = ModelListState(
+        groups: state.groups,
+        loading: false,
+        stale: state.groups.isNotEmpty,
+      );
     }
   }
 
@@ -127,8 +200,8 @@ class ModelListController extends Notifier<ModelListState> {
   Future<List<ModelGroup>> _scope(String mode, String scope) async {
     final isPersonal = scope == 'personal';
     try {
-      final pr = await _repo.post(_path,
-          {'group': 'model', 'method': 'providers', 'mode': mode, 'scope': scope});
+      final pr = await _settings
+          .relayManage('model', 'providers', {'mode': mode, 'scope': scope});
 
       final providers = _rows(pr['providers'])
           .map(RelayProvider.fromRow)
@@ -138,9 +211,7 @@ class ModelListController extends Notifier<ModelListState> {
 
       // 各厂商的模型并发取 —— 串行会让厂商多时首屏很慢。
       final groups = await Future.wait(providers.map((p) async {
-        final mr = await _repo.post(_path, {
-          'group': 'model',
-          'method': 'list',
+        final mr = await _settings.relayManage('model', 'list', {
           'provider': p.code,
           'mode': mode,
           'scope': scope,
@@ -165,8 +236,15 @@ class ModelListController extends Notifier<ModelListState> {
       }));
 
       return groups.whereType<ModelGroup>().toList();
-    } catch (_) {
-      // 任一 scope 失败不拖累另一侧。
+    } catch (e) {
+      // 任一 scope 失败不拖累另一侧 —— 个人库没数据是常态，不该让平台那路也空掉。
+      //
+      // ⚠️ **但一定要留下日志。** 这里原先是 `catch (_) { return const []; }`，
+      // 一个字都不打。于是「登录着、模型也在本地、输入框却说暂无可用模型」这个故障
+      // 在日志里**完全不可见** —— 排查时只能靠猜，实测花了很久才定位到是
+      // Rust 侧 `session()` 的并发竞态（见 sgit-ffi/src/lib.rs 那段注释）。
+      // 静默回落是对的，静默到没有任何痕迹不是。
+      debugPrint('[models] 取 $scope/$mode 失败（该组按空处理）：$e');
       return const [];
     }
   }

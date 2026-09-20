@@ -97,6 +97,52 @@ class AppMenuRadioGroup<T> extends AppMenuEntry {
   ];
 }
 
+/// 带尾部开关的一项（输入框 `+` 菜单的「记忆」「联网搜索」那种）。
+///
+/// 与 [AppMenuAction] 的区别不只是长相：**点了菜单不关**。开关类的项用户常要
+/// 连着拨好几个，每拨一次就把菜单收掉等于逼他重新点开三次。
+class AppMenuSwitch extends AppMenuEntry {
+  const AppMenuSwitch({
+    required this.label,
+    required this.value,
+    required this.onChanged,
+    this.icon,
+    this.enabled = true,
+  });
+
+  final String label;
+  final IconData? icon;
+  final bool value;
+  final ValueChanged<bool> onChanged;
+  final bool enabled;
+}
+
+/// 带描述的两行项（审批策略四档、沙箱三档那种：标题一行、说明一行）。
+///
+/// 为什么不让 [AppMenuAction] 多一个 `description` 字段：那一项的高度、
+/// 对勾位置、左图标方块全都不一样，塞进同一个渲染函数会变成一堆
+/// `if (description != null)` 分叉 —— 正是本文件用 sealed 想避免的。
+class AppMenuRichAction extends AppMenuEntry {
+  const AppMenuRichAction({
+    required this.title,
+    required this.description,
+    this.icon,
+    this.onTap,
+    this.checked = false,
+    this.enabled = true,
+  });
+
+  final String title;
+  final String description;
+
+  /// 左侧图标。给了就画成一个带描边的方块（对齐 studio 的 `optionIcon`）。
+  final IconData? icon;
+
+  final VoidCallback? onTap;
+  final bool checked;
+  final bool enabled;
+}
+
 /// 不可点的分组标题（模型选择器里的厂商名、用户菜单顶部的账号名）。
 class AppMenuLabel extends AppMenuEntry {
   const AppMenuLabel(this.text);

@@ -27,7 +27,10 @@ class ModelSelector extends ConsumerWidget {
 
     // ⚠️ 加载中/没模型时**也要显示**，只是禁用 —— 早期版本在这里 `SizedBox.shrink()`，
     // 结果取不到模型时控件整个消失，用户以为功能没做。宁可显示一个灰的。
-    final current = s.find(selected);
+    //
+    // ⚠️ 用 effective 而不是 find：没选过时显示**列表第一个**（引擎实际会用的那个），
+    // 不是「默认模型」四个字 —— 用户想知道的是"现在这条消息由谁回答"。
+    final current = s.effective(selected);
     final enabled = !s.isEmpty;
 
     return AppMenuAnchor(
@@ -37,8 +40,11 @@ class ModelSelector extends ConsumerWidget {
       maxWidth: 340,
       maxHeight: 420,
       entries: [
+        // 右侧标出它实际解析成谁 —— 否则触发器显示 "GLM-4" 而菜单勾着"默认模型"，
+        // 看起来像两个不同的选择。
         AppMenuAction(
           label: l10n.modelSelectorDefault,
+          trailingValue: s.first?.displayName,
           checked: selected == null,
           onTap: () => onChanged(null),
         ),

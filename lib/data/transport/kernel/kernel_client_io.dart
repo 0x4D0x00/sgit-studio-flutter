@@ -10,6 +10,7 @@ import 'package:sgit_studio_flutter/core/config/runtime_config.dart';
 import 'package:sgit_studio_flutter/core/contracts/kernel_client.dart';
 import 'package:sgit_studio_flutter/core/contracts/kernel_ops.dart';
 import 'package:sgit_studio_flutter/data/transport/kernel/kernel_frame.dart';
+import 'package:sgit_studio_flutter/domain/models/chat/sgcode_settings.dart';
 
 // ---- C 函数签名（对齐 sgcode-rs/sgit-ffi/src/kernel.rs）----
 //
@@ -21,6 +22,9 @@ import 'package:sgit_studio_flutter/data/transport/kernel/kernel_frame.dart';
 
 typedef _OpenC = Bool Function(Pointer<Utf8> url);
 typedef _OpenDart = bool Function(Pointer<Utf8> url);
+
+typedef _OpenLocalC = Bool Function();
+typedef _OpenLocalDart = bool Function();
 
 typedef _VoidC = Void Function();
 typedef _VoidDart = void Function();
@@ -89,6 +93,8 @@ final class IoKernelClient implements KernelClient {
 
   late final _OpenDart _kOpen =
       _lib.lookupFunction<_OpenC, _OpenDart>('sgit_kernel_open');
+  late final _OpenLocalDart _kOpenLocal =
+      _lib.lookupFunction<_OpenLocalC, _OpenLocalDart>('sgit_kernel_open_local');
   late final _VoidDart _kClose =
       _lib.lookupFunction<_VoidC, _VoidDart>('sgit_kernel_close');
   late final _SetWakerDart _kSetWaker =
@@ -141,30 +147,43 @@ final class IoKernelClient implements KernelClient {
   }
 
   @override
-  Future<KernelCapabilities> open(
-      {void Function(KernelConnectProgress)? onProgress}) async {
-    final String url;
-    try {
-      url = _kernelWsUrl();
-    } on StateError catch (e) {
-      throw KernelException('后端地址未配置：${e.message}', fatal: true);
-    }
-
+  Future<KernelCapabilities> open({
+    void Function(KernelConnectProgress)? onProgress,
+    EngineMode engineMode = EngineMode.defaults,
+  }) async {
     // ⚠️ **建连后重新注册 waker**。控制器在 `build()` 里就注册了，那时 native 侧
     // 还没有连接对象。native 现在把 waker 存在独立槽位、不再依赖注册顺序
     // （见 kernel.rs 的 waker_slot 注释），这里再灌一次是第二道保险 ——
     // 少了它，帧会堆在 native 里没人取，表现为"服务端一切正常，但界面永远收不到回复"。
     _pushWakerToNative();
 
-    final urlPtr = url.toNativeUtf8();
     final bool started;
-    try {
-      started = _kOpen(urlPtr);
-    } finally {
-      malloc.free(urlPtr);
+
+    // 根据 engineMode 决定调用本地还是云上路径
+    if (engineMode == EngineMode.local) {
+      // ① 本地路：进程内 LocalEngine（无需后端地址）
+      started = _kOpenLocal();
+    } else {
+      // ② 云上路：经 gateway 连 docker 沙箱
+      final String url;
+      try {
+        url = _kernelWsUrl();
+      } on StateError catch (e) {
+        throw KernelException('后端地址未配置：${e.message}', fatal: true);
+      }
+
+      final urlPtr = url.toNativeUtf8();
+      try {
+        started = _kOpen(urlPtr);
+      } finally {
+        malloc.free(urlPtr);
+      }
     }
+
     if (!started) {
-      // native 侧拒绝的两种情形：地址空、或没有进程内会话（未登录 / 进程重启后未恢复）。
+      // native 侧拒绝的两种情形：
+      // - 云上路：地址空、或没有进程内会话（未登录 / 进程重启后未恢复）
+      // - 本地路：引擎初始化失败
       throw const KernelException('内核连接建立失败（地址无效或会话已失效，请重新登录）');
     }
 

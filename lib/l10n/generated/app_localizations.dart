@@ -446,6 +446,252 @@ abstract class AppLocalizations {
   /// **'插话改方向…'**
   String get chatSteerHint;
 
+  /// No description provided for @chatPickFile.
+  ///
+  /// In zh, this message translates to:
+  /// **'选择文件'**
+  String get chatPickFile;
+
+  /// No description provided for @chatPickImage.
+  ///
+  /// In zh, this message translates to:
+  /// **'选择图片'**
+  String get chatPickImage;
+
+  /// No description provided for @chatPickFileFailed.
+  ///
+  /// In zh, this message translates to:
+  /// **'选择文件失败：{reason}'**
+  String chatPickFileFailed(String reason);
+
+  /// No description provided for @chatRemoveAttachment.
+  ///
+  /// In zh, this message translates to:
+  /// **'移除附件'**
+  String get chatRemoveAttachment;
+
+  /// No description provided for @chatClearScene.
+  ///
+  /// In zh, this message translates to:
+  /// **'退出场景'**
+  String get chatClearScene;
+
+  /// No description provided for @chatMemory.
+  ///
+  /// In zh, this message translates to:
+  /// **'记忆'**
+  String get chatMemory;
+
+  /// No description provided for @chatSkills.
+  ///
+  /// In zh, this message translates to:
+  /// **'技能'**
+  String get chatSkills;
+
+  /// No description provided for @chatKnowledge.
+  ///
+  /// In zh, this message translates to:
+  /// **'知识库'**
+  String get chatKnowledge;
+
+  /// No description provided for @chatContextWindow.
+  ///
+  /// In zh, this message translates to:
+  /// **'上下文窗口'**
+  String get chatContextWindow;
+
+  /// No description provided for @chatContextWindowDetail.
+  ///
+  /// In zh, this message translates to:
+  /// **'已用 {used} / 共 {total} tokens'**
+  String chatContextWindowDetail(int used, int total);
+
+  /// No description provided for @chatApprovalPolicy.
+  ///
+  /// In zh, this message translates to:
+  /// **'审批策略'**
+  String get chatApprovalPolicy;
+
+  /// No description provided for @chatApprovalUntrusted.
+  ///
+  /// In zh, this message translates to:
+  /// **'仅信任只读'**
+  String get chatApprovalUntrusted;
+
+  /// No description provided for @chatApprovalUntrustedDesc.
+  ///
+  /// In zh, this message translates to:
+  /// **'只自动批准已知安全的只读命令，其余都问你'**
+  String get chatApprovalUntrustedDesc;
+
+  /// No description provided for @chatApprovalOnRequest.
+  ///
+  /// In zh, this message translates to:
+  /// **'由模型决定'**
+  String get chatApprovalOnRequest;
+
+  /// No description provided for @chatApprovalOnRequestDesc.
+  ///
+  /// In zh, this message translates to:
+  /// **'模型自行判断何时需要你批准（引擎默认）'**
+  String get chatApprovalOnRequestDesc;
+
+  /// No description provided for @chatApprovalNever.
+  ///
+  /// In zh, this message translates to:
+  /// **'从不询问'**
+  String get chatApprovalNever;
+
+  /// No description provided for @chatApprovalNeverDesc.
+  ///
+  /// In zh, this message translates to:
+  /// **'从不打断你，失败直接返回给模型'**
+  String get chatApprovalNeverDesc;
+
+  /// No description provided for @chatApprovalGranular.
+  ///
+  /// In zh, this message translates to:
+  /// **'细粒度'**
+  String get chatApprovalGranular;
+
+  /// No description provided for @chatApprovalGranularDesc.
+  ///
+  /// In zh, this message translates to:
+  /// **'逐类控制哪些操作需要审批'**
+  String get chatApprovalGranularDesc;
+
+  /// No description provided for @chatApprovalFieldSandbox.
+  ///
+  /// In zh, this message translates to:
+  /// **'Shell 命令'**
+  String get chatApprovalFieldSandbox;
+
+  /// No description provided for @chatApprovalFieldRules.
+  ///
+  /// In zh, this message translates to:
+  /// **'规则变更'**
+  String get chatApprovalFieldRules;
+
+  /// No description provided for @chatApprovalFieldSkill.
+  ///
+  /// In zh, this message translates to:
+  /// **'技能调用'**
+  String get chatApprovalFieldSkill;
+
+  /// No description provided for @chatApprovalFieldPermissions.
+  ///
+  /// In zh, this message translates to:
+  /// **'权限申请'**
+  String get chatApprovalFieldPermissions;
+
+  /// No description provided for @chatApprovalFieldMcp.
+  ///
+  /// In zh, this message translates to:
+  /// **'MCP 请求'**
+  String get chatApprovalFieldMcp;
+
+  /// No description provided for @chatSandboxMode.
+  ///
+  /// In zh, this message translates to:
+  /// **'沙箱'**
+  String get chatSandboxMode;
+
+  /// No description provided for @chatSandboxReadOnly.
+  ///
+  /// In zh, this message translates to:
+  /// **'只读'**
+  String get chatSandboxReadOnly;
+
+  /// No description provided for @chatSandboxReadOnlyDesc.
+  ///
+  /// In zh, this message translates to:
+  /// **'只能读，不能改动任何文件（引擎默认）'**
+  String get chatSandboxReadOnlyDesc;
+
+  /// No description provided for @chatSandboxWorkspaceWrite.
+  ///
+  /// In zh, this message translates to:
+  /// **'可写工作区'**
+  String get chatSandboxWorkspaceWrite;
+
+  /// No description provided for @chatSandboxWorkspaceWriteDesc.
+  ///
+  /// In zh, this message translates to:
+  /// **'可以改动工作目录内的文件'**
+  String get chatSandboxWorkspaceWriteDesc;
+
+  /// No description provided for @chatSandboxDangerFullAccess.
+  ///
+  /// In zh, this message translates to:
+  /// **'完全放开'**
+  String get chatSandboxDangerFullAccess;
+
+  /// No description provided for @chatSandboxDangerFullAccessDesc.
+  ///
+  /// In zh, this message translates to:
+  /// **'不做任何限制。仅在你清楚风险时使用'**
+  String get chatSandboxDangerFullAccessDesc;
+
+  /// No description provided for @chatReasoningEffort.
+  ///
+  /// In zh, this message translates to:
+  /// **'推理强度'**
+  String get chatReasoningEffort;
+
+  /// No description provided for @chatEffortNone.
+  ///
+  /// In zh, this message translates to:
+  /// **'关闭'**
+  String get chatEffortNone;
+
+  /// No description provided for @chatEffortMinimal.
+  ///
+  /// In zh, this message translates to:
+  /// **'极低'**
+  String get chatEffortMinimal;
+
+  /// No description provided for @chatEffortLow.
+  ///
+  /// In zh, this message translates to:
+  /// **'低'**
+  String get chatEffortLow;
+
+  /// No description provided for @chatEffortMedium.
+  ///
+  /// In zh, this message translates to:
+  /// **'中'**
+  String get chatEffortMedium;
+
+  /// No description provided for @chatEffortHigh.
+  ///
+  /// In zh, this message translates to:
+  /// **'高'**
+  String get chatEffortHigh;
+
+  /// No description provided for @chatEffortXhigh.
+  ///
+  /// In zh, this message translates to:
+  /// **'很高'**
+  String get chatEffortXhigh;
+
+  /// No description provided for @chatEffortMax.
+  ///
+  /// In zh, this message translates to:
+  /// **'最高'**
+  String get chatEffortMax;
+
+  /// No description provided for @chatEffortUltra.
+  ///
+  /// In zh, this message translates to:
+  /// **'极限'**
+  String get chatEffortUltra;
+
+  /// No description provided for @chatSettingWriteFailed.
+  ///
+  /// In zh, this message translates to:
+  /// **'设置未保存：{reason}'**
+  String chatSettingWriteFailed(String reason);
+
   /// No description provided for @chatTextTruncated.
   ///
   /// In zh, this message translates to:
@@ -493,6 +739,24 @@ abstract class AppLocalizations {
   /// In zh, this message translates to:
   /// **'已拒绝'**
   String get chatApprovalResolvedDeny;
+
+  /// No description provided for @chatEngineMode.
+  ///
+  /// In zh, this message translates to:
+  /// **'引擎模式'**
+  String get chatEngineMode;
+
+  /// No description provided for @chatEngineModeLocal.
+  ///
+  /// In zh, this message translates to:
+  /// **'本地引擎'**
+  String get chatEngineModeLocal;
+
+  /// No description provided for @chatEngineModeRemote.
+  ///
+  /// In zh, this message translates to:
+  /// **'云端引擎'**
+  String get chatEngineModeRemote;
 
   /// No description provided for @chatToolRunning.
   ///

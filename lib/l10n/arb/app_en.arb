@@ -73,6 +73,71 @@
   "chatAgentGateway": "Agent Gateway",
   "chatStop": "Stop",
   "chatSteerHint": "Steer mid-turn…",
+  "chatPickFile": "Choose a file",
+  "chatPickImage": "Choose an image",
+  "chatPickFileFailed": "Couldn't open the file picker: {reason}",
+  "@chatPickFileFailed": {
+    "placeholders": {
+      "reason": {
+        "type": "String"
+      }
+    }
+  },
+  "chatRemoveAttachment": "Remove attachment",
+  "chatClearScene": "Leave scene",
+  "chatMemory": "Memory",
+  "chatSkills": "Skills",
+  "chatKnowledge": "Knowledge",
+  "chatContextWindow": "Context window",
+  "chatContextWindowDetail": "{used} of {total} tokens used",
+  "@chatContextWindowDetail": {
+    "placeholders": {
+      "used": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "chatApprovalPolicy": "Approvals",
+  "chatApprovalUntrusted": "Trust reads only",
+  "chatApprovalUntrustedDesc": "Auto-approve known-safe read-only commands; ask about everything else",
+  "chatApprovalOnRequest": "Model decides",
+  "chatApprovalOnRequestDesc": "The model judges when to ask you (engine default)",
+  "chatApprovalNever": "Never ask",
+  "chatApprovalNeverDesc": "Never interrupt you; failures go straight back to the model",
+  "chatApprovalGranular": "Fine-grained",
+  "chatApprovalGranularDesc": "Choose which kinds of action need approval",
+  "chatApprovalFieldSandbox": "Shell commands",
+  "chatApprovalFieldRules": "Rule changes",
+  "chatApprovalFieldSkill": "Skill calls",
+  "chatApprovalFieldPermissions": "Permission requests",
+  "chatApprovalFieldMcp": "MCP requests",
+  "chatSandboxMode": "Sandbox",
+  "chatSandboxReadOnly": "Read-only",
+  "chatSandboxReadOnlyDesc": "Can read, cannot change any file (engine default)",
+  "chatSandboxWorkspaceWrite": "Workspace write",
+  "chatSandboxWorkspaceWriteDesc": "Can change files inside the working directory",
+  "chatSandboxDangerFullAccess": "Full access",
+  "chatSandboxDangerFullAccessDesc": "No restrictions. Only if you understand the risk",
+  "chatReasoningEffort": "Reasoning",
+  "chatEffortNone": "Off",
+  "chatEffortMinimal": "Minimal",
+  "chatEffortLow": "Low",
+  "chatEffortMedium": "Medium",
+  "chatEffortHigh": "High",
+  "chatEffortXhigh": "Very high",
+  "chatEffortMax": "Max",
+  "chatEffortUltra": "Ultra",
+  "chatSettingWriteFailed": "Setting not saved: {reason}",
+  "@chatSettingWriteFailed": {
+    "placeholders": {
+      "reason": {
+        "type": "String"
+      }
+    }
+  },
   "chatTextTruncated": "Content may be incomplete",
   "chatApprovalTitle": "Needs your confirmation",
   "chatApprovalAllowOnce": "Allow once",
@@ -81,6 +146,9 @@
   "chatApprovalResolvedAllow": "Allowed",
   "chatApprovalResolvedAlways": "Always allowed",
   "chatApprovalResolvedDeny": "Denied",
+  "chatEngineMode": "Engine Mode",
+  "chatEngineModeLocal": "Local Engine",
+  "chatEngineModeRemote": "Remote Engine",
   "chatToolRunning": "Running…",
   "chatToolTruncated": "Output truncated — expand to fetch the full text",
   "chatNoticeCompacted": "Context compacted",

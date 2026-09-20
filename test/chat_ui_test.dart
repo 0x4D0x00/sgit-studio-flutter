@@ -7,12 +7,15 @@ import 'package:sgit_studio_flutter/design/themes/app_theme.dart';
 import 'package:sgit_studio_flutter/design/tokens/app_colors.dart';
 import 'package:sgit_studio_flutter/data/transport/kernel/kernel_client_mock.dart';
 import 'package:sgit_studio_flutter/features/chat/presentation/chat_composer.dart';
+import 'package:sgit_studio_flutter/features/studio/application/settings_repository_provider.dart';
 import 'package:sgit_studio_flutter/features/chat/presentation/chat_transcript.dart';
 import 'package:sgit_studio_flutter/l10n/generated/app_localizations.dart';
 import 'package:sgit_studio_flutter/services/chat/chat_controller.dart';
 import 'package:sgit_studio_flutter/ui/components/chat/approval_card.dart';
 import 'package:sgit_studio_flutter/ui/components/chat/text_bubble.dart';
 import 'package:sgit_studio_flutter/ui/components/chat/tool_card.dart';
+
+import 'fakes/fake_settings_repository.dart';
 
 /// 对话链路的端到端测试：**mock 产真字节 → 真编解码 → 真控制器 → 真 UI**。
 ///
@@ -33,6 +36,15 @@ void main() {
 
   Widget harness() => ProviderScope(
         overrides: [
+          // 输入框会读引擎设置（审批策略 / 沙箱档位 / 推理强度）。真实现是
+          // `dart:ffi` 打本地 `sgit_ffi` —— 测试机上没有那个动态库。
+          // 控制器本来就会吞掉读失败并退回默认档，但**让测试依赖"某处会抛异常"
+          // 不算隔离**：那样一旦异常类型变了，失败现场会出现在八竿子打不着的地方。
+          settingsRepositoryProvider.overrideWithValue(
+            FakeSettingsRepository(
+              pages: const {'tools': FakeSettingsRepository.toolsSnapshot},
+            ),
+          ),
           chatControllerProvider.overrideWith(
             // tick 调快、每 tick 多产几帧，压出批合并行为。
             () => ChatController(
@@ -62,7 +74,8 @@ void main() {
             body: Column(
               children: [
                 Expanded(child: ChatTranscript()),
-                ChatComposer(),
+                // 会话态：有控制条、编辑区可拖拽 —— 与本测试模拟的"已经在聊"一致。
+                ChatComposer(variant: ComposerVariant.conversation),
               ],
             ),
           ),

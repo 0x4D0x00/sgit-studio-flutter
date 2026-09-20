@@ -130,7 +130,27 @@ class RelayController extends Notifier<RelayState> {
     // ---- ② sync：平台那路打后端拿 fresh 并写回本地 ----
     try {
       final fresh = await _fetchProviders('sync');
-      state = state.copyWith(providers: fresh, loading: false, stale: false);
+
+      // ⚠️ **sync 的结果不能无条件盖掉 cache**（与 `ModelListController.load()` 同一个坑）。
+      //
+      // `_providersOf()` 的 catch 把失败**咽掉回空列表**（那是对的：一个 scope 挂了
+      // 不该拖累另一个），所以 sync 失败时这里**不会抛异常** —— 下面那个 catch 接不到。
+      //
+      // 而且不能只看"合并后是否为空"：`_fetchProviders` 是两路合并，**personal 固定
+      // 走 cache**（个人行只落本地），所以 master 挂掉时合并结果**仍然非空** ——
+      // 只是平台厂商全没了。只判总量会让这种"部分丢失"溜过去。
+      //
+      // 所以按**平台行（master 那路）有没有丢**来判断。本地模式下 sync 必然打不通
+      // （要打后端做加密握手，实测 `Failed to get nonce`），此时保留 cache。
+      final hadBuiltin = state.providers.any((p) => !p.isCustom);
+      final freshHasBuiltin = fresh.any((p) => !p.isCustom);
+
+      if (freshHasBuiltin || !hadBuiltin) {
+        state = state.copyWith(providers: fresh, loading: false, stale: false);
+      } else {
+        // 平台行丢了 = sync 没成。保留 cache，如实标 stale。
+        state = state.copyWith(loading: false, stale: true);
+      }
     } catch (e) {
       // 已有缓存内容时不退化成错误态 —— 断网只是"数据稍旧"。
       state = state.providers.isEmpty

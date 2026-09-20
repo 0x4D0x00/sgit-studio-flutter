@@ -18,8 +18,13 @@ class FakeSettingsRepository implements SettingsRepository {
     this.refreshOutcome = const RefreshOutcome(ok: true),
     this.failToolWrites = false,
     this.failRelayWrites = false,
+    this.failSync = false,
   })  : _entries = entries ?? const {},
         _pages = pages ?? const {};
+
+  /// 让 `mode=sync` 的 [relayManage] 抛异常 —— 复现**本地模式 / 断网**：
+  /// sync 要打后端做加密握手，那条路在本地必然不通，只有 cache 能出数据。
+  final bool failSync;
 
   final Map<String, List<SettingsEntry>> _entries;
 
@@ -188,7 +193,14 @@ class FakeSettingsRepository implements SettingsRepository {
   Future<Map<String, Object?>> relayManage(
       String group, String method, Map<String, Object?> params) async {
     final scope = params['scope']?.toString() ?? 'master';
+    final mode = params['mode']?.toString() ?? 'cache';
     calls.add('relayManage:$group/$method:$scope');
+
+    // 本地模式 / 断网：`mode=sync` 要打后端做加密握手，必然失败。
+    // 实测报的就是 `Failed to get nonce`，这里照搬那句话。
+    if (failSync && mode == 'sync') {
+      throw const ApiException('Request failed: Failed to get nonce');
+    }
 
     bool inScope(Object? row) {
       final tag = (row as Map)['tag']?.toString() ?? 'builtin';

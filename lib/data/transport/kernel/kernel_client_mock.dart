@@ -5,6 +5,7 @@ import 'dart:typed_data';
 import 'package:sgit_studio_flutter/core/contracts/kernel_client.dart';
 import 'package:sgit_studio_flutter/core/contracts/kernel_ops.dart';
 import 'package:sgit_studio_flutter/data/transport/kernel/kernel_frame.dart';
+import 'package:sgit_studio_flutter/domain/models/chat/sgcode_settings.dart';
 
 /// Mock 内核通道 —— **产出真帧**，不连后端。
 ///
@@ -41,8 +42,10 @@ final class MockKernelClient implements KernelClient {
   KernelCapabilities? capabilities;
 
   @override
-  Future<KernelCapabilities> open(
-      {void Function(KernelConnectProgress)? onProgress}) async {
+  Future<KernelCapabilities> open({
+    void Function(KernelConnectProgress)? onProgress,
+    EngineMode engineMode = EngineMode.defaults,
+  }) async {
     // 模拟真实的沙箱冷启动：先报进度再就绪。UI 的等待态靠它才测得到。
     onProgress?.call(const KernelConnectProgress(
         phase: KernelConnectPhase.sandboxStarting,

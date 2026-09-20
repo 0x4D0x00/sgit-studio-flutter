@@ -8,6 +8,7 @@ import 'package:sgit_studio_flutter/core/contracts/kernel_ops.dart';
 import 'package:sgit_studio_flutter/data/transport/kernel/kernel_frame.dart';
 import 'package:sgit_studio_flutter/domain/models/chat/chat_item.dart';
 import 'package:sgit_studio_flutter/domain/models/chat/chat_session.dart';
+import 'package:sgit_studio_flutter/domain/models/chat/sgcode_settings.dart';
 import 'package:sgit_studio_flutter/services/chat/chat_controller.dart';
 
 /// 会话控制器的**性能契约**测试。
@@ -255,8 +256,10 @@ final class _StubKernel implements KernelClient {
   KernelCapabilities? capabilities;
 
   @override
-  Future<KernelCapabilities> open(
-          {void Function(KernelConnectProgress)? onProgress}) async => capabilities = KernelCapabilities(
+  Future<KernelCapabilities> open({
+    void Function(KernelConnectProgress)? onProgress,
+    EngineMode engineMode = EngineMode.defaults,
+  }) async => capabilities = KernelCapabilities(
         frameVersion: frameVersion,
         methods: methods,
         features: const {'stub'},

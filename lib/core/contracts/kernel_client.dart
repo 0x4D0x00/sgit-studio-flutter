@@ -1,7 +1,7 @@
 import 'package:flutter/foundation.dart';
 
 import 'package:sgit_studio_flutter/core/contracts/kernel_ops.dart';
-
+import 'package:sgit_studio_flutter/domain/models/chat/sgcode_settings.dart';
 import 'package:sgit_studio_flutter/data/transport/kernel/kernel_frame.dart';
 
 /// 内核通道契约 —— 上层**只认这个接口**，不认桌面 `.so` / Web wasm / mock 的差别。
@@ -18,7 +18,10 @@ abstract interface class KernelClient {
   ///
   /// [onProgress] 在握手期间**持续**回调（沙箱冷启动可能几十秒）。界面拿它显示
   /// "在做什么、等了多久" —— 全程静默的等待和卡死在用户看来没有区别。
-  Future<KernelCapabilities> open({void Function(KernelConnectProgress)? onProgress});
+  Future<KernelCapabilities> open({
+    void Function(KernelConnectProgress)? onProgress,
+    EngineMode engineMode = EngineMode.defaults,
+  });
 
   /// 关闭连接、释放所有缓冲。幂等。
   void close();

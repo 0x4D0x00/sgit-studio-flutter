@@ -32,6 +32,15 @@ class AppMenuMetrics {
   /// 单行高度。图标 18 + 上下 9 的视觉重心，和导航行的 48 区分开。
   static const double itemHeight = 36;
 
+  /// 带描述的两行项高度（`AppMenuRichAction`）。
+  /// 标题 20 + 描述 17 + 上下各 8 ≈ 56。用 [itemHeight] 会把描述挤掉。
+  static const double richItemHeight = 56;
+
+  /// 两行项左侧图标方块。对齐 studio 的 `optionIcon`
+  /// （`ControlBar/ModeSelector.tsx:199-206` 的 32×32）。
+  static const double richItemIconBox = 32;
+  static const double richItemIconSize = 16;
+
   /// 默认菜单宽度。快捷键/当前值要右对齐，所以菜单必须定宽而非按内容撑开。
   ///
   /// 别调太大：项的文案通常很短（「今日」「无」），菜单越宽，文案与右侧

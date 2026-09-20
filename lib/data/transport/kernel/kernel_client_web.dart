@@ -7,6 +7,7 @@ import 'package:flutter/foundation.dart';
 import 'package:sgit_studio_flutter/core/contracts/kernel_client.dart';
 import 'package:sgit_studio_flutter/core/contracts/kernel_ops.dart';
 import 'package:sgit_studio_flutter/data/transport/kernel/kernel_frame.dart';
+import 'package:sgit_studio_flutter/domain/models/chat/sgcode_settings.dart';
 
 /// [KernelClient] 的 **Web 实现** —— 转发给 `sgit-ffi-web` 的 WASM。
 ///
@@ -29,8 +30,10 @@ final class WebKernelClient implements KernelClient {
   KernelCapabilities? get capabilities => _caps;
 
   @override
-  Future<KernelCapabilities> open(
-      {void Function(KernelConnectProgress)? onProgress}) async {
+  Future<KernelCapabilities> open({
+    void Function(KernelConnectProgress)? onProgress,
+    EngineMode engineMode = EngineMode.defaults,
+  }) async {
     final k = _kernel;
     if (k == null) {
       throw const KernelException('内核 WASM 未引导（web/index.html 的 glue 丢了？）');

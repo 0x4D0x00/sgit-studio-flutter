@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:sgit_studio_flutter/core/contracts/gateway_endpoints.dart';
 import 'package:sgit_studio_flutter/core/contracts/kernel_client.dart';
 import 'package:sgit_studio_flutter/data/transport/kernel/kernel_frame.dart';
+import 'package:sgit_studio_flutter/domain/models/chat/sgcode_settings.dart';
 import 'package:sgit_studio_flutter/services/chat/chat_controller.dart';
 import 'package:sgit_studio_flutter/core/contracts/kernel_ops.dart';
 import 'package:sgit_studio_flutter/features/studio/studio_page_specs.dart';
@@ -138,8 +139,10 @@ final class _WakerProbe implements KernelClient {
   }
 
   @override
-  Future<KernelCapabilities> open(
-      {void Function(KernelConnectProgress)? onProgress}) async {
+  Future<KernelCapabilities> open({
+    void Function(KernelConnectProgress)? onProgress,
+    EngineMode engineMode = EngineMode.defaults,
+  }) async {
     opened = true;
     return capabilities = KernelCapabilities(
       frameVersion: kKernelFrameVersion,
