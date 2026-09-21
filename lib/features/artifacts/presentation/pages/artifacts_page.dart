@@ -398,8 +398,7 @@ class _ArtifactsPageState extends ConsumerState<ArtifactsPage> {
                   ArtifactCard(
                     artifact: a,
                     onTap: () => _notWired(l10n.commonNotWired('点击跳转')),
-                    onRename: () => _notWired(l10n.artifactsRename),
-                    onDelete: () => _notWired(l10n.commonDelete),
+                    onCopyLink: () => _notWired(l10n.artifactsCopyLink),
                   ),
               ],
             ),
@@ -436,8 +435,7 @@ class _ArtifactsPageState extends ConsumerState<ArtifactsPage> {
               return ArtifactListRow(
                 artifact: items[index],
                 onTap: () => _notWired(l10n.commonNotWired('点击跳转')),
-                onRename: () => _notWired(l10n.artifactsRename),
-                onDelete: () => _notWired(l10n.commonDelete),
+                onCopyLink: () => _notWired(l10n.artifactsCopyLink),
               );
             },
           ),
@@ -453,14 +451,12 @@ class ArtifactCard extends StatefulWidget {
     super.key,
     required this.artifact,
     required this.onTap,
-    required this.onRename,
-    required this.onDelete,
+    required this.onCopyLink,
   });
 
   final Artifact artifact;
   final VoidCallback onTap;
-  final VoidCallback onRename;
-  final VoidCallback onDelete;
+  final VoidCallback onCopyLink;
 
   @override
   State<ArtifactCard> createState() => _ArtifactCardState();
@@ -472,16 +468,9 @@ class _ArtifactCardState extends State<ArtifactCard> {
 
   List<AppMenuEntry> _menuEntries(AppLocalizations l10n) => [
         AppMenuAction(
-          icon: Icons.edit_outlined,
-          label: l10n.artifactsRename,
-          onTap: widget.onRename,
-        ),
-        const AppMenuDivider(),
-        AppMenuAction(
-          icon: Icons.delete_outline,
-          label: l10n.commonDelete,
-          danger: true,
-          onTap: widget.onDelete,
+          icon: Icons.link,
+          label: l10n.artifactsCopyLink,
+          onTap: widget.onCopyLink,
         ),
       ];
 
@@ -613,14 +602,12 @@ class ArtifactListRow extends StatefulWidget {
     super.key,
     required this.artifact,
     required this.onTap,
-    required this.onRename,
-    required this.onDelete,
+    required this.onCopyLink,
   });
 
   final Artifact artifact;
   final VoidCallback onTap;
-  final VoidCallback onRename;
-  final VoidCallback onDelete;
+  final VoidCallback onCopyLink;
 
   @override
   State<ArtifactListRow> createState() => _ArtifactListRowState();
@@ -632,16 +619,9 @@ class _ArtifactListRowState extends State<ArtifactListRow> {
 
   List<AppMenuEntry> _menuEntries(AppLocalizations l10n) => [
         AppMenuAction(
-          icon: Icons.edit_outlined,
-          label: l10n.artifactsRename,
-          onTap: widget.onRename,
-        ),
-        const AppMenuDivider(),
-        AppMenuAction(
-          icon: Icons.delete_outline,
-          label: l10n.commonDelete,
-          danger: true,
-          onTap: widget.onDelete,
+          icon: Icons.link,
+          label: l10n.artifactsCopyLink,
+          onTap: widget.onCopyLink,
         ),
       ];
 
