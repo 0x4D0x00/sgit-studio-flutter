@@ -323,18 +323,71 @@ class ChatController extends Notifier<ChatSessionState> {
       openThread(threadId, replay.events);
       unawaited(_refreshThreadFromServer(threadId, gen));
     } catch (e) {
-      // 打不开必须说 —— 静默停在空会话上，用户会以为历史丢了。
-      debugPrint('[threads] 打开会话失败 $threadId：$e');
-      // 但**过时的失败不该报**：用户早换到别的会话了，弹一条"打不开 A"
+      // ⚠️ **本地没有这条会话 —— 这是唯一该让用户等的情形。**
+      //
+      // 常见于"换台机器登录"：会话是在另一台设备上聊的，本机
+      // `<cid_home>/sessions/` 里压根没有这个文件。此时直接报错是错的，
+      // 那条会话明明在服务器上好好地躺着 —— 用户会以为历史丢了。
+      //
+      // 注意这跟上面那条后台刷新是**两种情形**，不能合并：
+      //
+      // ```text
+      // 本地有 → 立刻展示，后台问服务器有没有更新（不让用户等）
+      // 本地无 → 没东西可展示，只能等拉完（这一次必须等）
+      // ```
+      debugPrint('[threads] 本地打不开 $threadId（$e），试着从服务器拉一次');
+      if (_openGeneration != gen) return;
+
+      if (await _pullThreadFromServer(threadId)) {
+        if (_openGeneration != gen) return;
+        try {
+          final replay = await ref.read(threadRepositoryProvider).open(threadId);
+          if (_openGeneration != gen) return;
+          openThread(threadId, replay.events);
+          return; // 刚拉的就是最新，不必再刷一次
+        } catch (e2) {
+          // 拉回来了还是打不开 —— 落到下面按失败处理，但报**这一次**的原因：
+          // 它比"本地没有"更接近真正的问题（文件损坏 / 版本不兼容）。
+          debugPrint('[threads] 拉回后仍打不开 $threadId：$e2');
+          if (_openGeneration != gen) return;
+          _failOpen(e2);
+          return;
+        }
+      }
+
+      // 服务器上也没有（或同步没开 / 云端模式）—— 打不开必须说，
+      // 静默停在空会话上，用户会以为历史丢了。
+      //
+      // **过时的失败不该报**：用户早换到别的会话了，弹一条"打不开 A"
       // 只会让人莫名其妙，还会把新会话的状态搅乱。
       if (_openGeneration != gen) return;
-      state = state.copyWith(
-        openingThread: false,
-        fault: ThreadOpenFailed(
-          e.toString().replaceFirst(RegExp(r'^\w*Exception(\([^)]*\))?:\s*'), ''),
-        ),
-      );
+      _failOpen(e);
     }
+  }
+
+  /// 退出载入态并报错。
+  void _failOpen(Object e) {
+    state = state.copyWith(
+      openingThread: false,
+      fault: ThreadOpenFailed(
+        e.toString().replaceFirst(RegExp(r'^\w*Exception(\([^)]*\))?:\s*'), ''),
+      ),
+    );
+  }
+
+  /// 从服务器拉这一条会话，返回"有没有拉到东西"。
+  ///
+  /// 抽出来是因为两条路都要用它，但**等不等它是两回事**：
+  /// 本地有内容时后台拉（[_refreshThreadFromServer]），本地空时必须等着拉完。
+  Future<bool> _pullThreadFromServer(String threadId) async {
+    // ⚠️ **只在本地引擎下做**。云端模式的会话本来就在服务器上，
+    // `thread/resume` 读到的**就是**最新那份 —— 打不开就是真打不开，
+    // 把服务器文件下到本机既没用（引擎读的不是本机那份）又会误导。
+    if (ref.read(composerSettingsProvider).settings.engineMode !=
+        EngineMode.local) {
+      return false;
+    }
+    return ref.read(sessionSyncRepositoryProvider).refreshThread(threadId);
   }
 
   /// 本地内容已经在屏幕上之后，问一下服务器这条会话有没有更新。
@@ -355,19 +408,9 @@ class ChatController extends Notifier<ChatSessionState> {
   /// 仓储层已经把失败咽成 `false`（见 `refreshThread` 的注释）。用户手上那份
   /// 是完整的本地历史，没拉到更新不值得提示，更不能把它换成错误。
   Future<void> _refreshThreadFromServer(String threadId, int gen) async {
-    // ⚠️ **只在本地引擎下做**。云端模式的会话本来就在服务器上，
-    // `thread/resume` 读到的**就是**最新那份 —— 没有"本地副本落后"这回事。
-    //
-    // 不加这个判断的话，云端模式下这一步会把服务器文件下载到本机（纯属白做），
-    // 然后因为"本地确实变长了"报 changed=true，触发一次毫无意义的重装 ——
-    // 用户在云端点开每一条会话都会白闪一下。
-    if (ref.read(composerSettingsProvider).settings.engineMode !=
-        EngineMode.local) {
-      return;
-    }
-    final changed =
-        await ref.read(sessionSyncRepositoryProvider).refreshThread(threadId);
-    if (!changed) return;
+    // 引擎模式的判断在 [_pullThreadFromServer] 里（云端模式恒为 false，
+    // 那边有原因）。
+    if (!await _pullThreadFromServer(threadId)) return;
     // 用户可能已经切走了（开了新对话、点了另一条）。往一个已经换掉的会话里
     // 灌内容比不刷新糟得多。
     if (_openGeneration != gen) {

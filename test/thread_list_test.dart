@@ -47,11 +47,16 @@ class _FakeThreadRepository implements ThreadRepository {
   /// `open` 被调了几次。"服务器有更新才重装"就是靠这个数断言的。
   int opens = 0;
 
+  /// 本地有没有这条会话。false 时 `open` 抛 —— 模拟"换台机器登录，
+  /// 本机 sessions/ 里压根没有这个文件"。
+  bool localHas = true;
+
   @override
   Future<ThreadReplay> open(String threadId) async {
     opens++;
     if (openGate != null) await openGate!.future;
     if (openThrows != null) throw openThrows!;
+    if (!localHas) throw Exception('会话不存在: $threadId');
     return ThreadReplay(
       summary: ThreadSummary(
           id: threadId, title: 't', preview: '', createdAt: null, updatedAt: null),
@@ -89,9 +94,13 @@ class _FakeSyncRepository implements SessionSyncRepository {
   @override
   Future<SessionSyncResult> sync() async => const SessionSyncResult(ok: true);
 
+  /// 拉取成功时要把本地补上（否则重试 open 还是失败）。测试装配时接进来。
+  void Function()? onPull;
+
   @override
   Future<bool> refreshThread(String threadId) async {
     refreshed.add(threadId);
+    if (changed) onPull?.call();
     return changed;
   }
 }
@@ -446,6 +455,70 @@ void main() {
       expect(ctrl.items, isEmpty, reason: 'A 的内容不该灌进新对话');
       expect(ctrl.items.whereType<TextItem>().map((e) => e.text),
           isNot(contains(contains('A'))));
+    });
+
+    // ⚠️ **本地没有这条会话时，必须等云端拉完再展示，不能直接报错。**
+    //
+    // 常见于"换台机器登录"：会话在另一台设备上聊的，本机 sessions/ 里压根
+    // 没这个文件。直接报错的话，那条会话明明在服务器上好好躺着，用户会以为
+    // 历史丢了。这是**唯一**该让用户等的情形（本地有内容时是后台刷新）。
+    test('本地没有 → 等云端拉完再展示', () async {
+      repo.localHas = false;
+      sync.changed = true;
+      sync.onPull = () => repo.localHas = true; // 拉完本地就有了
+
+      await container.read(chatControllerProvider.notifier).openThreadById('t1');
+
+      final s = container.read(chatControllerProvider);
+      expect(s.fault, isNull, reason: '拉回来了就不该报错');
+      expect(s.openingThread, isFalse);
+      expect(sync.refreshed, ['t1'], reason: '该去服务器拉一次');
+      expect(repo.opens, 2, reason: '本地失败一次 + 拉完重试一次');
+      expect(
+        container.read(chatControllerProvider.notifier).items,
+        isNotEmpty,
+        reason: '内容必须装配出来',
+      );
+    });
+
+    // 拉完就是最新的，不该再多问一次服务器（白跑一轮网络 + 可能再重装一次）。
+    test('本地没有 → 拉完不再多刷一次', () async {
+      repo.localHas = false;
+      sync.changed = true;
+      sync.onPull = () => repo.localHas = true;
+
+      await container.read(chatControllerProvider.notifier).openThreadById('t1');
+      await Future<void>.delayed(Duration.zero);
+
+      expect(sync.refreshed, ['t1'], reason: '只该拉这一次');
+      expect(repo.opens, 2, reason: '不该有第三次 open');
+    });
+
+    // 服务器上也没有 → 这时才该报错。静默停在空会话上，用户会以为历史丢了。
+    test('本地和服务器都没有 → 报错', () async {
+      repo.localHas = false;
+      sync.changed = false; // 服务器也没有
+
+      await container.read(chatControllerProvider.notifier).openThreadById('t1');
+
+      final s = container.read(chatControllerProvider);
+      expect(s.fault, isA<ThreadOpenFailed>());
+      expect(s.openingThread, isFalse, reason: '失败也要退出载入态，否则永远转圈');
+    });
+
+    // 云端模式下会话就在服务器上，`thread/resume` 打不开就是真打不开 ——
+    // 把文件下到本机既没用（引擎读的不是本机那份）又会误导。
+    test('云端模式本地失败 → 不去拉，直接报错', () async {
+      repo.localHas = false;
+      sync.changed = true;
+      container
+          .read(composerSettingsProvider.notifier)
+          .setEngineMode(EngineMode.remote);
+
+      await container.read(chatControllerProvider.notifier).openThreadById('t1');
+
+      expect(sync.refreshed, isEmpty, reason: '云端模式不该问本地同步');
+      expect(container.read(chatControllerProvider).fault, isA<ThreadOpenFailed>());
     });
 
     test('刷新回来时用户已切走 → 不灌内容', () async {
