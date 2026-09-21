@@ -113,6 +113,15 @@ class AppLocalizationsZh extends AppLocalizations {
   String get chatGroupOlder => '之前';
 
   @override
+  String get chatGroupUnknown => '时间未知';
+
+  @override
+  String get chatRenameHint => '保持简短且易于识别。';
+
+  @override
+  String get chatHistoryEmptyAction => '开启新对话';
+
+  @override
   String get shellExpandNav => '展开导航';
 
   @override

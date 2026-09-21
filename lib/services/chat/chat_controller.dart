@@ -7,6 +7,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:sgit_studio_flutter/core/contracts/kernel_client.dart';
 import 'package:sgit_studio_flutter/core/contracts/kernel_ops.dart';
 import 'package:sgit_studio_flutter/data/mappers/kernel_frame_mapper.dart';
+import 'package:sgit_studio_flutter/data/mappers/view_event_mapper.dart';
 import 'package:sgit_studio_flutter/data/transport/kernel/kernel_client_factory.dart';
 import 'package:sgit_studio_flutter/data/transport/kernel/kernel_frame.dart';
 import 'package:sgit_studio_flutter/domain/models/chat/chat_item.dart';
@@ -124,6 +125,10 @@ class ChatController extends Notifier<ChatSessionState> {
     } catch (e) {
       // ⚠️ 这里**必须**接住：以前是裸 await，异常直接进了未处理的 microtask，
       // 界面上一点提示都没有，用户只看到"发消息没反应"。
+      // ⚠️ 也**必须留日志**：只把原因塞进 state 的话，排查时得有人正好盯着界面
+      // 才看得见，日志里则完全无痕（踩过：服务端已经回了 hello，客户端这边
+      // 却分不清是连上了还是悄悄失败了）。
+      debugPrint('[kernel] 建连失败：${_stripException(e)}');
       state = state.copyWith(
           connecting: false,
           clearProgress: true,
@@ -227,13 +232,50 @@ class ChatController extends Notifier<ChatSessionState> {
     state = ChatSessionState(capabilities: state.capabilities);
   }
 
-  /// 用指定场景（助理）开新对话。
+  /// 用指定助理开新对话。调用方是助理切换器。
   ///
-  /// 场景在内核里就是 thread 的归属（`~` 分隔的队伍段，见 gateway 的
-  /// `sgcode_scene_commands` 注释），所以直接把它当 thread 前缀交给内核。
+  /// ⚠️ **不再把 sceneId 交给 `setThread`。** 原先这里做
+  /// `_client.setThread(sceneId)` —— 把**场景 id 当 thread id** 塞给内核，而
+  /// thread id 是 UUIDv7、场景 id 形如 `blueteam~firewall`，两者根本不是一回事。
+  /// 内核那边要么当成不存在的 thread（后续 turn/start 报 thread not found），
+  /// 要么更糟。
+  ///
+  /// 归属由 gateway 的 `topic_owner` 映射记（thread 建出来之后打标），
+  /// 不靠往 thread id 里塞前缀。所以这里只需清空会话内容 —— [sceneId] 现在
+  /// 只是**调用意图的说明**，不参与内核交互；保留参数是为了让调用点仍能表达
+  /// "我在为某个助理开新对话"，也便于将来接上归属打标。
   void newChatWithScene(String sceneId) {
     newChat();
-    _client.setThread(sceneId);
+  }
+
+  /// 打开一条历史会话：清空当前内容 → 载入回放 → 把后续发言接到这条 thread 上。
+  ///
+  /// [replayEvents] 是 `view::replay_thread` 产出的事件序列（由
+  /// `ThreadRepository.open` 取回），**不含 turn 级事件** —— 所以这里不碰
+  /// `busy` / `turnId` / `lastTiming` / `lastUsage`：回放是装配历史，不是
+  /// "刚跑完一轮"。
+  void openThread(String threadId, List<Map<String, Object?>> replayEvents) {
+    if (state.busy) interrupt();
+    for (final i in _items) {
+      i.dispose();
+    }
+    _items.clear();
+    _byId.clear();
+    _streaming = null;
+
+    for (final item in ViewEventMapper.toItems(replayEvents, () => _syntheticId--)) {
+      _append(item);
+    }
+    itemsRevision.value++;
+
+    // ⚠️ **必须保留 capabilities**。能力属于连接、不属于会话 —— 清掉的话
+    // 打开历史后第一次发送就因 caps==null 被拒，还会顺带触发重连
+    // （`newChat()` 那段注释记的是同一个坑）。
+    state = ChatSessionState(capabilities: state.capabilities);
+
+    // 让后续发言接在这条 thread 上。Rust 侧 `thread/resume` 已经把它装进了
+    // 活动的 thread_manager，所以 turn/start 打得中。
+    _client.setThread(threadId);
   }
 
   /// 停止当前 turn。

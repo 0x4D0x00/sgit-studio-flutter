@@ -113,6 +113,15 @@ class AppLocalizationsEn extends AppLocalizations {
   String get chatGroupOlder => 'Older';
 
   @override
+  String get chatGroupUnknown => 'Unknown date';
+
+  @override
+  String get chatRenameHint => 'Keep it short and recognizable.';
+
+  @override
+  String get chatHistoryEmptyAction => 'Start a new chat';
+
+  @override
   String get shellExpandNav => 'Expand navigation';
 
   @override

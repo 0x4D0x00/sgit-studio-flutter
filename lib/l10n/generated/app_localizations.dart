@@ -302,6 +302,24 @@ abstract class AppLocalizations {
   /// **'之前'**
   String get chatGroupOlder;
 
+  /// No description provided for @chatGroupUnknown.
+  ///
+  /// In zh, this message translates to:
+  /// **'时间未知'**
+  String get chatGroupUnknown;
+
+  /// No description provided for @chatRenameHint.
+  ///
+  /// In zh, this message translates to:
+  /// **'保持简短且易于识别。'**
+  String get chatRenameHint;
+
+  /// No description provided for @chatHistoryEmptyAction.
+  ///
+  /// In zh, this message translates to:
+  /// **'开启新对话'**
+  String get chatHistoryEmptyAction;
+
   /// No description provided for @shellExpandNav.
   ///
   /// In zh, this message translates to:

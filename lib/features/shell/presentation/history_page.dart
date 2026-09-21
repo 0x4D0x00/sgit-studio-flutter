@@ -4,8 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import 'package:sgit_studio_flutter/design/extensions/app_skin.dart';
 import 'package:sgit_studio_flutter/design/tokens/app_spacing.dart';
-import 'package:sgit_studio_flutter/features/studio/application/resource_list_controller.dart';
-import 'package:sgit_studio_flutter/features/studio/studio_page_specs.dart';
+import 'package:sgit_studio_flutter/features/chat/application/thread_list_controller.dart';
 import 'package:sgit_studio_flutter/l10n/generated/app_localizations.dart';
 import 'package:sgit_studio_flutter/router/route_names.dart';
 import 'package:sgit_studio_flutter/services/chat/chat_controller.dart';
@@ -23,7 +22,14 @@ class HistoryPage extends ConsumerStatefulWidget {
 }
 
 class _HistoryPageState extends ConsumerState<HistoryPage> {
-  static const String _assistantPrefix = 'assistant:';
+  /// 条目 id 的前缀。
+  ///
+  /// ⚠️ 原先是 `'assistant:'` —— 因为这个页面**列的是场景标签而不是会话**。
+  /// 后果不止显示错：那时"删除"调的是 `resourceListProvider(scenes).remove()`，
+  /// **删掉的是场景定义本身**。数据源换成真 thread 后前缀跟着换；
+  /// 下面每一处 `substring(_threadPrefix.length)` 都必须一起改 ——
+  /// 漏一处就会把 threadId 当 sceneId 用。
+  static const String _threadPrefix = 'thread:';
 
   bool _searchOpen = false;
   final _searchController = TextEditingController();
@@ -42,13 +48,16 @@ class _HistoryPageState extends ConsumerState<HistoryPage> {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     final skin = AppSkin.of(context);
-    final scenes = ref.watch(resourceListProvider(StudioPageSpecs.scenes)).items;
+    final threads = ref.watch(threadListProvider).items;
 
     final items = [
-      for (final sc in scenes)
+      for (final t in threads)
         _HistoryItem(
-          id: '$_assistantPrefix${sc.id}',
-          label: sc.name.isEmpty ? sc.id : sc.name,
+          id: '$_threadPrefix${t.id}',
+          // 标题的回落（用户改的名字 > 首条消息摘要 > "新对话"）在 Rust 侧
+          // `thread_ops::display_title` 算好了，这边不再自己来一套 ——
+          // 两边各算各的必然漂。
+          label: t.title,
         ),
     ];
     final filtered = _searchQuery.isEmpty
@@ -90,9 +99,8 @@ class _HistoryPageState extends ConsumerState<HistoryPage> {
     AppSkin skin,
   ) {
     final count = _selectedIds.length;
-    final scenesCount =
-        ref.watch(resourceListProvider(StudioPageSpecs.scenes)).items.length;
-    final allSelected = scenesCount > 0 && count == scenesCount;
+    final total = ref.watch(threadListProvider).items.length;
+    final allSelected = total > 0 && count == total;
     return Padding(
       padding: const EdgeInsets.fromLTRB(
         AppSpacing.md,
@@ -213,7 +221,7 @@ class _HistoryPageState extends ConsumerState<HistoryPage> {
       selected: selected,
       selecting: _selecting,
       skin: skin,
-      onTap: () => _selecting ? _toggleOne(item.id) : _pick(context, item.id),
+      onTap: () => _selecting ? _toggleOne(item.id) : _pick(item.id),
       onToggleSelect: () => _toggleOne(item.id),
       onMenuAction: (action) => _handleMenuAction(context, action, item),
     );
@@ -233,22 +241,42 @@ class _HistoryPageState extends ConsumerState<HistoryPage> {
   }
 
   void _toggleSelectAll() {
-    final scenes = ref.read(resourceListProvider(StudioPageSpecs.scenes)).items;
+    final threads = ref.read(threadListProvider).items;
     setState(() {
-      if (_selectedIds.length == scenes.length) {
+      if (_selectedIds.length == threads.length) {
         _selectedIds.clear();
       } else {
         _selectedIds
           ..clear()
-          ..addAll(scenes.map((e) => '$_assistantPrefix${e.id}'));
+          ..addAll(threads.map((e) => '$_threadPrefix${e.id}'));
       }
     });
   }
 
-  void _pick(BuildContext context, String id) {
-    final sceneId = id.substring(_assistantPrefix.length);
-    ref.read(chatControllerProvider.notifier).newChatWithScene(sceneId);
-    context.go(RouteNames.home);
+  /// 点开一条历史会话：载入它的消息，并让后续发言接在这条 thread 上。
+  ///
+  /// ⚠️ 原先这里是 `newChatWithScene(sceneId)` —— 开一个**空的新对话**，
+  /// 历史消息一条都不载入。点"历史对话"却看不到任何历史，是这个页面
+  /// 原先最主要的错。
+  Future<void> _pick(String id) async {
+    final threadId = id.substring(_threadPrefix.length);
+    try {
+      final replay = await ref.read(threadRepositoryProvider).open(threadId);
+      // ⚠️ 用 State 自己的 `mounted` + `context`，不要跨 await 用传进来的那个：
+      // 参数 context 可能已经随组件销毁而失效，而 `mounted` 检查的是 State，
+      // 两者对不上（analyzer 的 use_build_context_synchronously 就在说这个）。
+      if (!mounted) return;
+      ref
+          .read(chatControllerProvider.notifier)
+          .openThread(threadId, replay.events);
+      context.go(RouteNames.home);
+    } catch (e) {
+      if (!mounted) return;
+      // 打不开必须说 —— 静默跳回工作台会让用户以为"点了没反应"。
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(_msg(e))),
+      );
+    }
   }
 
   Future<void> _delete(BuildContext context, AppLocalizations l10n) async {
@@ -260,11 +288,11 @@ class _HistoryPageState extends ConsumerState<HistoryPage> {
       confirmText: l10n.commonDelete,
     );
     if (!ok) return;
-    await ref
-        .read(resourceListProvider(StudioPageSpecs.scenes).notifier)
-        .removeMany([
+    // ⚠️ 删的是**会话**。原先走 `resourceListProvider(scenes).removeMany`，
+    // 删掉的是场景定义本身 —— 数据损失级的错接。
+    await ref.read(threadListProvider.notifier).removeMany([
       for (final id in ids)
-        if (id.startsWith(_assistantPrefix)) id.substring(_assistantPrefix.length),
+        if (id.startsWith(_threadPrefix)) id.substring(_threadPrefix.length),
     ]);
     if (!mounted) return;
     setState(() {
@@ -275,7 +303,7 @@ class _HistoryPageState extends ConsumerState<HistoryPage> {
 
   void _handleMenuAction(BuildContext context, String action, _HistoryItem item) {
     final l10n = AppLocalizations.of(context);
-    final sceneId = item.id.substring(_assistantPrefix.length);
+    final threadId = item.id.substring(_threadPrefix.length);
 
     switch (action) {
       case 'select':
@@ -284,6 +312,9 @@ class _HistoryPageState extends ConsumerState<HistoryPage> {
           _selectedIds.add(item.id);
         });
       case 'pin':
+        // sgcode 没有置顶能力（React studio 的「收藏」存在 gateway 自己的
+        // per-cid KV 里，客户端这条路还没接）。**不拿别的字段假装** ——
+        // 那会变成一个看着能用、实际不保存的功能。
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(l10n.commonNotWired('pin')),
@@ -291,21 +322,51 @@ class _HistoryPageState extends ConsumerState<HistoryPage> {
           ),
         );
       case 'rename':
-        ScaffoldMessenger.of(context,).showSnackBar(
-          SnackBar(
-            content: Text(l10n.commonNotWired('rename')),
-            duration: const Duration(seconds: 1),
-          ),
-        );
+        _rename(context, l10n, threadId, item.label);
       case 'delete':
-        _deleteSingle(context, l10n, sceneId, item.label);
+        _deleteSingle(context, l10n, threadId, item.label);
     }
+  }
+
+  /// 重命名。走 sgcode 的 `thread/name/set`。
+  Future<void> _rename(
+    BuildContext context,
+    AppLocalizations l10n,
+    String threadId,
+    String current,
+  ) async {
+    final controller = TextEditingController(text: current);
+    final name = await showDialog<String>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text(l10n.navChatRename),
+        content: TextField(
+          controller: controller,
+          autofocus: true,
+          decoration: InputDecoration(hintText: l10n.chatRenameHint),
+          onSubmitted: (v) => Navigator.of(ctx).pop(v),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(),
+            child: Text(l10n.commonCancel),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.of(ctx).pop(controller.text),
+            child: Text(l10n.commonConfirm),
+          ),
+        ],
+      ),
+    );
+    controller.dispose();
+    if (name == null) return; // 取消
+    await ref.read(threadListProvider.notifier).rename(threadId, name.trim());
   }
 
   Future<void> _deleteSingle(
     BuildContext context,
     AppLocalizations l10n,
-    String sceneId,
+    String threadId,
     String label,
   ) async {
     final ok = await confirmDanger(
@@ -315,11 +376,13 @@ class _HistoryPageState extends ConsumerState<HistoryPage> {
     );
     if (!ok) return;
 
-    await ref
-        .read(resourceListProvider(StudioPageSpecs.scenes).notifier)
-        .remove(sceneId);
+    // ⚠️ **这里就是"删历史条目删掉场景定义"的修复点。**
+    await ref.read(threadListProvider.notifier).remove(threadId);
   }
 }
+
+String _msg(Object e) =>
+    e.toString().replaceFirst(RegExp(r'^\w*Exception:\s*'), '');
 
 class _HistoryRow extends StatefulWidget {
   const _HistoryRow({

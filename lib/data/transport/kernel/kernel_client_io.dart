@@ -199,6 +199,11 @@ final class IoKernelClient implements KernelClient {
 
     final caps = await _awaitCaps(onProgress);
     _caps = caps;
+    // ⚠️ **成功也要留一行**。失败路径各有各的日志，成功路径原先一个字都不打 ——
+    // 于是"连上了"和"卡在 45s 轮询里"在日志上长得**一模一样**（都是建连那行之后
+    // 一片空白），排查时只能靠界面猜。踩过：服务端探针已经能收到 hello，却分不清
+    // 客户端到底成了没成。
+    debugPrint('[kernel] 建连成功，动作=${caps.methods.toList()..sort()}');
     return caps;
   }
 

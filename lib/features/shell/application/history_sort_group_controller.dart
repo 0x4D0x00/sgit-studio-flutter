@@ -1,5 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:sgit_studio_flutter/domain/models/studio/resource_item.dart';
+import 'package:sgit_studio_flutter/domain/models/chat/thread_summary.dart';
 import 'package:lpinyin/lpinyin.dart';
 
 /// 历史会话排序方式
@@ -85,100 +85,92 @@ class GroupedHistoryItem {
 
   final String groupKey;
   final String groupTitle;
-  final List<ResourceItem> items;
+  final List<ThreadSummary> items;
 }
 
-/// 对历史会话进行排序和分组
+/// 对历史会话进行排序和分组。
+///
+/// ## 分组：今天 / 昨天 / 更早
+///
+/// 就这三档。React studio 那边分了六档（本周、本月、再按年月年份细分成
+/// 「3 月」「2025」这样的组），**不照抄** —— 会话列表一屏就 20 条，切成六组
+/// 只会让每组剩两三条、标题比内容还多。三档足够回答"最近的在哪"。
+///
+/// ## 时间是强类型 `DateTime?`，不是字符串
+///
+/// ⚠️ 原先入参是 `ResourceItem`、时间取 `extra('updatedAt')` 再 `DateTime.parse`。
+/// 而 sgcode 给的是 **Unix 秒的整数** —— `DateTime.parse("1758412800")` 抛异常，
+/// 被 catch 成 epoch 0，于是所有会话都落进"更早"、排序全乱，**一行日志都没有**。
+/// 现在类型上就杜绝了：转换只在 `ThreadSummary.fromJson` 一处发生。
+///
+/// 时间缺失（`updatedAt == null`）的排到最后，**不用 epoch 0 顶替** ——
+/// 那会把"数据缺失"伪装成"很老的会话"。
 List<GroupedHistoryItem> sortAndGroupHistory(
-  List<ResourceItem> items,
+  List<ThreadSummary> items,
   ChatSortBy sortBy,
   ChatGroupBy groupBy,
   String Function(String) getGroupTitle,
 ) {
   // 1. 排序
-  final sorted = List<ResourceItem>.from(items);
+  final sorted = List<ThreadSummary>.from(items);
   switch (sortBy) {
     case ChatSortBy.lastActivity:
       sorted.sort((a, b) {
-        final aTime = _parseTime(a.extra('updatedAt'));
-        final bTime = _parseTime(b.extra('updatedAt'));
-        return bTime.compareTo(aTime); // 降序
+        // null 排最后：缺时间戳是数据问题，不该被当成"最早"。
+        if (a.updatedAt == null && b.updatedAt == null) return 0;
+        if (a.updatedAt == null) return 1;
+        if (b.updatedAt == null) return -1;
+        return b.updatedAt!.compareTo(a.updatedAt!); // 降序
       });
     case ChatSortBy.name:
-      sorted.sort((a, b) {
-        final aName = a.name.isEmpty ? a.id : a.name;
-        final bName = b.name.isEmpty ? b.id : b.name;
-        return _compareByFirstLetter(aName, bName);
-      });
+      sorted.sort((a, b) => _compareByFirstLetter(a.title, b.title));
   }
 
   // 2. 分组
   if (groupBy == ChatGroupBy.none) {
     return [
-      GroupedHistoryItem(
-        groupKey: 'all',
-        groupTitle: '',
-        items: sorted,
-      ),
+      GroupedHistoryItem(groupKey: 'all', groupTitle: '', items: sorted),
     ];
   }
 
-  final Map<String, List<ResourceItem>> groups = {};
+  final groups = <String, List<ThreadSummary>>{};
   for (final item in sorted) {
-    final key = _getGroupKey(item, groupBy);
-    groups.putIfAbsent(key, () => []).add(item);
+    groups.putIfAbsent(_groupKey(item, groupBy), () => []).add(item);
   }
 
-  // 3. 按固定顺序返回分组列表（今天→昨天→更早）
-  final result = <GroupedHistoryItem>[];
-
-  // 按日期分组时，确保顺序固定
-  if (groupBy == ChatGroupBy.date) {
-    const orderedKeys = ['today', 'yesterday', 'older'];
-    for (final key in orderedKeys) {
-      if (groups.containsKey(key)) {
-        result.add(GroupedHistoryItem(
-          groupKey: key,
-          groupTitle: getGroupTitle(key),
-          items: groups[key]!,
-        ));
-      }
-    }
-  } else {
-    // 其他分组方式，保持插入顺序
-    result.addAll(groups.entries.map((e) {
-      return GroupedHistoryItem(
-        groupKey: e.key,
-        groupTitle: getGroupTitle(e.key),
-        items: e.value,
-      );
-    }));
-  }
-
-  return result;
+  // 3. 按固定顺序输出：今天 → 昨天 → 更早 → 时间未知。
+  const ordered = ['today', 'yesterday', 'older', 'unknown'];
+  return [
+    for (final k in ordered)
+      if (groups.containsKey(k))
+        GroupedHistoryItem(
+          groupKey: k,
+          groupTitle: getGroupTitle(k),
+          items: groups[k]!,
+        ),
+  ];
 }
 
-String _getGroupKey(ResourceItem item, ChatGroupBy groupBy) {
+String _groupKey(ThreadSummary item, ChatGroupBy groupBy) {
   switch (groupBy) {
     case ChatGroupBy.none:
       return 'all';
     case ChatGroupBy.date:
-      final time = _parseTime(item.extra('updatedAt')).toLocal();
+      final t = item.updatedAt?.toLocal();
+      // 没有时间戳的单独成组：既不算"今天"，也不该混进"更早"装成老会话。
+      if (t == null) return 'unknown';
+
       final now = DateTime.now();
       final today = DateTime(now.year, now.month, now.day);
-      final yesterday = today.subtract(const Duration(days: 1));
-      final itemDate = DateTime(time.year, time.month, time.day);
+      final day = DateTime(t.year, t.month, t.day);
 
-      if (itemDate == today) {
-        return 'today';
-      } else if (itemDate == yesterday) {
-        return 'yesterday';
-      } else {
-        return 'older';
-      }
+      if (day == today) return 'today';
+      if (day == today.subtract(const Duration(days: 1))) return 'yesterday';
+      return 'older';
     case ChatGroupBy.assistant:
-      // TODO: 待实现 - 需要助理信息
-      return 'assistant_${item.id}';
+      // 按助理分组要先有 thread → agent 的归属映射（服务端的 `topic_owner`
+      // 记着，但客户端目前拿不到）。接上之前这里保持未接，菜单项也标着未接。
+      return 'assistant_unknown';
   }
 }
 
@@ -210,12 +202,4 @@ String _getFirstLetter(String text) {
 
   // 英文或其他字符，直接返回首字母大写
   return firstChar.toUpperCase();
-}
-
-DateTime _parseTime(String timeStr) {
-  try {
-    return DateTime.parse(timeStr);
-  } catch (_) {
-    return DateTime.fromMillisecondsSinceEpoch(0);
-  }
 }

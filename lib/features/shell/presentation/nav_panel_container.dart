@@ -3,11 +3,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import 'package:sgit_studio_flutter/features/auth/application/auth_controller.dart';
-import 'package:sgit_studio_flutter/domain/models/studio/resource_item.dart';
+import 'package:sgit_studio_flutter/domain/models/chat/thread_summary.dart';
+import 'package:sgit_studio_flutter/features/chat/application/thread_list_controller.dart';
 import 'package:sgit_studio_flutter/features/projects/presentation/widgets/create_project_dialog.dart';
-import 'package:sgit_studio_flutter/features/studio/application/resource_list_controller.dart';
 import 'package:sgit_studio_flutter/features/studio/studio_feature.dart';
-import 'package:sgit_studio_flutter/features/studio/studio_page_specs.dart';
 import 'package:sgit_studio_flutter/l10n/generated/app_localizations.dart';
 import 'package:sgit_studio_flutter/layout/panels/models/nav_entry.dart';
 import 'package:sgit_studio_flutter/layout/panels/nav_panel.dart';
@@ -52,7 +51,22 @@ class NavPanelContainer
   static const int _historyLimit = 20;
 
   /// 助理项的 id 前缀，避免与 studio 的 key 撞。
+  ///
+  /// **只给助理用**。选中它 = 用该场景开一轮新对话（`newChatWithScene`），
+  /// 语义上就不该载入任何历史消息 —— 别把历史条目也挂到这个前缀上。
   static const String _assistantPrefix = 'assistant:';
+
+  /// 历史会话项的 id 前缀。
+  ///
+  /// ⚠️ 历史区原先复用 `_assistantPrefix` —— 因为它列的是**场景标签而不是会话**。
+  /// 后果不止显示错：点进去走 `newChatWithScene` 开的是**空的新对话**（点"历史
+  /// 对话"却看不到任何历史），删除走 `resourceListProvider(scenes).remove()`
+  /// **删掉的是场景定义本身**。
+  ///
+  /// 所以两个前缀必须泾渭分明：`_onSelect` 靠前缀分派，**漏改一处就会把
+  /// threadId 当 sceneId 用** —— 而 sgcode 两边的 id 都是 UUID 形态，
+  /// 不会报错，只会静默走错分支。
+  static const String _threadPrefix = 'thread:';
 
   @override
   Widget build(
@@ -66,12 +80,20 @@ class NavPanelContainer
     final studioPages = ref.watch(
       visibleStudioPagesProvider,
     );
-    // 助理 = 场景（scene）。与「场景」子页同一个数据源，不另开一条取列表的路。
-    final scenes = ref
+    // 历史对话 = sgcode 的 **thread**，不是场景。
+    //
+    // 这里原先取的是 `resourceListProvider(StudioPageSpecs.scenes)` —— 场景是
+    // 「用哪套提示词开对话」的模板，跟"我昨天跟它聊过什么"是两码事。两者条数
+    // 和内容都对不上，左栏看着像历史，点进去却是空白新对话。
+    //
+    // ⚠️ 本文件当前**没有**独立的「助理」section（全仓搜 `navAssistants` 只有
+    // l10n 里的文案，没有任何渲染处），所以 scenes 在这里已无消费方，连同
+    // resource_list_controller / studio_page_specs / resource_item 三个 import
+    // 一并移除 —— 留着只会变成 analyzer 的 unused 警告。将来补「助理」section
+    // 时在此重新 watch 一份 scenes，**不要**改用下面这份 threads。
+    final threads = ref
         .watch(
-          resourceListProvider(
-            StudioPageSpecs.scenes,
-          ),
+          threadListProvider,
         )
         .items;
 
@@ -152,7 +174,7 @@ class NavPanelContainer
         ..._buildHistorySections(
           l10n,
           ref,
-          scenes,
+          threads,
           sortGroupState,
           context,
         ),
@@ -199,7 +221,7 @@ class NavPanelContainer
       onSearch: () => _onSearch(
         context,
         ref,
-        scenes,
+        threads,
       ),
       onCollapse: () => ref
           .read(
@@ -289,6 +311,21 @@ class NavPanelContainer
         context.go(
           RouteNames.home,
         );
+      case final String
+          t
+          when t.startsWith(
+            _threadPrefix,
+          ):
+        // ⚠️ 这个分支必须排在 `_assistantPrefix` **之后**只是巧合上无所谓
+        //（两个前缀互不为前缀），但顺序一旦被改成某个前缀是另一个的前缀，
+        // switch 的先到先得会静默吃掉后一个 —— 加新前缀时先确认互不包含。
+        _onOpenThread(
+          context,
+          ref,
+          t.substring(
+            _threadPrefix.length,
+          ),
+        );
       default:
         context.go(
           RouteNames.studio(
@@ -327,23 +364,69 @@ class NavPanelContainer
     );
   }
 
+  /// 点开一条历史会话：载入它的消息，并让后续发言接在这条 thread 上。
+  ///
+  /// ⚠️ 原先历史条目走的是 `newChatWithScene(sceneId)` —— 开一个**空的新对话**，
+  /// 历史消息一条都不载入。点"历史对话"却看不到任何历史，是左栏原先最主要的错。
+  Future<void> _onOpenThread(
+    BuildContext context,
+    WidgetRef ref,
+    String threadId,
+  ) async {
+    try {
+      final replay = await ref
+          .read(
+            threadRepositoryProvider,
+          )
+          .open(threadId,);
+      // 这是无状态的 ConsumerWidget，没有 State 的 `mounted` 可用 ——
+      // 只能用 `context.mounted`（它检查的正是这个 context 所属的 element）。
+      if (!context.mounted) return;
+      ref
+          .read(
+            chatControllerProvider.notifier,
+          )
+          .openThread(
+            threadId,
+            replay.events,
+          );
+      context.go(
+        RouteNames.home,
+      );
+    } catch (e) {
+      if (!context.mounted) return;
+      // 打不开必须说 —— 静默什么都不发生会让用户以为"点了没反应"，
+      // 而这里最常见的失败恰恰是引擎没起来，不提示就无从排查。
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(
+        SnackBar(
+          content: Text(
+            _msg(e),
+          ),
+        ),
+      );
+    }
+  }
+
   void _onSearch(
     BuildContext context,
     WidgetRef ref,
     List<
-      ResourceItem
+      ThreadSummary
     >
-    scenes,
+    threads,
   ) {
     showSearchChatsDialog(
       context,
       items: [
-        for (final sc in scenes)
+        for (final t in threads)
           SearchChatsDialogItem(
-            id: '$_assistantPrefix${sc.id}',
-            label: sc.name.isEmpty
-                ? sc.id
-                : sc.name,
+            id: '$_threadPrefix${t.id}',
+            // 标题的回落（用户改的名字 > 首条消息摘要 > "新对话"）在 Rust 侧
+            // `thread_ops::display_title` 算好了，这边不再自己来一套 ——
+            // 两边各算各的必然漂。
+            label: t.title,
           ),
       ],
       onSelect:
@@ -360,8 +443,8 @@ class NavPanelContainer
     );
   }
 
-  /// 历史对话项行尾「⋯」菜单。只有 Delete 真落地（场景资源有
-  /// `/sgcode-scene/remove`），其余四项后端还没开放，先弹「功能待接」。
+  /// 历史对话项行尾「⋯」菜单。Rename / Delete 都真落地（`thread/name/set`、
+  /// `thread/delete`）；Pin 没有对应内核能力，见下方注释。
   List<
     AppMenuEntry
   >
@@ -369,16 +452,16 @@ class NavPanelContainer
     BuildContext context,
     WidgetRef ref,
     AppLocalizations l10n,
-    ResourceItem sc,
+    ThreadSummary t,
   ) {
-    final label = sc.name.isEmpty
-        ? sc.id
-        : sc.name;
     return [
       AppMenuAction(
         icon: Icons.push_pin_outlined,
         label: l10n.navChatPin,
         shortcut: 'P',
+        // sgcode 没有置顶能力（React studio 的「收藏」存在 gateway 自己的
+        // per-cid KV 里，客户端这条路还没接）。**不拿别的字段假装** ——
+        // 那会变成一个看着能用、实际不保存的功能。
         onTap: () => _notWired(
           context,
           l10n,
@@ -389,10 +472,12 @@ class NavPanelContainer
         icon: Icons.edit_outlined,
         label: l10n.navChatRename,
         shortcut: 'R',
-        onTap: () => _notWired(
+        onTap: () => _onRenameChat(
           context,
+          ref,
           l10n,
-          'rename',
+          t.id,
+          t.title,
         ),
       ),
       AppMenuAction(
@@ -404,11 +489,67 @@ class NavPanelContainer
           context,
           ref,
           l10n,
-          sc.id,
-          label,
+          t.id,
+          t.title,
         ),
       ),
     ];
+  }
+
+  /// 改标题。走 sgcode 的 `thread/name/set`（controller 内部乐观更新 + 失败回滚）。
+  Future<void>
+  _onRenameChat(
+    BuildContext context,
+    WidgetRef ref,
+    AppLocalizations l10n,
+    String threadId,
+    String current,
+  ) async {
+    final controller = TextEditingController(
+      text: current,
+    );
+    final name = await showDialog<String>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text(
+          l10n.navChatRename,
+        ),
+        content: TextField(
+          controller: controller,
+          autofocus: true,
+          decoration: InputDecoration(
+            hintText: l10n.chatRenameHint,
+          ),
+          onSubmitted: (v) => Navigator.of(ctx).pop(v),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(),
+            child: Text(
+              l10n.commonCancel,
+            ),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.of(ctx).pop(controller.text),
+            child: Text(
+              l10n.commonConfirm,
+            ),
+          ),
+        ],
+      ),
+    );
+    controller.dispose();
+    // null = 取消。空串是"用户真的清空了"，交给 controller 回落到 preview，
+    // 与"没点确认"是两回事，不能合并判断。
+    if (name == null) return;
+    await ref
+        .read(
+          threadListProvider.notifier,
+        )
+        .rename(
+          threadId,
+          name.trim(),
+        );
   }
 
   Future<void>
@@ -416,7 +557,7 @@ class NavPanelContainer
     BuildContext context,
     WidgetRef ref,
     AppLocalizations l10n,
-    String id,
+    String threadId,
     String label,
   ) async {
     // 删除不可逆，走全站统一的危险确认框（同 resource_list_page 的做法）。
@@ -428,13 +569,14 @@ class NavPanelContainer
       confirmText: l10n.commonDelete,
     );
     if (!ok) return;
+    // ⚠️ **这里就是"删历史条目删掉场景定义"的修复点。**
+    // 原先调的是 `resourceListProvider(StudioPageSpecs.scenes).remove(id)` ——
+    // 传进去的是 thread id，删的却是场景资源：数据损失级的错接。
     await ref
         .read(
-          resourceListProvider(
-            StudioPageSpecs.scenes,
-          ).notifier,
+          threadListProvider.notifier,
         )
-        .remove(id,);
+        .remove(threadId,);
   }
 
   void _notWired(
@@ -460,7 +602,7 @@ class NavPanelContainer
   List<NavSection> _buildHistorySections(
     AppLocalizations l10n,
     WidgetRef ref,
-    List<ResourceItem> scenes,
+    List<ThreadSummary> threads,
     HistorySortGroupState sortGroupState,
     BuildContext context,
   ) {
@@ -478,7 +620,7 @@ class NavPanelContainer
 
     // 按照当前排序和分组设置处理数据
     final grouped = sortAndGroupHistory(
-      scenes,
+      threads,
       sortGroupState.sortBy,
       sortGroupState.groupBy,
       (key) => _getGroupTitle(key, l10n),
@@ -542,14 +684,17 @@ class NavPanelContainer
             ),
           ],
           entries: [
-            for (final sc in items.take(_historyLimit))
+            for (final t in items.take(_historyLimit))
               NavEntry(
-                id: '$_assistantPrefix${sc.id}',
+                // 前缀换成 `_threadPrefix`：这条 id 会原样回到 `_onSelect`，
+                // 走错前缀就会把 threadId 喂给 `newChatWithScene`。
+                id: '$_threadPrefix${t.id}',
                 icon: Icons.chat_bubble_outline,
-                label: sc.name.isEmpty ? sc.id : sc.name,
-                trailingMenu: _chatItemMenu(context, ref, l10n, sc),
+                // 回落已由 Rust 侧 `thread_ops::display_title` 算好，不再自己来一套。
+                label: t.title,
+                trailingMenu: _chatItemMenu(context, ref, l10n, t),
               ),
-            if (scenes.length > _historyLimit)
+            if (threads.length > _historyLimit)
               NavEntry(
                 id: _idHistoryMore,
                 icon: Icons.more_horiz,
@@ -693,12 +838,15 @@ class NavPanelContainer
               ? []
               : [
                   // 最多显示20条
-                  for (final sc in group.items.take(_historyLimit))
+                  for (final t in group.items.take(_historyLimit))
                     NavEntry(
-                      id: '$_assistantPrefix${sc.id}',
+                      // 同上：分组模式是历史区的**另一条**渲染路径，
+                      // 两处前缀必须一起改 —— 只改一处的话，换个分组方式
+                      // 就又会把 threadId 当 sceneId 用。
+                      id: '$_threadPrefix${t.id}',
                       icon: Icons.chat_bubble_outline,
-                      label: sc.name.isEmpty ? sc.id : sc.name,
-                      trailingMenu: _chatItemMenu(context, ref, l10n, sc),
+                      label: t.title,
+                      trailingMenu: _chatItemMenu(context, ref, l10n, t),
                     ),
                   // 超过20条时显示"查看全部"
                   if (hasMore)
@@ -716,15 +864,28 @@ class NavPanelContainer
     return sections;
   }
 
-  /// 获取分组标题
+  /// 分组标题。三档：今天 / 昨天 / 更早，外加一个"时间未知"兜底。
   String _getGroupTitle(String key, AppLocalizations l10n) {
-    if (key == 'today') return l10n.chatGroupToday;
-    if (key == 'yesterday') return l10n.chatGroupYesterday;
-    if (key == 'older') return l10n.chatGroupOlder;
+    switch (key) {
+      case 'today':
+        return l10n.chatGroupToday;
+      case 'yesterday':
+        return l10n.chatGroupYesterday;
+      case 'older':
+        return l10n.chatGroupOlder;
+      case 'unknown':
+        return l10n.chatGroupUnknown;
+    }
     if (key.startsWith('assistant_')) {
-      // TODO: 待实现 - 需要助理名称映射
+      // 按助理分组要先有 thread → agent 归属映射（服务端 `topic_owner` 有，
+      // 客户端还取不到）。菜单里那项也标着未接。
       return key.substring('assistant_'.length);
     }
     return key;
   }
 }
+
+/// 剥掉 `XxxException:` 前缀，只留给用户看的那句。
+/// 与 `history_page.dart` / `chat_controller.dart` 同一套处理。
+String _msg(Object e) =>
+    e.toString().replaceFirst(RegExp(r'^\w*Exception:\s*'), '');
