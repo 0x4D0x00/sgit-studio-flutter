@@ -1718,41 +1718,59 @@ abstract class AppLocalizations {
   /// **'关闭搜索'**
   String get artifactsSearchClose;
 
-  /// No description provided for @artifactsRange.
+  /// No description provided for @artifactsTypeAll.
   ///
   /// In zh, this message translates to:
-  /// **'时间范围'**
-  String get artifactsRange;
+  /// **'全部类型'**
+  String get artifactsTypeAll;
 
-  /// No description provided for @artifactsRangeToday.
-  ///
-  /// In zh, this message translates to:
-  /// **'今日'**
-  String get artifactsRangeToday;
-
-  /// No description provided for @artifactsRangeWeek.
-  ///
-  /// In zh, this message translates to:
-  /// **'本周'**
-  String get artifactsRangeWeek;
-
-  /// No description provided for @artifactsRangeMonth.
-  ///
-  /// In zh, this message translates to:
-  /// **'本月'**
-  String get artifactsRangeMonth;
-
-  /// No description provided for @artifactsRangeYear.
-  ///
-  /// In zh, this message translates to:
-  /// **'本年'**
-  String get artifactsRangeYear;
-
-  /// No description provided for @artifactsRangeAll.
+  /// No description provided for @artifactsTabAll.
   ///
   /// In zh, this message translates to:
   /// **'全部'**
-  String get artifactsRangeAll;
+  String get artifactsTabAll;
+
+  /// No description provided for @artifactsTabYours.
+  ///
+  /// In zh, this message translates to:
+  /// **'你的'**
+  String get artifactsTabYours;
+
+  /// No description provided for @artifactsTabShared.
+  ///
+  /// In zh, this message translates to:
+  /// **'与你共享'**
+  String get artifactsTabShared;
+
+  /// No description provided for @artifactsNew.
+  ///
+  /// In zh, this message translates to:
+  /// **'新建产物'**
+  String get artifactsNew;
+
+  /// No description provided for @artifactsViewGrid.
+  ///
+  /// In zh, this message translates to:
+  /// **'网格视图'**
+  String get artifactsViewGrid;
+
+  /// No description provided for @artifactsViewList.
+  ///
+  /// In zh, this message translates to:
+  /// **'列表视图'**
+  String get artifactsViewList;
+
+  /// No description provided for @artifactsMoreActions.
+  ///
+  /// In zh, this message translates to:
+  /// **'更多操作'**
+  String get artifactsMoreActions;
+
+  /// No description provided for @artifactsCopyLink.
+  ///
+  /// In zh, this message translates to:
+  /// **'复制链接'**
+  String get artifactsCopyLink;
 
   /// 产物卡片上的最后编辑时间。when 已按当前语言格式化
   ///
@@ -1819,6 +1837,66 @@ abstract class AppLocalizations {
   /// In zh, this message translates to:
   /// **'搜索项目...'**
   String get projectsSearchHint;
+
+  /// No description provided for @projectsMoreActions.
+  ///
+  /// In zh, this message translates to:
+  /// **'更多操作'**
+  String get projectsMoreActions;
+
+  /// No description provided for @projectsPin.
+  ///
+  /// In zh, this message translates to:
+  /// **'置顶'**
+  String get projectsPin;
+
+  /// No description provided for @projectsEditDetails.
+  ///
+  /// In zh, this message translates to:
+  /// **'编辑细节'**
+  String get projectsEditDetails;
+
+  /// No description provided for @projectsEditDialogTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'编辑细节'**
+  String get projectsEditDialogTitle;
+
+  /// No description provided for @projectsEditDialogName.
+  ///
+  /// In zh, this message translates to:
+  /// **'名称'**
+  String get projectsEditDialogName;
+
+  /// No description provided for @projectsEditDialogDescription.
+  ///
+  /// In zh, this message translates to:
+  /// **'描述'**
+  String get projectsEditDialogDescription;
+
+  /// No description provided for @projectsUpdatedJustNow.
+  ///
+  /// In zh, this message translates to:
+  /// **'刚刚'**
+  String get projectsUpdatedJustNow;
+
+  /// No description provided for @projectsUpdatedMinutesAgo.
+  ///
+  /// In zh, this message translates to:
+  /// **'{n} 分钟前'**
+  String projectsUpdatedMinutesAgo(int n);
+
+  /// No description provided for @projectsUpdatedHoursAgo.
+  ///
+  /// In zh, this message translates to:
+  /// **'{n} 小时前'**
+  String projectsUpdatedHoursAgo(int n);
+
+  /// No description provided for @projectsUpdatedDaysAgo.
+  ///
+  /// In zh, this message translates to:
+  /// **'{n} 天前'**
+  String projectsUpdatedDaysAgo(int n);
 
   /// No description provided for @customizeTitle.
   ///

@@ -1,26 +1,25 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:intl/intl.dart';
+
 import 'package:sgit_studio_flutter/design/extensions/app_skin.dart';
 import 'package:sgit_studio_flutter/design/tokens/app_spacing.dart';
+import 'package:sgit_studio_flutter/features/projects/application/projects_controller.dart';
 import 'package:sgit_studio_flutter/features/projects/presentation/widgets/create_project_dialog.dart';
+import 'package:sgit_studio_flutter/features/projects/presentation/widgets/edit_project_dialog.dart';
 import 'package:sgit_studio_flutter/l10n/generated/app_localizations.dart';
+import 'package:sgit_studio_flutter/ui/components/confirm.dart';
+import 'package:sgit_studio_flutter/ui/components/menu/app_menu.dart';
 
 /// Projects 页面 - 显示项目列表和创建新项目功能
-class ProjectsPage extends StatefulWidget {
+class ProjectsPage extends ConsumerStatefulWidget {
   const ProjectsPage({super.key});
 
   @override
-  State<ProjectsPage> createState() => _ProjectsPageState();
+  ConsumerState<ProjectsPage> createState() => _ProjectsPageState();
 }
 
-class _ProjectsPageState extends State<ProjectsPage> {
-  // 临时数据
-  final List<ProjectItem> _projects = [
-    ProjectItem(
-      id: '1',
-      name: 'PotAGI',
-      updatedAt: DateTime(2025, 11, 4),
-    ),
-  ];
+class _ProjectsPageState extends ConsumerState<ProjectsPage> {
 
   bool _searching = false;
   final _searchController = TextEditingController();
@@ -33,9 +32,10 @@ class _ProjectsPageState extends State<ProjectsPage> {
   }
 
   List<ProjectItem> get _filteredProjects {
-    if (_query.isEmpty) return _projects;
+    final projects = ref.watch(projectsControllerProvider);
+    if (_query.isEmpty) return projects;
     final q = _query.toLowerCase();
-    return _projects
+    return projects
         .where((p) => p.name.toLowerCase().contains(q))
         .toList(growable: false);
   }
@@ -55,15 +55,46 @@ class _ProjectsPageState extends State<ProjectsPage> {
   Future<void> _showCreateProjectDialog() async {
     final draft = await showCreateProjectDialog(context);
     if (draft == null || draft.name.isEmpty) return;
-    setState(() {
-      _projects.add(
-        ProjectItem(
-          id: DateTime.now().microsecondsSinceEpoch.toString(),
-          name: draft.name,
-          updatedAt: DateTime.now(),
-        ),
-      );
-    });
+    ref.read(projectsControllerProvider.notifier).addProject(
+          draft.name,
+          draft.description,
+        );
+  }
+
+  Future<void> _showEditProjectDialog(ProjectItem project) async {
+    final edit = await showEditProjectDialog(
+      context,
+      name: project.name,
+      description: project.description,
+    );
+    if (edit == null || edit.name.isEmpty) return;
+    ref.read(projectsControllerProvider.notifier).updateProject(
+          project.id,
+          edit.name,
+          edit.description,
+        );
+  }
+
+  void _notWired(String what) {
+    final l10n = AppLocalizations.of(context);
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(l10n.commonNotWired(what)),
+        duration: const Duration(seconds: 1),
+      ),
+    );
+  }
+
+  Future<void> _deleteProject(ProjectItem project) async {
+    final l10n = AppLocalizations.of(context);
+    final ok = await confirmDanger(
+      context,
+      title: l10n.studioRemoveConfirm(project.name),
+      confirmText: l10n.commonDelete,
+    );
+    if (!ok) return;
+
+    ref.read(projectsControllerProvider.notifier).deleteProject(project.id);
   }
 
   @override
@@ -105,7 +136,7 @@ class _ProjectsPageState extends State<ProjectsPage> {
           Text(
             'Projects',
             style: TextStyle(
-              fontSize: 28,
+              fontSize: 18,
               fontWeight: FontWeight.w600,
               color: skin.text,
               letterSpacing: -0.5,
@@ -128,7 +159,7 @@ class _ProjectsPageState extends State<ProjectsPage> {
           if (!_searching)
             IconButton(
               icon: Icon(Icons.sync, color: skin.text),
-              onPressed: () {},
+              onPressed: () => _notWired(l10n.commonRefresh),
               tooltip: l10n.commonRefresh,
             ),
           const SizedBox(width: AppSpacing.xs),
@@ -195,70 +226,244 @@ class _ProjectsPageState extends State<ProjectsPage> {
   }
 
   Widget _buildProjectList(AppSkin skin) {
+    final l10n = AppLocalizations.of(context);
     final projects = _filteredProjects;
-    return ListView.builder(
-      padding: const EdgeInsets.all(AppSpacing.lg),
-      itemCount: projects.length,
-      itemBuilder: (context, index) {
-        return ProjectCard(project: projects[index]);
+
+    if (projects.isEmpty) {
+      return Padding(
+        padding: const EdgeInsets.all(AppSpacing.lg),
+        child: Text(
+          l10n.projectsEmpty,
+          style: TextStyle(fontSize: 14, color: skin.textTertiary),
+        ),
+      );
+    }
+
+    // 卡片高度：同一行内的所有卡片高度一致（由该行最高的卡片决定）；宽度足够时两列，否则单列。
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final twoColumns =
+            constraints.maxWidth >= _minCardWidth * 2 + AppSpacing.md;
+        final crossAxisCount = twoColumns ? 2 : 1;
+
+        // 将项目分组成行
+        final rows = <List<ProjectItem>>[];
+        for (var i = 0; i < projects.length; i += crossAxisCount) {
+          rows.add(
+            projects.sublist(
+              i,
+              (i + crossAxisCount).clamp(0, projects.length),
+            ),
+          );
+        }
+
+        return ListView.separated(
+          padding: const EdgeInsets.all(AppSpacing.lg),
+          itemCount: rows.length,
+          separatorBuilder: (_, _) => const SizedBox(height: AppSpacing.md),
+          itemBuilder: (context, rowIndex) {
+            final rowProjects = rows[rowIndex];
+            return IntrinsicHeight(
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  for (var i = 0; i < rowProjects.length; i++) ...[
+                    if (i > 0) const SizedBox(width: AppSpacing.md),
+                    Expanded(
+                      child: ProjectCard(
+                        project: rowProjects[i],
+                        onTap: () => _notWired(l10n.commonNotWired('点击跳转')),
+                        // TODO: 置顶功能暂未实现
+                        onPin: () => _notWired(l10n.projectsPin),
+                        onEditDetails: () =>
+                            _showEditProjectDialog(rowProjects[i]),
+                        onDelete: () => _deleteProject(rowProjects[i]),
+                      ),
+                    ),
+                  ],
+                  // 最后一行可能不足 crossAxisCount 个，填充空白以保持对齐
+                  if (rowProjects.length < crossAxisCount)
+                    ...List.generate(
+                      crossAxisCount - rowProjects.length,
+                      (_) => const Expanded(child: SizedBox()),
+                    ).expand((widget) => [
+                          const SizedBox(width: AppSpacing.md),
+                          widget,
+                        ]),
+                ],
+              ),
+            );
+          },
+        );
       },
     );
   }
+
+  /// 一张卡片最少需要这么宽才不显得拥挤，窄于此就退成单列。
+  static const double _minCardWidth = 280;
 }
 
-class ProjectCard extends StatelessWidget {
+class ProjectCard extends StatefulWidget {
   const ProjectCard({
     super.key,
     required this.project,
+    required this.onTap,
+    required this.onPin,
+    required this.onEditDetails,
+    required this.onDelete,
   });
 
   final ProjectItem project;
+  final VoidCallback onTap;
+  final VoidCallback onPin;
+  final VoidCallback onEditDetails;
+  final VoidCallback onDelete;
 
-  String _formatDate(DateTime date) {
-    const months = [
-      'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-      'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
-    ];
-    return '${months[date.month - 1]} ${date.day}, ${date.year}';
+  @override
+  State<ProjectCard> createState() => _ProjectCardState();
+}
+
+class _ProjectCardState extends State<ProjectCard> {
+  bool _hovering = false;
+  bool _menuOpen = false;
+
+  String _formatUpdatedAt(AppLocalizations l10n, DateTime date) {
+    final now = DateTime.now();
+    final diff = now.difference(date);
+    if (diff.inMinutes < 1) return l10n.projectsUpdatedJustNow;
+    if (diff.inMinutes < 60) {
+      return l10n.projectsUpdatedMinutesAgo(diff.inMinutes);
+    }
+    if (diff.inHours < 24) return l10n.projectsUpdatedHoursAgo(diff.inHours);
+    if (diff.inDays < 7) return l10n.projectsUpdatedDaysAgo(diff.inDays);
+
+    final locale = Localizations.localeOf(context).toString();
+    final sameYear = date.year == now.year;
+    return sameYear
+        ? DateFormat.MMMd(locale).format(date)
+        : DateFormat.yMMMd(locale).format(date);
   }
+
+  List<AppMenuEntry> _menuEntries(AppLocalizations l10n) => [
+        AppMenuAction(
+          icon: Icons.push_pin_outlined,
+          label: l10n.projectsPin,
+          onTap: widget.onPin,
+        ),
+        AppMenuAction(
+          icon: Icons.edit_outlined,
+          label: l10n.projectsEditDetails,
+          onTap: widget.onEditDetails,
+        ),
+        const AppMenuDivider(),
+        AppMenuAction(
+          icon: Icons.delete_outline,
+          label: l10n.commonDelete,
+          danger: true,
+          onTap: widget.onDelete,
+        ),
+      ];
 
   @override
   Widget build(BuildContext context) {
     final skin = AppSkin.of(context);
+    final l10n = AppLocalizations.of(context);
+    final project = widget.project;
+    final showMenuButton = _hovering || _menuOpen;
 
-    return Container(
-      width: double.infinity,
-      constraints: const BoxConstraints(maxWidth: 600),
-      margin: const EdgeInsets.only(bottom: AppSpacing.md),
-      padding: const EdgeInsets.all(AppSpacing.lg),
-      decoration: BoxDecoration(
-        color: skin.containerBg,
-        border: Border.all(
-          color: skin.border,
-          width: 1,
-        ),
+    return MouseRegion(
+      onEnter: (_) => setState(() => _hovering = true),
+      onExit: (_) => setState(() => _hovering = false),
+      child: InkWell(
+        onTap: widget.onTap,
         borderRadius: BorderRadius.circular(AppRadius.md),
+        child: Container(
+          width: double.infinity,
+          padding: const EdgeInsets.all(AppSpacing.md),
+          decoration: BoxDecoration(
+            color: skin.containerBg,
+            border: Border.all(color: skin.border, width: 1),
+            borderRadius: BorderRadius.circular(AppRadius.md),
+          ),
+          child: Stack(
+            children: [
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // 右侧留出「···」按钮的位置,避免长标题的省略号被按钮压住。
+                Padding(
+                  padding: const EdgeInsets.only(right: AppSpacing.xl),
+                  child: Text(
+                    project.name,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                      color: skin.text,
+                    ),
+                  ),
+                ),
+                if (project.description.isNotEmpty) ...[
+                  const SizedBox(height: AppSpacing.xxs),
+                  Text(
+                    project.description,
+                    maxLines: 3,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      fontSize: 13,
+                      color: skin.textSecondary,
+                      height: 1.4,
+                    ),
+                  ),
+                ],
+                // 即使没有描述,也留最小间距,避免卡片过于扁平
+                const SizedBox(height: AppSpacing.md),
+                const Spacer(),
+                Text(
+                  _formatUpdatedAt(l10n, project.updatedAt),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: skin.textSecondary,
+                  ),
+                ),
+              ],
+            ),
+            Positioned(
+              top: 0,
+              right: 0,
+              child: SizedBox(
+                width: 28,
+                height: 28,
+                child: showMenuButton
+                    ? AppMenuAnchor(
+                        trigger: AppMenuTrigger.tap,
+                        align: AppMenuAlign.underEnd,
+                        minWidth: 160,
+                        semanticLabel: l10n.projectsMoreActions,
+                        onOpenChanged: (open) =>
+                            setState(() => _menuOpen = open),
+                        entries: _menuEntries(l10n),
+                        child: Container(
+                          decoration: BoxDecoration(
+                            color: skin.textSecondary.withValues(alpha: 0.05),
+                            borderRadius: BorderRadius.circular(AppRadius.sm),
+                          ),
+                          child: Icon(
+                            Icons.more_horiz,
+                            size: 18,
+                            color: skin.textSecondary,
+                          ),
+                        ),
+                      )
+                    : null,
+              ),
+            ),
+          ],
+        ),
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            project.name,
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.w600,
-              color: skin.text,
-            ),
-          ),
-          const SizedBox(height: AppSpacing.xl),
-          Text(
-            _formatDate(project.updatedAt),
-            style: TextStyle(
-              fontSize: 14,
-              color: skin.textSecondary,
-            ),
-          ),
-        ],
       ),
     );
   }
@@ -267,11 +472,13 @@ class ProjectCard extends StatelessWidget {
 class ProjectItem {
   final String id;
   final String name;
+  final String description;
   final DateTime updatedAt;
 
   ProjectItem({
     required this.id,
     required this.name,
+    required this.description,
     required this.updatedAt,
   });
 }

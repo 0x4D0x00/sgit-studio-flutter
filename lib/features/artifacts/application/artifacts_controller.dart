@@ -3,55 +3,37 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:sgit_studio_flutter/domain/models/artifact/artifact.dart';
 
-/// 时间范围过滤器。
-enum ArtifactDateRange {
-  today,
-  week,
-  month,
-  year,
-  all;
-
-  /// 转为过滤起点。null = 不过滤（all）。
-  DateTime? get startDate {
-    final now = DateTime.now();
-    return switch (this) {
-      ArtifactDateRange.today => DateTime(now.year, now.month, now.day),
-      ArtifactDateRange.week => _weekStart(now),
-      ArtifactDateRange.month => DateTime(now.year, now.month, 1),
-      ArtifactDateRange.year => DateTime(now.year, 1, 1),
-      ArtifactDateRange.all => null,
-    };
-  }
-
-  static DateTime _weekStart(DateTime date) {
-    final weekday = date.weekday; // 1=Mon, 7=Sun
-    return DateTime(date.year, date.month, date.day - (weekday - 1));
-  }
-}
-
 /// 产物列表状态。
 @immutable
 class ArtifactsState {
   const ArtifactsState({
     this.items = const [],
-    this.range = ArtifactDateRange.all,
+    this.typeFilter,
     this.searchQuery = '',
     this.loading = false,
   });
 
   final List<Artifact> items;
-  final ArtifactDateRange range;
+
+  /// 类型过滤器（按 language 字段）。null = 全部类型。
+  final String? typeFilter;
+
   final String searchQuery;
   final bool loading;
+
+  /// 从当前 items 提取可用的类型列表（去重排序）。
+  List<String> get availableTypes {
+    final types = items.map((a) => a.language).toSet().toList()..sort();
+    return types;
+  }
 
   /// 应用过滤后的结果。
   List<Artifact> get filtered {
     var result = items;
 
-    // 时间过滤
-    final start = range.startDate;
-    if (start != null) {
-      result = result.where((a) => a.updatedAt.isAfter(start)).toList();
+    // 类型过滤（按 language）
+    if (typeFilter != null) {
+      result = result.where((a) => a.language == typeFilter).toList();
     }
 
     // 搜索过滤（标题）
@@ -65,13 +47,13 @@ class ArtifactsState {
 
   ArtifactsState copyWith({
     List<Artifact>? items,
-    ArtifactDateRange? range,
+    String? Function()? typeFilter,
     String? searchQuery,
     bool? loading,
   }) =>
       ArtifactsState(
         items: items ?? this.items,
-        range: range ?? this.range,
+        typeFilter: typeFilter != null ? typeFilter() : this.typeFilter,
         searchQuery: searchQuery ?? this.searchQuery,
         loading: loading ?? this.loading,
       );
@@ -85,11 +67,29 @@ class ArtifactsController extends Notifier<ArtifactsState> {
   @override
   ArtifactsState build() {
     // TODO: 接内核 /sgcode-artifact/list，初次进页面拉取。
-    return const ArtifactsState();
+    // 临时测试数据
+    return ArtifactsState(
+      items: [
+        Artifact(
+          id: '1',
+          title: 'PotAGI',
+          preview: '水循环的变化速度各不相同。报告对整个水循环过程进行了全面的评估，包括河流流量、地下水、蒸散发、陆地水储量、积雪和冰川，以及高影响事件。这些高影响事件通常指气象领域中的极端灾害。部分环节的变化加快了，比如降水、河流流量和土壤湿度，它们可能在数日或数周内随着天气情况而发生改变。相比之下，地下水、冰川和季节性积雪这类水体变化得比较缓慢，需要经过数个季节、数十年甚至更长的时间才能积累或消耗。',
+          language: 'dart',
+          updatedAt: DateTime(2025, 11, 4),
+        ),
+        Artifact(
+          id: '2',
+          title: 'UI',
+          preview: '',
+          language: 'javascript',
+          updatedAt: DateTime.now().subtract(const Duration(minutes: 3)),
+        ),
+      ],
+    );
   }
 
-  void setRange(ArtifactDateRange range) {
-    state = state.copyWith(range: range);
+  void setTypeFilter(String? language) {
+    state = state.copyWith(typeFilter: () => language);
   }
 
   void setSearchQuery(String query) {

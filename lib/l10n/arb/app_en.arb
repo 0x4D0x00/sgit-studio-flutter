@@ -422,12 +422,15 @@
   "artifactsSearch": "Search artifacts",
   "artifactsSearchHint": "Search by title",
   "artifactsSearchClose": "Close search",
-  "artifactsRange": "Time range",
-  "artifactsRangeToday": "Today",
-  "artifactsRangeWeek": "This week",
-  "artifactsRangeMonth": "This month",
-  "artifactsRangeYear": "This year",
-  "artifactsRangeAll": "All",
+  "artifactsTypeAll": "All types",
+  "artifactsTabAll": "All",
+  "artifactsTabYours": "Yours",
+  "artifactsTabShared": "Shared with you",
+  "artifactsNew": "New artifact",
+  "artifactsViewGrid": "Grid view",
+  "artifactsViewList": "List view",
+  "artifactsMoreActions": "More actions",
+  "artifactsCopyLink": "Copy link",
   "artifactsEdited": "Edited {when}",
   "@artifactsEdited": {
     "description": "Last edited timestamp on artifact card. when is already formatted for the current locale",
@@ -447,6 +450,37 @@
   "projectsCreateDialogDescription": "What are you trying to achieve?",
   "projectsCreateDialogDescriptionHint": "Describe your project, goals, subject, etc...",
   "projectsSearchHint": "Search projects...",
+  "projectsMoreActions": "More actions",
+  "projectsPin": "Pin",
+  "projectsEditDetails": "Edit details",
+  "projectsEditDialogTitle": "Edit details",
+  "projectsEditDialogName": "Name",
+  "projectsEditDialogDescription": "Description",
+  "projectsUpdatedJustNow": "Just now",
+  "projectsUpdatedMinutesAgo": "{n} minutes ago",
+  "@projectsUpdatedMinutesAgo": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "projectsUpdatedHoursAgo": "{n} hours ago",
+  "@projectsUpdatedHoursAgo": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "projectsUpdatedDaysAgo": "{n} days ago",
+  "@projectsUpdatedDaysAgo": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
   "customizeTitle": "Customize",
   "customizeTabTheme": "Theme",
   "customizeTabLayout": "Layout",

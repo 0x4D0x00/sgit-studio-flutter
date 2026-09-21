@@ -881,22 +881,31 @@ class AppLocalizationsEn extends AppLocalizations {
   String get artifactsSearchClose => 'Close search';
 
   @override
-  String get artifactsRange => 'Time range';
+  String get artifactsTypeAll => 'All types';
 
   @override
-  String get artifactsRangeToday => 'Today';
+  String get artifactsTabAll => 'All';
 
   @override
-  String get artifactsRangeWeek => 'This week';
+  String get artifactsTabYours => 'Yours';
 
   @override
-  String get artifactsRangeMonth => 'This month';
+  String get artifactsTabShared => 'Shared with you';
 
   @override
-  String get artifactsRangeYear => 'This year';
+  String get artifactsNew => 'New artifact';
 
   @override
-  String get artifactsRangeAll => 'All';
+  String get artifactsViewGrid => 'Grid view';
+
+  @override
+  String get artifactsViewList => 'List view';
+
+  @override
+  String get artifactsMoreActions => 'More actions';
+
+  @override
+  String get artifactsCopyLink => 'Copy link';
 
   @override
   String artifactsEdited(String when) {
@@ -934,6 +943,42 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get projectsSearchHint => 'Search projects...';
+
+  @override
+  String get projectsMoreActions => 'More actions';
+
+  @override
+  String get projectsPin => 'Pin';
+
+  @override
+  String get projectsEditDetails => 'Edit details';
+
+  @override
+  String get projectsEditDialogTitle => 'Edit details';
+
+  @override
+  String get projectsEditDialogName => 'Name';
+
+  @override
+  String get projectsEditDialogDescription => 'Description';
+
+  @override
+  String get projectsUpdatedJustNow => 'Just now';
+
+  @override
+  String projectsUpdatedMinutesAgo(int n) {
+    return '$n minutes ago';
+  }
+
+  @override
+  String projectsUpdatedHoursAgo(int n) {
+    return '$n hours ago';
+  }
+
+  @override
+  String projectsUpdatedDaysAgo(int n) {
+    return '$n days ago';
+  }
 
   @override
   String get customizeTitle => 'Customize';

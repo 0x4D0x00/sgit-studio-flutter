@@ -861,22 +861,31 @@ class AppLocalizationsZh extends AppLocalizations {
   String get artifactsSearchClose => '关闭搜索';
 
   @override
-  String get artifactsRange => '时间范围';
+  String get artifactsTypeAll => '全部类型';
 
   @override
-  String get artifactsRangeToday => '今日';
+  String get artifactsTabAll => '全部';
 
   @override
-  String get artifactsRangeWeek => '本周';
+  String get artifactsTabYours => '你的';
 
   @override
-  String get artifactsRangeMonth => '本月';
+  String get artifactsTabShared => '与你共享';
 
   @override
-  String get artifactsRangeYear => '本年';
+  String get artifactsNew => '新建产物';
 
   @override
-  String get artifactsRangeAll => '全部';
+  String get artifactsViewGrid => '网格视图';
+
+  @override
+  String get artifactsViewList => '列表视图';
+
+  @override
+  String get artifactsMoreActions => '更多操作';
+
+  @override
+  String get artifactsCopyLink => '复制链接';
 
   @override
   String artifactsEdited(String when) {
@@ -912,6 +921,42 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get projectsSearchHint => '搜索项目...';
+
+  @override
+  String get projectsMoreActions => '更多操作';
+
+  @override
+  String get projectsPin => '置顶';
+
+  @override
+  String get projectsEditDetails => '编辑细节';
+
+  @override
+  String get projectsEditDialogTitle => '编辑细节';
+
+  @override
+  String get projectsEditDialogName => '名称';
+
+  @override
+  String get projectsEditDialogDescription => '描述';
+
+  @override
+  String get projectsUpdatedJustNow => '刚刚';
+
+  @override
+  String projectsUpdatedMinutesAgo(int n) {
+    return '$n 分钟前';
+  }
+
+  @override
+  String projectsUpdatedHoursAgo(int n) {
+    return '$n 小时前';
+  }
+
+  @override
+  String projectsUpdatedDaysAgo(int n) {
+    return '$n 天前';
+  }
 
   @override
   String get customizeTitle => 'Customize';
