@@ -45,12 +45,21 @@ class ChatController extends Notifier<ChatSessionState> {
   /// 当前正在流式追加的文本条目（`itemStarted` 开、`itemCompleted` 关）。
   TextItem? _streaming;
 
-  /// 当前挂着的 thread id，与传给 `_client.setThread` 的值同步。
+  /// 会话代次。**每次换会话（打开历史 / 新对话）都 +1。**
   ///
-  /// 需要它是因为 [KernelClient] 只有 setter 没有 getter，而后台刷新
-  /// （[_refreshThreadFromServer]）回来时必须能判断"用户是不是已经切走了" ——
-  /// 往一个已经换掉的会话里灌内容，比不刷新糟得多。
-  String? _threadId;
+  /// ⚠️ 用来丢弃**在途的旧载入**。点开历史是异步的，用户完全可能在它回来
+  /// 之前就点了另一条、或者开了新对话：
+  ///
+  /// ```text
+  /// 点 A（慢）─────────────────────┐
+  ///        点 B（快）→ 显示 B      │
+  ///                    A 回来 ──────┘→ 把 B 的内容换成 A
+  /// ```
+  ///
+  /// 表现是"点了 B，屏幕上却是 A"，而列表里高亮的是 B —— 没有任何报错。
+  /// 光比 [_threadId] 不够：那只能挡住"切到别的会话"，挡不住
+  /// "同一条会话被连点两次"的乱序，也挡不住 newChat 之后旧内容灌回来。
+  int _openGeneration = 0;
   final Map<int, ChatItem> _byId = {};
 
   /// 两次建连之间的最小间隔。纯粹的防呆闸门（见 [connect] 注释）。
@@ -245,7 +254,9 @@ class ChatController extends Notifier<ChatSessionState> {
     _items.clear();
     _byId.clear();
     _streaming = null;
-    _threadId = null;
+    // 开新对话同样是"换会话"：在途的历史载入回来时必须被丢掉，
+    // 否则旧会话的内容会灌进这个空白的新对话里。
+    _openGeneration++;
     _client.setThread(null);
     itemsRevision.value++;
     // ⚠️ **必须保留 capabilities**。能力属于**连接**，不属于会话 —— 换个话题
@@ -292,13 +303,22 @@ class ChatController extends Notifier<ChatSessionState> {
   /// ```
   Future<void> openThreadById(String threadId) async {
     beginOpenThread();
+    final gen = _openGeneration; // beginOpenThread 刚 +1，记下这次的代次
     try {
       final replay = await ref.read(threadRepositoryProvider).open(threadId);
+      // 取数期间用户换了会话 → 这份内容已经过时，丢掉（见 _openGeneration）。
+      if (_openGeneration != gen) {
+        debugPrint('[threads] $threadId 载入期间用户已换会话，丢弃这份内容');
+        return;
+      }
       openThread(threadId, replay.events);
-      unawaited(_refreshThreadFromServer(threadId));
+      unawaited(_refreshThreadFromServer(threadId, gen));
     } catch (e) {
       // 打不开必须说 —— 静默停在空会话上，用户会以为历史丢了。
       debugPrint('[threads] 打开会话失败 $threadId：$e');
+      // 但**过时的失败不该报**：用户早换到别的会话了，弹一条"打不开 A"
+      // 只会让人莫名其妙，还会把新会话的状态搅乱。
+      if (_openGeneration != gen) return;
       state = state.copyWith(
         openingThread: false,
         fault: ThreadOpenFailed(
@@ -325,7 +345,7 @@ class ChatController extends Notifier<ChatSessionState> {
   ///
   /// 仓储层已经把失败咽成 `false`（见 `refreshThread` 的注释）。用户手上那份
   /// 是完整的本地历史，没拉到更新不值得提示，更不能把它换成错误。
-  Future<void> _refreshThreadFromServer(String threadId) async {
+  Future<void> _refreshThreadFromServer(String threadId, int gen) async {
     // ⚠️ **只在本地引擎下做**。云端模式的会话本来就在服务器上，
     // `thread/resume` 读到的**就是**最新那份 —— 没有"本地副本落后"这回事。
     //
@@ -341,14 +361,14 @@ class ChatController extends Notifier<ChatSessionState> {
     if (!changed) return;
     // 用户可能已经切走了（开了新对话、点了另一条）。往一个已经换掉的会话里
     // 灌内容比不刷新糟得多。
-    if (_threadId != threadId) {
+    if (_openGeneration != gen) {
       debugPrint('[threads] $threadId 有更新，但用户已切走，不重装');
       return;
     }
     debugPrint('[threads] $threadId 从服务器拿到更新，重新装配');
     try {
       final replay = await ref.read(threadRepositoryProvider).open(threadId);
-      if (_threadId != threadId) return; // 再查一次：取数期间也可能切走
+      if (_openGeneration != gen) return; // 再查一次：取数期间也可能切走
       openThread(threadId, replay.events);
     } catch (e) {
       // 已经显示着本地那份，重装失败就维持现状。
@@ -363,6 +383,7 @@ class ChatController extends Notifier<ChatSessionState> {
   /// 工作台已经是"正在载入"的干净状态，不会闪一下上一条会话的残留内容。
   /// 换句话说调用方**不需要**自己先调一次。
   void beginOpenThread() {
+    _openGeneration++;
     if (state.busy) interrupt();
     for (final i in _items) {
       i.dispose();
@@ -406,7 +427,6 @@ class ChatController extends Notifier<ChatSessionState> {
 
     // 让后续发言接在这条 thread 上。Rust 侧 `thread/resume` 已经把它装进了
     // 活动的 thread_manager，所以 turn/start 打得中。
-    _threadId = threadId;
     _client.setThread(threadId);
   }
 

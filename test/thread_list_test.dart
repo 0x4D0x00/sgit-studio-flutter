@@ -55,7 +55,12 @@ class _FakeThreadRepository implements ThreadRepository {
     return ThreadReplay(
       summary: ThreadSummary(
           id: threadId, title: 't', preview: '', createdAt: null, updatedAt: null),
-      events: const [],
+      // ⚠️ 必须回**真事件**。回 `const []` 的话"内容有没有被灌进来"根本
+      // 断言不了 —— 灌与不灌 `items` 都是空，守卫失效时测试照样绿。
+      // 文本带上 threadId，这样能分辨灌进来的是哪一条的内容。
+      events: [
+        {'t': 'userMessage', 'text': '来自 $threadId 的消息'},
+      ],
     );
   }
 
@@ -412,6 +417,35 @@ void main() {
 
       expect(sync.refreshed, isEmpty, reason: '云端模式压根不该问本地同步');
       expect(repo.opens, 1);
+    });
+
+    // ⚠️ **在途的旧载入必须被丢掉。**
+    //
+    // ```text
+    // 点 A（慢）─────────────────────┐
+    //        点 B（快）→ 显示 B      │
+    //                    A 回来 ──────┘→ 把 B 的内容换成 A
+    // ```
+    //
+    // 表现是"点了 B，屏幕上却是 A"，列表里高亮的还是 B —— 没有任何报错。
+    test('载入期间换了会话 → 旧的那份不灌进来', () async {
+      final ctrl = container.read(chatControllerProvider.notifier);
+      final gate = Completer<void>();
+      repo.openGate = gate;
+
+      final slow = ctrl.openThreadById('A'); // 挂住
+
+      // 用户等不及，开了新对话。
+      repo.openGate = null;
+      ctrl.newChat();
+
+      gate.complete(); // A 这时才回来
+      await slow;
+
+      expect(container.read(chatControllerProvider).openingThread, isFalse);
+      expect(ctrl.items, isEmpty, reason: 'A 的内容不该灌进新对话');
+      expect(ctrl.items.whereType<TextItem>().map((e) => e.text),
+          isNot(contains(contains('A'))));
     });
 
     test('刷新回来时用户已切走 → 不灌内容', () async {
