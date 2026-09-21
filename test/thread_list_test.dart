@@ -8,7 +8,9 @@ import 'package:sgit_studio_flutter/domain/models/chat/chat_item.dart';
 import 'package:sgit_studio_flutter/data/repositories/session_sync_repository.dart';
 import 'package:sgit_studio_flutter/data/repositories/thread_repository.dart';
 import 'package:sgit_studio_flutter/data/transport/kernel/kernel_client_mock.dart';
+import 'package:sgit_studio_flutter/domain/models/chat/sgcode_settings.dart';
 import 'package:sgit_studio_flutter/domain/models/chat/thread_summary.dart';
+import 'package:sgit_studio_flutter/features/chat/application/composer_settings_controller.dart';
 import 'package:sgit_studio_flutter/features/chat/application/thread_list_controller.dart';
 import 'package:sgit_studio_flutter/features/shell/application/history_sort_group_controller.dart';
 import 'package:sgit_studio_flutter/services/chat/chat_controller.dart';
@@ -396,6 +398,22 @@ void main() {
     // ⚠️ 刷新是后台跑的，用户完全可能在它回来之前就点了另一条会话或开了新对话。
     // 往一个**已经换掉**的会话里灌内容，比不刷新糟得多：屏幕上会突然冒出
     // 上一条会话的消息，而用户根本没点它。
+    // ⚠️ 云端模式下会话**就在服务器上**，thread/resume 读到的就是最新那份。
+    // 不判断的话这一步会把服务器文件下到本机（白做），再因为"本地确实变长了"
+    // 报 changed=true 触发重装 —— 云端点开每一条都白闪一下。
+    test('云端模式不做本地刷新', () async {
+      sync.changed = true;
+      container
+          .read(composerSettingsProvider.notifier)
+          .setEngineMode(EngineMode.remote);
+
+      await container.read(chatControllerProvider.notifier).openThreadById('t1');
+      await Future<void>.delayed(Duration.zero);
+
+      expect(sync.refreshed, isEmpty, reason: '云端模式压根不该问本地同步');
+      expect(repo.opens, 1);
+    });
+
     test('刷新回来时用户已切走 → 不灌内容', () async {
       sync.changed = true;
       final ctrl = container.read(chatControllerProvider.notifier);

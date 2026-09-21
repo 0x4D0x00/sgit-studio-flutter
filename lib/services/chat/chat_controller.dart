@@ -12,6 +12,7 @@ import 'package:sgit_studio_flutter/data/mappers/view_event_mapper.dart';
 import 'package:sgit_studio_flutter/data/transport/kernel/kernel_client_factory.dart';
 import 'package:sgit_studio_flutter/data/transport/kernel/kernel_frame.dart';
 import 'package:sgit_studio_flutter/domain/models/chat/chat_item.dart';
+import 'package:sgit_studio_flutter/domain/models/chat/sgcode_settings.dart';
 import 'package:sgit_studio_flutter/domain/models/chat/chat_session.dart';
 import 'package:sgit_studio_flutter/features/chat/application/composer_settings_controller.dart';
 import 'package:sgit_studio_flutter/features/chat/application/session_sync_controller.dart';
@@ -325,6 +326,16 @@ class ChatController extends Notifier<ChatSessionState> {
   /// 仓储层已经把失败咽成 `false`（见 `refreshThread` 的注释）。用户手上那份
   /// 是完整的本地历史，没拉到更新不值得提示，更不能把它换成错误。
   Future<void> _refreshThreadFromServer(String threadId) async {
+    // ⚠️ **只在本地引擎下做**。云端模式的会话本来就在服务器上，
+    // `thread/resume` 读到的**就是**最新那份 —— 没有"本地副本落后"这回事。
+    //
+    // 不加这个判断的话，云端模式下这一步会把服务器文件下载到本机（纯属白做），
+    // 然后因为"本地确实变长了"报 changed=true，触发一次毫无意义的重装 ——
+    // 用户在云端点开每一条会话都会白闪一下。
+    if (ref.read(composerSettingsProvider).settings.engineMode !=
+        EngineMode.local) {
+      return;
+    }
     final changed =
         await ref.read(sessionSyncRepositoryProvider).refreshThread(threadId);
     if (!changed) return;
