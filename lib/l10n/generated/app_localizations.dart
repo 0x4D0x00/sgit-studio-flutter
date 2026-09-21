@@ -1736,11 +1736,11 @@ abstract class AppLocalizations {
   /// **'更多操作'**
   String get artifactsMoreActions;
 
-  /// No description provided for @artifactsRename.
+  /// No description provided for @artifactsCopyLink.
   ///
   /// In zh, this message translates to:
-  /// **'重命名'**
-  String get artifactsRename;
+  /// **'复制链接'**
+  String get artifactsCopyLink;
 
   /// 产物卡片上的最后编辑时间。when 已按当前语言格式化
   ///

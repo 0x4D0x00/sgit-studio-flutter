@@ -425,7 +425,7 @@
   "artifactsViewGrid": "网格视图",
   "artifactsViewList": "列表视图",
   "artifactsMoreActions": "更多操作",
-  "artifactsRename": "重命名",
+  "artifactsCopyLink": "复制链接",
   "artifactsEdited": "编辑于 {when}",
   "@artifactsEdited": {
     "description": "产物卡片上的最后编辑时间。when 已按当前语言格式化",

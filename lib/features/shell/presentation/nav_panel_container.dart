@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import 'package:sgit_studio_flutter/features/auth/application/auth_controller.dart';
 import 'package:sgit_studio_flutter/domain/models/studio/resource_item.dart';
+import 'package:sgit_studio_flutter/features/projects/application/projects_controller.dart';
 import 'package:sgit_studio_flutter/features/projects/presentation/widgets/create_project_dialog.dart';
 import 'package:sgit_studio_flutter/features/studio/application/resource_list_controller.dart';
 import 'package:sgit_studio_flutter/features/studio/studio_feature.dart';
@@ -103,7 +104,7 @@ class NavPanelContainer
           id: idProjects,
           icon: Icons.folder_outlined,
           label: l10n.navProjects,
-          onTrailingAdd: () => _onCreateProject(context, l10n),
+          onTrailingAdd: () => _onCreateProject(context, ref, l10n),
         ),
         NavEntry(
           id: idCustomize,
@@ -137,17 +138,17 @@ class NavPanelContainer
         ),
       ],
       sections: [
-        // 置顶区：位于导航行下方、历史对话上方。空着也要出现（靠 emptyHint 撑住），
-        // 否则用户不知道有「置顶」这回事。
-        NavSection(
-          title: '置顶',
-          // action: NavSectionAction.add,
-          emptyHint: 'Pin chats to keep them here',
-          emptyHintIcon: Icons.push_pin_outlined,
-          entries: const [
-            // TODO: 接置顶对话列表（内核还没放开 thread/pin）。
-          ],
-        ),
+        // // 置顶区：位于导航行下方、历史对话上方。空着也要出现（靠 emptyHint 撑住），
+        // // 否则用户不知道有「置顶」这回事。
+        // NavSection(
+        //   title: '置顶',
+        //   // action: NavSectionAction.add,
+        //   emptyHint: 'Pin chats to keep them here',
+        //   emptyHintIcon: Icons.push_pin_outlined,
+        //   entries: const [
+        //     // TODO: 接置顶对话列表（内核还没放开 thread/pin）。
+        //   ],
+        // ),
         // 历史对话：标题带收起箭头，右侧是菜单/排序项。
         ..._buildHistorySections(
           l10n,
@@ -301,11 +302,15 @@ class NavPanelContainer
   /// Projects 行的 + 按钮：打开创建项目对话框。
   Future<void> _onCreateProject(
     BuildContext context,
+    WidgetRef ref,
     AppLocalizations l10n,
   ) async {
     final draft = await showCreateProjectDialog(context);
     if (draft != null && draft.name.isNotEmpty) {
-      // TODO: 实际创建项目的逻辑
+      ref.read(projectsControllerProvider.notifier).addProject(
+            draft.name,
+            draft.description,
+          );
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(

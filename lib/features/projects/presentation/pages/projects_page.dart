@@ -1,37 +1,25 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
 import 'package:sgit_studio_flutter/design/extensions/app_skin.dart';
 import 'package:sgit_studio_flutter/design/tokens/app_spacing.dart';
+import 'package:sgit_studio_flutter/features/projects/application/projects_controller.dart';
 import 'package:sgit_studio_flutter/features/projects/presentation/widgets/create_project_dialog.dart';
 import 'package:sgit_studio_flutter/features/projects/presentation/widgets/edit_project_dialog.dart';
 import 'package:sgit_studio_flutter/l10n/generated/app_localizations.dart';
+import 'package:sgit_studio_flutter/ui/components/confirm.dart';
 import 'package:sgit_studio_flutter/ui/components/menu/app_menu.dart';
 
 /// Projects 页面 - 显示项目列表和创建新项目功能
-class ProjectsPage extends StatefulWidget {
+class ProjectsPage extends ConsumerStatefulWidget {
   const ProjectsPage({super.key});
 
   @override
-  State<ProjectsPage> createState() => _ProjectsPageState();
+  ConsumerState<ProjectsPage> createState() => _ProjectsPageState();
 }
 
-class _ProjectsPageState extends State<ProjectsPage> {
-  // 临时数据
-  final List<ProjectItem> _projects = [
-    ProjectItem(
-      id: '1',
-      name: 'PotAGI',
-      description: '水循环的变化速度各不相同。报告对整个水循环过程进行了全面的评估，包括河流流量、地下水、蒸散发、陆地水储量、积雪和冰川，以及高影响事件。这些高影响事件通常指气象领域中的极端灾害。部分环节的变化加快了，比如降水、河流流量和土壤湿度，它们可能在数日或数周内随着天气情况而发生改变。相比之下，地下水、冰川和季节性积雪这类水体变化得比较缓慢，需要经过数个季节、数十年甚至更长的时间才能积累或消耗。',
-      updatedAt: DateTime(2025, 11, 4),
-    ),
-    ProjectItem(
-      id: '2',
-      name: 'UI',
-      description: '',
-      updatedAt: DateTime.now().subtract(const Duration(minutes: 3)),
-    ),
-  ];
+class _ProjectsPageState extends ConsumerState<ProjectsPage> {
 
   bool _searching = false;
   final _searchController = TextEditingController();
@@ -44,9 +32,10 @@ class _ProjectsPageState extends State<ProjectsPage> {
   }
 
   List<ProjectItem> get _filteredProjects {
-    if (_query.isEmpty) return _projects;
+    final projects = ref.watch(projectsControllerProvider);
+    if (_query.isEmpty) return projects;
     final q = _query.toLowerCase();
-    return _projects
+    return projects
         .where((p) => p.name.toLowerCase().contains(q))
         .toList(growable: false);
   }
@@ -66,16 +55,10 @@ class _ProjectsPageState extends State<ProjectsPage> {
   Future<void> _showCreateProjectDialog() async {
     final draft = await showCreateProjectDialog(context);
     if (draft == null || draft.name.isEmpty) return;
-    setState(() {
-      _projects.add(
-        ProjectItem(
-          id: DateTime.now().microsecondsSinceEpoch.toString(),
-          name: draft.name,
-          description: draft.description,
-          updatedAt: DateTime.now(),
-        ),
-      );
-    });
+    ref.read(projectsControllerProvider.notifier).addProject(
+          draft.name,
+          draft.description,
+        );
   }
 
   Future<void> _showEditProjectDialog(ProjectItem project) async {
@@ -85,16 +68,11 @@ class _ProjectsPageState extends State<ProjectsPage> {
       description: project.description,
     );
     if (edit == null || edit.name.isEmpty) return;
-    setState(() {
-      final index = _projects.indexWhere((p) => p.id == project.id);
-      if (index == -1) return;
-      _projects[index] = ProjectItem(
-        id: project.id,
-        name: edit.name,
-        description: edit.description,
-        updatedAt: DateTime.now(),
-      );
-    });
+    ref.read(projectsControllerProvider.notifier).updateProject(
+          project.id,
+          edit.name,
+          edit.description,
+        );
   }
 
   void _notWired(String what) {
@@ -105,6 +83,18 @@ class _ProjectsPageState extends State<ProjectsPage> {
         duration: const Duration(seconds: 1),
       ),
     );
+  }
+
+  Future<void> _deleteProject(ProjectItem project) async {
+    final l10n = AppLocalizations.of(context);
+    final ok = await confirmDanger(
+      context,
+      title: l10n.studioRemoveConfirm(project.name),
+      confirmText: l10n.commonDelete,
+    );
+    if (!ok) return;
+
+    ref.read(projectsControllerProvider.notifier).deleteProject(project.id);
   }
 
   @override
@@ -283,11 +273,11 @@ class _ProjectsPageState extends State<ProjectsPage> {
                       child: ProjectCard(
                         project: rowProjects[i],
                         onTap: () => _notWired(l10n.commonNotWired('点击跳转')),
-                        // TODO: 置顶，删除功能暂未实现
+                        // TODO: 置顶功能暂未实现
                         onPin: () => _notWired(l10n.projectsPin),
                         onEditDetails: () =>
                             _showEditProjectDialog(rowProjects[i]),
-                        onDelete: () => _notWired(l10n.commonDelete),
+                        onDelete: () => _deleteProject(rowProjects[i]),
                       ),
                     ),
                   ],
@@ -442,7 +432,7 @@ class _ProjectCardState extends State<ProjectCard> {
               ],
             ),
             Positioned(
-              top: -10,
+              top: 0,
               right: 0,
               child: SizedBox(
                 width: 28,
@@ -456,11 +446,17 @@ class _ProjectCardState extends State<ProjectCard> {
                         onOpenChanged: (open) =>
                             setState(() => _menuOpen = open),
                         entries: _menuEntries(l10n),
-                        child: Icon(
+                        child: Container(
+                          decoration: BoxDecoration(
+                            color: skin.textSecondary.withValues(alpha: 0.05),
+                            borderRadius: BorderRadius.circular(AppRadius.sm),
+                          ),
+                          child: Icon(
                             Icons.more_horiz,
                             size: 18,
                             color: skin.textSecondary,
                           ),
+                        ),
                       )
                     : null,
               ),

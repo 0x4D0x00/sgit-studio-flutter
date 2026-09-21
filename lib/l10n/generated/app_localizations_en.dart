@@ -888,7 +888,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get artifactsMoreActions => 'More actions';
 
   @override
-  String get artifactsRename => 'Rename';
+  String get artifactsCopyLink => 'Copy link';
 
   @override
   String artifactsEdited(String when) {

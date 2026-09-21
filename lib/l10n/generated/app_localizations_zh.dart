@@ -868,7 +868,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get artifactsMoreActions => '更多操作';
 
   @override
-  String get artifactsRename => '重命名';
+  String get artifactsCopyLink => '复制链接';
 
   @override
   String artifactsEdited(String when) {

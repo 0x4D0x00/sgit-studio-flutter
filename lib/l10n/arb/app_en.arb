@@ -422,7 +422,7 @@
   "artifactsViewGrid": "Grid view",
   "artifactsViewList": "List view",
   "artifactsMoreActions": "More actions",
-  "artifactsRename": "Rename",
+  "artifactsCopyLink": "Copy link",
   "artifactsEdited": "Edited {when}",
   "@artifactsEdited": {
     "description": "Last edited timestamp on artifact card. when is already formatted for the current locale",
