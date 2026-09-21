@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:sgit_studio_flutter/data/repositories/thread_repository.dart';
 import 'package:sgit_studio_flutter/domain/models/chat/thread_summary.dart';
 import 'package:sgit_studio_flutter/features/chat/application/composer_settings_controller.dart';
+import 'package:sgit_studio_flutter/services/chat/chat_controller.dart';
 
 /// 会话仓储。**跟着引擎模式重建** —— 切了云端还挂着本地那份列表就错了。
 ///
@@ -71,6 +72,7 @@ class ThreadListController extends Notifier<ThreadListState> {
   @override
   ThreadListState build() {
     ref.onDispose(() => _disposed = true);
+
     // 引擎模式变了要重新拉：两个引擎的会话是两份不相干的历史。
     ref.listen(
       composerSettingsProvider.select((s) => s.settings.engineMode),
@@ -78,7 +80,31 @@ class ThreadListController extends Notifier<ThreadListState> {
         if (prev != next) unawaited(reload());
       },
     );
-    Future.microtask(reload);
+
+    // ⚠️ **等内核连上再拉**，别在 build 里直接 `Future.microtask(reload)`。
+    //
+    // 会话列表要经内核（本地走进程内 app-server，云端走 gateway），而建连是
+    // `workspace_page` 触发的、异步的 —— 两者没有先后关系，列表必然抢跑：
+    //
+    // ```text
+    // build() → reload() → 「尚未建立内核连接」→ 列表空
+    // 稍后     → 建连成功 → 但没人再拉一次 → 列表一直空
+    // ```
+    //
+    // 实测表现正是「**每次重启后要手动切一下引擎才看到历史**」—— 因为切引擎
+    // 触发了上面那个 listen，那才是唯一的第二次 reload。
+    //
+    // 现在改成监听 capabilities：它从 null 变成非 null 就是"连上了"，那一刻拉。
+    // 同一次连接不会重复触发（只在 null→非null 的边沿动），所以不会变成风暴。
+    ref.listen(
+      chatControllerProvider.select((s) => s.capabilities != null),
+      (was, now) {
+        if (now == true && was != true) unawaited(reload());
+      },
+      // 已经连上时（provider 晚于连接创建，比如从别的页回到工作台）立刻拉一次，
+      // 否则要等下一次断连重连才有边沿。
+      fireImmediately: true,
+    );
     return const ThreadListState();
   }
 
