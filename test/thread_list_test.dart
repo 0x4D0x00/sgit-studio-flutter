@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:sgit_studio_flutter/domain/models/chat/chat_item.dart';
 
+import 'package:sgit_studio_flutter/data/repositories/session_sync_repository.dart';
 import 'package:sgit_studio_flutter/data/repositories/thread_repository.dart';
 import 'package:sgit_studio_flutter/data/transport/kernel/kernel_client_mock.dart';
 import 'package:sgit_studio_flutter/domain/models/chat/thread_summary.dart';
@@ -41,8 +42,12 @@ class _FakeThreadRepository implements ThreadRepository {
   /// 让 `open` 抛错（与 [throws] 分开：那个是 list/rename/delete 的）。
   Object? openThrows;
 
+  /// `open` 被调了几次。"服务器有更新才重装"就是靠这个数断言的。
+  int opens = 0;
+
   @override
   Future<ThreadReplay> open(String threadId) async {
+    opens++;
     if (openGate != null) await openGate!.future;
     if (openThrows != null) throw openThrows!;
     return ThreadReplay(
@@ -62,6 +67,25 @@ class _FakeThreadRepository implements ThreadRepository {
   Future<void> delete(String threadId) async {
     if (throws != null) throw throws!;
     deleted.add(threadId);
+  }
+}
+
+/// 只实现"单条刷新"，其余是这组用不到的门面。
+class _FakeSyncRepository implements SessionSyncRepository {
+  /// `refreshThread` 要回报"有没有拉到新内容"。
+  bool changed = false;
+  final refreshed = <String>[];
+
+  @override
+  bool get enabled => true;
+
+  @override
+  Future<SessionSyncResult> sync() async => const SessionSyncResult(ok: true);
+
+  @override
+  Future<bool> refreshThread(String threadId) async {
+    refreshed.add(threadId);
+    return changed;
   }
 }
 
@@ -247,13 +271,16 @@ void main() {
   /// 看不出是回归**（只是"又变慢了"）。
   group('打开历史会话', () {
     late _FakeThreadRepository repo;
+    late _FakeSyncRepository sync;
     late ProviderContainer container;
 
     setUp(() {
       repo = _FakeThreadRepository();
+      sync = _FakeSyncRepository();
       container = ProviderContainer(
         overrides: [
           threadRepositoryProvider.overrideWithValue(repo),
+          sessionSyncRepositoryProvider.overrideWithValue(sync),
           chatControllerProvider
               .overrideWith(() => ChatController(client: MockKernelClient())),
         ],
@@ -319,6 +346,66 @@ void main() {
       expect(s.openingThread, isFalse, reason: '失败也要退出载入态，否则永远转圈');
       expect(s.fault, isA<ThreadOpenFailed>());
       expect((s.fault! as ThreadOpenFailed).message, contains('会话不存在'));
+    });
+  });
+
+  /// 「先从本地加载，然后线上拉取，更新本地数据，页面刷新」的后半截。
+  ///
+  /// 这条会话可能是在另一台设备上聊的，本机那份 rollout 停在旧偏移。但先等
+  /// 服务器再显示就退回了"点开要等很久"，所以顺序是本地秒回 → 后台问 →
+  /// 真有新内容才重装。
+  group('打开后从服务器刷新', () {
+    late _FakeThreadRepository repo;
+    late _FakeSyncRepository sync;
+    late ProviderContainer container;
+
+    setUp(() {
+      repo = _FakeThreadRepository();
+      sync = _FakeSyncRepository();
+      container = ProviderContainer(
+        overrides: [
+          threadRepositoryProvider.overrideWithValue(repo),
+          sessionSyncRepositoryProvider.overrideWithValue(sync),
+          chatControllerProvider
+              .overrideWith(() => ChatController(client: MockKernelClient())),
+        ],
+      );
+      addTearDown(container.dispose);
+    });
+
+    // ⚠️ **无更新时绝不能重装**。重装会重建所有气泡、把滚动位置顶回顶部。
+    // 绝大多数情况服务器没有新东西（就是本机自己聊的那条），无条件重装
+    // 等于每次点开都白闪一下 —— 而这种"偶尔闪一下"极难被当成 bug 报上来。
+    test('服务器没有更新 → 只打开一次，不重装', () async {
+      sync.changed = false;
+      await container.read(chatControllerProvider.notifier).openThreadById('t1');
+      await Future<void>.delayed(Duration.zero);
+
+      expect(sync.refreshed, ['t1'], reason: '该问服务器一次');
+      expect(repo.opens, 1, reason: '没有更新就不该再 open 一次');
+    });
+
+    test('服务器有更新 → 重新装配一次', () async {
+      sync.changed = true;
+      await container.read(chatControllerProvider.notifier).openThreadById('t1');
+      await Future<void>.delayed(Duration.zero);
+
+      expect(repo.opens, 2, reason: '本地一次 + 拿到更新后重装一次');
+    });
+
+    // ⚠️ 刷新是后台跑的，用户完全可能在它回来之前就点了另一条会话或开了新对话。
+    // 往一个**已经换掉**的会话里灌内容，比不刷新糟得多：屏幕上会突然冒出
+    // 上一条会话的消息，而用户根本没点它。
+    test('刷新回来时用户已切走 → 不灌内容', () async {
+      sync.changed = true;
+      final ctrl = container.read(chatControllerProvider.notifier);
+
+      // 让 refreshThread 慢一拍，中间把会话切走。
+      await ctrl.openThreadById('t1');
+      ctrl.newChat(); // 用户开了新对话
+      await Future<void>.delayed(Duration.zero);
+
+      expect(repo.opens, 1, reason: '已经切走，不该为旧会话再 open');
     });
   });
 }

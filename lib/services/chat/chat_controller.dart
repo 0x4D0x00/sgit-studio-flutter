@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:sgit_studio_flutter/core/contracts/kernel_client.dart';
 import 'package:sgit_studio_flutter/core/contracts/kernel_ops.dart';
+import 'package:sgit_studio_flutter/data/repositories/session_sync_repository.dart';
 import 'package:sgit_studio_flutter/data/mappers/kernel_frame_mapper.dart';
 import 'package:sgit_studio_flutter/data/mappers/view_event_mapper.dart';
 import 'package:sgit_studio_flutter/data/transport/kernel/kernel_client_factory.dart';
@@ -42,6 +43,13 @@ class ChatController extends Notifier<ChatSessionState> {
 
   /// 当前正在流式追加的文本条目（`itemStarted` 开、`itemCompleted` 关）。
   TextItem? _streaming;
+
+  /// 当前挂着的 thread id，与传给 `_client.setThread` 的值同步。
+  ///
+  /// 需要它是因为 [KernelClient] 只有 setter 没有 getter，而后台刷新
+  /// （[_refreshThreadFromServer]）回来时必须能判断"用户是不是已经切走了" ——
+  /// 往一个已经换掉的会话里灌内容，比不刷新糟得多。
+  String? _threadId;
   final Map<int, ChatItem> _byId = {};
 
   /// 两次建连之间的最小间隔。纯粹的防呆闸门（见 [connect] 注释）。
@@ -236,6 +244,7 @@ class ChatController extends Notifier<ChatSessionState> {
     _items.clear();
     _byId.clear();
     _streaming = null;
+    _threadId = null;
     _client.setThread(null);
     itemsRevision.value++;
     // ⚠️ **必须保留 capabilities**。能力属于**连接**，不属于会话 —— 换个话题
@@ -285,6 +294,7 @@ class ChatController extends Notifier<ChatSessionState> {
     try {
       final replay = await ref.read(threadRepositoryProvider).open(threadId);
       openThread(threadId, replay.events);
+      unawaited(_refreshThreadFromServer(threadId));
     } catch (e) {
       // 打不开必须说 —— 静默停在空会话上，用户会以为历史丢了。
       debugPrint('[threads] 打开会话失败 $threadId：$e');
@@ -294,6 +304,44 @@ class ChatController extends Notifier<ChatSessionState> {
           e.toString().replaceFirst(RegExp(r'^\w*Exception(\([^)]*\))?:\s*'), ''),
         ),
       );
+    }
+  }
+
+  /// 本地内容已经在屏幕上之后，问一下服务器这条会话有没有更新。
+  ///
+  /// ## 为什么是"之后"而不是"之前"
+  ///
+  /// 这条会话可能是在另一台设备上聊的，本机那份 rollout 停在某个旧偏移。
+  /// 但**先等服务器再显示**就退回了原来的毛病 —— 网络慢一次，用户就又在
+  /// 干等。所以顺序是：本地秒回 → 后台问 → 真有新内容才重装。
+  ///
+  /// ## 只在真的变了才重装
+  ///
+  /// 重装会重建所有气泡、把滚动位置顶回去。绝大多数情况下服务器没有新东西
+  /// （就是本机自己聊的那条），无条件重装等于每次点开都白闪一下。
+  ///
+  /// ## 失败不管
+  ///
+  /// 仓储层已经把失败咽成 `false`（见 `refreshThread` 的注释）。用户手上那份
+  /// 是完整的本地历史，没拉到更新不值得提示，更不能把它换成错误。
+  Future<void> _refreshThreadFromServer(String threadId) async {
+    final changed =
+        await ref.read(sessionSyncRepositoryProvider).refreshThread(threadId);
+    if (!changed) return;
+    // 用户可能已经切走了（开了新对话、点了另一条）。往一个已经换掉的会话里
+    // 灌内容比不刷新糟得多。
+    if (_threadId != threadId) {
+      debugPrint('[threads] $threadId 有更新，但用户已切走，不重装');
+      return;
+    }
+    debugPrint('[threads] $threadId 从服务器拿到更新，重新装配');
+    try {
+      final replay = await ref.read(threadRepositoryProvider).open(threadId);
+      if (_threadId != threadId) return; // 再查一次：取数期间也可能切走
+      openThread(threadId, replay.events);
+    } catch (e) {
+      // 已经显示着本地那份，重装失败就维持现状。
+      debugPrint('[threads] $threadId 重装失败，保留本地内容：$e');
     }
   }
 
@@ -347,6 +395,7 @@ class ChatController extends Notifier<ChatSessionState> {
 
     // 让后续发言接在这条 thread 上。Rust 侧 `thread/resume` 已经把它装进了
     // 活动的 thread_manager，所以 turn/start 打得中。
+    _threadId = threadId;
     _client.setThread(threadId);
   }
 

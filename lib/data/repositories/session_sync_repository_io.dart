@@ -4,6 +4,7 @@ import 'dart:io';
 import 'dart:isolate';
 
 import 'package:ffi/ffi.dart';
+import 'package:flutter/foundation.dart';
 
 import 'package:sgit_studio_flutter/core/result/api_exception.dart';
 import 'package:sgit_studio_flutter/data/repositories/session_sync_repository.dart';
@@ -12,6 +13,9 @@ import 'package:sgit_studio_flutter/data/repositories/session_sync_repository.da
 
 typedef _Str0C = Pointer<Utf8> Function();
 typedef _Str0Dart = Pointer<Utf8> Function();
+
+typedef _Str1C = Pointer<Utf8> Function(Pointer<Utf8>);
+typedef _Str1Dart = Pointer<Utf8> Function(Pointer<Utf8>);
 
 typedef _BoolC = Bool Function();
 typedef _BoolDart = bool Function();
@@ -78,6 +82,42 @@ final class IoSessionSyncRepository implements SessionSyncRepository {
       throw const ApiException('会话同步响应格式异常');
     }
     return SessionSyncResult.fromJson(decoded);
+  }
+
+  /// 同样在后台 isolate：它要 `session_list` 一次再按需下载。
+  ///
+  /// ⚠️ **一律不抛**。它跑在"用户已经看到本地内容之后"，失败只意味着没有
+  /// 更新可拿 —— 抛出来会让上层去处理一个不需要用户知道的情况，而最坏的
+  /// 处理方式（把已显示的内容换成错误）恰恰是最容易写出来的那种。
+  @override
+  Future<bool> refreshThread(String threadId) async {
+    if (!enabled || threadId.isEmpty) return false;
+    try {
+      final raw = await Isolate.run(() {
+        final lib = _openNativeLib();
+        final arg = threadId.toNativeUtf8();
+        try {
+          final out = lib.lookupFunction<_Str1C, _Str1Dart>(
+            'sgit_session_sync_thread',
+          )(arg);
+          if (out == nullptr) return '';
+          try {
+            return out.toDartString();
+          } finally {
+            lib.lookupFunction<_FreeC, _FreeDart>('free_string')(out);
+          }
+        } finally {
+          malloc.free(arg);
+        }
+      });
+      if (raw.isEmpty) return false;
+      final decoded = jsonDecode(raw);
+      return decoded is Map && decoded['changed'] == true;
+    } catch (e) {
+      // 留痕但不上抛 —— 没有日志的话，"点开的会话总是旧的"无从排查。
+      debugPrint('[sessionSync] 单条刷新失败 $threadId：$e');
+      return false;
+    }
   }
 }
 

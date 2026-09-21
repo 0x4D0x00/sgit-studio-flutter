@@ -18,6 +18,11 @@ final class WebSessionSyncRepository implements SessionSyncRepository {
         ok: true,
         reason: 'Web 端没有本地引擎，会话本来就在服务器上',
       );
+
+  /// 同理恒为 false：会话就在服务器上，`thread/resume` 读到的**就是**最新的，
+  /// 没有"本地副本需要刷新"这回事。
+  @override
+  Future<bool> refreshThread(String threadId) async => false;
 }
 
 SessionSyncRepository createSessionSyncRepository() =>

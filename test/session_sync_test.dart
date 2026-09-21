@@ -24,6 +24,11 @@ class _FakeRepo implements SessionSyncRepository {
     if (throws != null) throw throws!;
     return result;
   }
+
+  /// 这组测的是**触发时机**，单条刷新不经过 SessionSyncController
+  /// （它是 ChatController 点开会话时直接调仓储的），所以这里只要存在即可。
+  @override
+  Future<bool> refreshThread(String threadId) async => false;
 }
 
 void main() {

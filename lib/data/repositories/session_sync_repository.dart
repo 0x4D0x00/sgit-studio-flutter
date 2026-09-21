@@ -60,6 +60,16 @@ abstract interface class SessionSyncRepository {
 
   /// 跑一次双向同步。
   Future<SessionSyncResult> sync();
+
+  /// 只把**这一条**会话的服务器新增部分拉到本地。返回"有没有拉到新东西"。
+  ///
+  /// 点开历史会话时用：先显示本地那份（秒回），同时在后台问一下服务器有没有
+  /// 更新，有才重新装配界面。[sync] 做不了这件事 —— 它要列全量、比对、把
+  /// 所有落后的文件补齐（本机 43 个文件 41MB 的量级），点一下会话等不起。
+  ///
+  /// **失败一律返回 false，不抛** —— 本地那份已经在屏幕上了，拉不到更新只是
+  /// 没有更新，不该打扰用户，更不该把已显示的内容换掉。
+  Future<bool> refreshThread(String threadId);
 }
 
 final sessionSyncRepositoryProvider = Provider<SessionSyncRepository>(
