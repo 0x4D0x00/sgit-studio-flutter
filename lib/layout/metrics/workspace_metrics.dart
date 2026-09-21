@@ -38,7 +38,7 @@ class WorkspaceMetrics {
   /// 左栏内部。
   static const double navPanelPaddingBlock = 16;
   static const double navPanelPaddingInline = 24;
-  static const double navItemHeight = 48;
+  static const double navItemHeight = 36;
   static const double navItemRadius = 8;
   static const double navItemPaddingInline = 16;
   static const double navItemGap = 8;
