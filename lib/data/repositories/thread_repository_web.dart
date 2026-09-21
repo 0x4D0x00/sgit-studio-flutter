@@ -15,17 +15,34 @@ final class WebThreadRepository implements ThreadRepository {
 
   final GatewayRepository _repo;
 
+  /// 剥掉 `{status, data:{...}}` 的外壳。
+  ///
+  /// ⚠️ `gatewayCall` 只负责**失败时抛异常**，成功时返回的是**整个信封**，
+  /// 不是 `data`。而 `ThreadPage.fromJson` 读的是 `j['threads']` ——
+  /// 不剥的话它找不到键，回落成**空列表且不报错**：云端模式下历史会话
+  /// 全部消失，界面上与"你确实没有会话"一模一样。
+  ///
+  /// 桌面那条路早就有同样的处理（`thread_repository_io.dart` 的 `_unwrap`），
+  /// 这边漏了。
+  ///
+  /// 没有 `data` 时退回整个响应：万一将来某个端点直接回扁平结构，
+  /// 这里不该把它判成空。
+  static Map<String, Object?> _data(Map<String, Object?> envelope) {
+    final d = envelope['data'];
+    return d is Map ? d.cast<String, Object?>() : envelope;
+  }
+
   @override
   Future<ThreadPage> list({String? cursor}) async {
     final path = (cursor == null || cursor.isEmpty)
         ? '/sgcode-thread/list'
         : '/sgcode-thread/list?cursor=$cursor';
-    return ThreadPage.fromJson(await _repo.get(path));
+    return ThreadPage.fromJson(_data(await _repo.get(path)));
   }
 
   @override
   Future<ThreadReplay> open(String threadId) async => ThreadReplay.fromJson(
-        await _repo.post('/sgcode-thread/open', {'threadId': threadId}),
+        _data(await _repo.post('/sgcode-thread/open', {'threadId': threadId})),
       );
 
   @override
