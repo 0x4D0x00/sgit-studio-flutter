@@ -235,6 +235,15 @@ class ChatController extends Notifier<ChatSessionState> {
     // 未启用时是 no-op，不会白等。
     await ref.read(sessionSyncProvider).syncNow();
 
+    // 在途的历史载入作废：它是向**旧引擎**要的那条会话，而换引擎就是换了
+    // 一份不相干的历史。让它落地的话，`openThread` 会把这个 id 交给新连接的
+    // `setThread` —— 新引擎里没有这条 thread，下一次发送才在 turn/start 上
+    // 报 "thread not found"，离起因已经很远了。
+    //
+    // （这个窗口是"点开会话改成异步"之后才有的：原先历史页会一直阻塞到
+    // 内容回来，用户根本没机会在载入途中去切引擎。）
+    _openGeneration++;
+
     _client.close();
     // 清掉 capabilities，否则 connect() 的幂等判断会直接 return。
     state = const ChatSessionState();
