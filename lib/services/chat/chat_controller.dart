@@ -13,6 +13,8 @@ import 'package:sgit_studio_flutter/data/transport/kernel/kernel_frame.dart';
 import 'package:sgit_studio_flutter/domain/models/chat/chat_item.dart';
 import 'package:sgit_studio_flutter/domain/models/chat/chat_session.dart';
 import 'package:sgit_studio_flutter/features/chat/application/composer_settings_controller.dart';
+import 'package:sgit_studio_flutter/features/chat/application/session_sync_controller.dart';
+import 'package:sgit_studio_flutter/features/chat/application/thread_list_controller.dart';
 
 /// 会话控制器 —— 内核帧流的唯一消费者。
 ///
@@ -204,6 +206,17 @@ class ChatController extends Notifier<ChatSessionState> {
   /// 以新模式重建。跑动中的 turn 会被一起掐掉 —— 换引擎本来就意味着换执行环境，
   /// 让它在旧引擎上跑完再切反而更让人困惑。
   Future<void> reconnectWithMode() async {
+    // ⚠️ **切走之前先把本地会话推上去**。
+    //
+    // 两个引擎的历史是两份不相干的列表：本地聊的落在本机 `<cid_home>/sessions/`，
+    // 云端的落在服务器。不推就切，用户到了云端会发现"刚才聊的那条不见了" ——
+    // 而它其实好好地躺在本机，只是对面看不到。
+    //
+    // 等它完成再切（不是 fire-and-forget）：切换本身就要重建连接、有可感知的
+    // 等待，把同步并进这段等待里，比切过去之后再让列表悄悄变化清楚。
+    // 未启用时是 no-op，不会白等。
+    await ref.read(sessionSyncProvider).syncNow();
+
     _client.close();
     // 清掉 capabilities，否则 connect() 的幂等判断会直接 return。
     state = const ChatSessionState();
@@ -434,6 +447,13 @@ class ChatController extends Notifier<ChatSessionState> {
             toolMs: KernelFrameMapper.intOrNull(j, 'tool_ms') ?? 0,
           ),
         );
+        // 这一轮的内容已经落进 rollout，排一次同步（内部去抖 30s，连续对话
+        // 不会每轮都推）。本地引擎产生的会话靠它才能在云端列表里出现。
+        // 未启用时（Web / 服务端进程）这是 no-op。
+        ref.read(sessionSyncProvider).onTurnCompleted();
+        // 列表里那条的 updatedAt 变了，顺手刷新 —— 否则"刚聊完的会话"在左栏
+        // 仍排在旧位置，看着像没记上。
+        unawaited(ref.read(threadListProvider.notifier).reload());
         return false;
 
       // ⚠️ 用量是**独立帧**，turn 跑动期间就在更新 —— 不能当作 turn 结束的信号。
