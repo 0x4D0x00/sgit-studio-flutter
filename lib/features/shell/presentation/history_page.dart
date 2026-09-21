@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -258,25 +260,22 @@ class _HistoryPageState extends ConsumerState<HistoryPage> {
   /// ⚠️ 原先这里是 `newChatWithScene(sceneId)` —— 开一个**空的新对话**，
   /// 历史消息一条都不载入。点"历史对话"却看不到任何历史，是这个页面
   /// 原先最主要的错。
-  Future<void> _pick(String id) async {
+  /// ⚠️ **先跳页，再载内容**，别反过来。
+  ///
+  /// 原先是 `await open()` → `context.go(home)`：内容没回来页面就不动，
+  /// 长会话下用户反馈「点历史会话要过很久才能进 L2 页面」，期间毫无反馈。
+  ///
+  /// 现在 `beginOpenThread()` 同步清空并置"正在载入"，立刻跳；载入与错误
+  /// 处理归 `ChatController.openThreadById`（本页此刻已卸载，接不住结果，
+  /// 也弹不了 SnackBar —— 失败会以故障条的形式出现在工作台）。
+  void _pick(String id) {
     final threadId = id.substring(_threadPrefix.length);
-    try {
-      final replay = await ref.read(threadRepositoryProvider).open(threadId);
-      // ⚠️ 用 State 自己的 `mounted` + `context`，不要跨 await 用传进来的那个：
-      // 参数 context 可能已经随组件销毁而失效，而 `mounted` 检查的是 State，
-      // 两者对不上（analyzer 的 use_build_context_synchronously 就在说这个）。
-      if (!mounted) return;
-      ref
-          .read(chatControllerProvider.notifier)
-          .openThread(threadId, replay.events);
-      context.go(RouteNames.home);
-    } catch (e) {
-      if (!mounted) return;
-      // 打不开必须说 —— 静默跳回工作台会让用户以为"点了没反应"。
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(_msg(e))),
-      );
-    }
+    // 不 await：`openThreadById` 的清空与置位在首个 await 之前，也就是**同步**
+    // 跑完的，所以下一行跳过去时工作台已经是"正在载入"的干净状态。
+    unawaited(
+      ref.read(chatControllerProvider.notifier).openThreadById(threadId),
+    );
+    context.go(RouteNames.home);
   }
 
   Future<void> _delete(BuildContext context, AppLocalizations l10n) async {
@@ -380,9 +379,6 @@ class _HistoryPageState extends ConsumerState<HistoryPage> {
     await ref.read(threadListProvider.notifier).remove(threadId);
   }
 }
-
-String _msg(Object e) =>
-    e.toString().replaceFirst(RegExp(r'^\w*Exception:\s*'), '');
 
 class _HistoryRow extends StatefulWidget {
   const _HistoryRow({

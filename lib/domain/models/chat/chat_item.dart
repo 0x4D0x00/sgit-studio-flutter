@@ -181,3 +181,18 @@ final class KernelUnavailable extends ChatFault {
   const KernelUnavailable(this.message);
   final String message;
 }
+
+/// 打开历史会话失败。[message] 是后端原文。
+///
+/// ⚠️ 这条**不给「重连」按钮**：连接多半好好的，坏的是这一条会话
+/// （文件没同步过来、被删了、id 对不上）。给个重连按钮只会让用户白点一次，
+/// 还把"这条打不开"误导成"整个连接坏了"。
+///
+/// 为什么要单独一个 fault、不复用 SnackBar：点开会话现在是**先进页面、
+/// 内容后到**（见 `ChatController.openThreadById`），失败时发起那个页面
+/// 已经卸载，拿不到它的 context 弹 SnackBar。错误必须落在会话状态里，
+/// 由已经在屏上的工作台渲染。
+final class ThreadOpenFailed extends ChatFault {
+  const ThreadOpenFailed(this.message);
+  final String message;
+}

@@ -3,20 +3,15 @@ import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import 'package:sgit_studio_flutter/data/repositories/thread_repository.dart';
 import 'package:sgit_studio_flutter/domain/models/chat/thread_summary.dart';
 import 'package:sgit_studio_flutter/features/chat/application/composer_settings_controller.dart';
+import 'package:sgit_studio_flutter/features/chat/application/thread_repository_provider.dart';
 import 'package:sgit_studio_flutter/services/chat/chat_controller.dart';
 
-/// 会话仓储。**跟着引擎模式重建** —— 切了云端还挂着本地那份列表就错了。
-///
-/// ⚠️ 测试里必须 `overrideWithValue`：桌面工厂会 dlopen `sgit_ffi.dll`，
-/// 测试环境没有那个库，一调就挂。
-final threadRepositoryProvider = Provider<ThreadRepository>((ref) {
-  // watch 而不是 read：engineMode 变了要重建仓储，否则列表停在上一个引擎的结果。
-  ref.watch(composerSettingsProvider.select((s) => s.settings.engineMode));
-  return createThreadRepository();
-});
+// threadRepositoryProvider 搬去了 thread_repository_provider.dart（那边有原因），
+// 这里转出去，免得所有引用点跟着改。
+export 'package:sgit_studio_flutter/features/chat/application/thread_repository_provider.dart'
+    show threadRepositoryProvider;
 
 @immutable
 class ThreadListState {
@@ -81,7 +76,7 @@ class ThreadListController extends Notifier<ThreadListState> {
       },
     );
 
-    // ⚠️ **等内核连上再拉**，别在 build 里直接 `Future.microtask(reload)`。
+    // ⚠️ **等内核连上再拉**，别在 build 里无条件排一次 reload。
     //
     // 会话列表要经内核（本地走进程内 app-server，云端走 gateway），而建连是
     // `workspace_page` 触发的、异步的 —— 两者没有先后关系，列表必然抢跑：
@@ -99,13 +94,29 @@ class ThreadListController extends Notifier<ThreadListState> {
     ref.listen(
       chatControllerProvider.select((s) => s.capabilities != null),
       (was, now) {
-        if (now == true && was != true) unawaited(reload());
+        if (now == true && was != true) _scheduleReload();
       },
       // 已经连上时（provider 晚于连接创建，比如从别的页回到工作台）立刻拉一次，
       // 否则要等下一次断连重连才有边沿。
       fireImmediately: true,
     );
     return const ThreadListState();
+  }
+
+  /// 排一次 reload，**不在当前同步栈里跑**。
+  ///
+  /// ⚠️ 必须绕这一道。`fireImmediately: true` 的回调是在 `build()` **内部**
+  /// 同步触发的，而那时 `state` 还没被赋值 —— `reload()` 第一行就读 state，
+  /// 直接 `Bad state: Tried to read the state of an uninitialized provider`。
+  ///
+  /// 而且这个异常被 riverpod 的 listener guard 接住，界面上只表现为**列表空白**，
+  /// 跟"还没连上"长得一模一样。命中条件是"provider 建立时连接已经在了"
+  /// （从别的页回工作台就是），不是罕见路径。
+  void _scheduleReload() {
+    Future<void>.microtask(() {
+      if (_disposed) return;
+      unawaited(reload());
+    });
   }
 
   Future<void> reload() async {

@@ -261,7 +261,66 @@ class ChatController extends Notifier<ChatSessionState> {
     newChat();
   }
 
-  /// 打开一条历史会话：清空当前内容 → 载入回放 → 把后续发言接到这条 thread 上。
+  /// 点开一条历史会话 —— **调用方不必等它**，进页面与载内容是分开的两拍。
+  ///
+  /// ## 为什么整条流程在控制器里，而不在页面里
+  ///
+  /// 原先在 `history_page._pick`：`await open()` 之后才 `context.go(home)`。
+  /// 于是**内容回来之前页面一动不动** —— 用户反馈的「点历史会话要过很久才能
+  /// 进 L2 页面」就是这个，而且期间没有任何反馈，看着像没点中。
+  ///
+  /// 改成先进页面就必然要把载入搬走：`context.go` 之后发起的那个页面已经卸载，
+  /// 它的 `ref` 不能再读、`context` 不能再弹 SnackBar。控制器活得比页面长，
+  /// 是唯一能把结果和错误都接住的地方。
+  ///
+  /// 流程：
+  /// ```text
+  /// 清空 + openingThread=true   ← 同步，调用方随即 context.go(home)
+  ///        ↓ (thread/resume)
+  /// 成功 → 装配回放 + 接上 thread
+  /// 失败 → ThreadOpenFailed，工作台的故障条显示原文
+  /// ```
+  Future<void> openThreadById(String threadId) async {
+    beginOpenThread();
+    try {
+      final replay = await ref.read(threadRepositoryProvider).open(threadId);
+      openThread(threadId, replay.events);
+    } catch (e) {
+      // 打不开必须说 —— 静默停在空会话上，用户会以为历史丢了。
+      debugPrint('[threads] 打开会话失败 $threadId：$e');
+      state = state.copyWith(
+        openingThread: false,
+        fault: ThreadOpenFailed(
+          e.toString().replaceFirst(RegExp(r'^\w*Exception(\([^)]*\))?:\s*'), ''),
+        ),
+      );
+    }
+  }
+
+  /// 清空当前内容并进入"正在载入历史会话"。[openThreadById] 的前半拍。
+  ///
+  /// ⚠️ 它在 [openThreadById] 的**首个 await 之前**，因而是同步跑完的 ——
+  /// 调用方 `unawaited(openThreadById(id))` 之后紧接着 `context.go` 时，
+  /// 工作台已经是"正在载入"的干净状态，不会闪一下上一条会话的残留内容。
+  /// 换句话说调用方**不需要**自己先调一次。
+  void beginOpenThread() {
+    if (state.busy) interrupt();
+    for (final i in _items) {
+      i.dispose();
+    }
+    _items.clear();
+    _byId.clear();
+    _streaming = null;
+    itemsRevision.value++;
+
+    // 同 openThread：capabilities 属于连接不属于会话，清掉会让首次发送被拒。
+    state = ChatSessionState(
+      capabilities: state.capabilities,
+      openingThread: true,
+    );
+  }
+
+  /// 装配一条历史会话的回放内容，并把后续发言接到这条 thread 上。
   ///
   /// [replayEvents] 是 `view::replay_thread` 产出的事件序列（由
   /// `ThreadRepository.open` 取回），**不含 turn 级事件** —— 所以这里不碰

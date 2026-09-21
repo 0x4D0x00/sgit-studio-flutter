@@ -415,6 +415,11 @@
   "chatSendWhileBusy": "上一轮还在跑，可直接输入插话",
   "chatNoTurnToSteer": "当前没有进行中的对话，无法插话",
   "chatKernelStalled": "内核长时间无响应，已恢复可输入状态",
+  "chatOpeningThread": "正在载入这条会话…",
+  "chatThreadOpenFailed": "打开会话失败：{reason}",
+  "@chatThreadOpenFailed": {
+    "placeholders": { "reason": { "type": "String" } }
+  },
   "artifactsTitle": "输出产物",
   "artifactsEmpty": "暂无产物",
   "artifactsSearch": "搜索产物",

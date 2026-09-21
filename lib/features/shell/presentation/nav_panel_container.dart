@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -368,45 +370,30 @@ class NavPanelContainer
   ///
   /// ⚠️ 原先历史条目走的是 `newChatWithScene(sceneId)` —— 开一个**空的新对话**，
   /// 历史消息一条都不载入。点"历史对话"却看不到任何历史，是左栏原先最主要的错。
-  Future<void> _onOpenThread(
+  ///
+  /// ⚠️ **先跳页，再载内容**。原先 `await open()` 之后才 `context.go`，
+  /// 内容没回来页面就不动（用户反馈「点历史会话要过很久才能进 L2 页面」）。
+  /// 现在载入与报错都归 `ChatController.openThreadById` —— 跳页之后本 widget
+  /// 已卸载，接不住结果也弹不了 SnackBar，失败会以工作台的故障条呈现。
+  void _onOpenThread(
     BuildContext context,
     WidgetRef ref,
     String threadId,
-  ) async {
-    try {
-      final replay = await ref
-          .read(
-            threadRepositoryProvider,
-          )
-          .open(threadId,);
-      // 这是无状态的 ConsumerWidget，没有 State 的 `mounted` 可用 ——
-      // 只能用 `context.mounted`（它检查的正是这个 context 所属的 element）。
-      if (!context.mounted) return;
+  ) {
+    // 不 await：清空与置"正在载入"在首个 await 之前，是同步跑完的，
+    // 所以下一行跳过去时工作台已经是干净的载入态。
+    unawaited(
       ref
           .read(
             chatControllerProvider.notifier,
           )
-          .openThread(
+          .openThreadById(
             threadId,
-            replay.events,
-          );
-      context.go(
-        RouteNames.home,
-      );
-    } catch (e) {
-      if (!context.mounted) return;
-      // 打不开必须说 —— 静默什么都不发生会让用户以为"点了没反应"，
-      // 而这里最常见的失败恰恰是引擎没起来，不提示就无从排查。
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(
-        SnackBar(
-          content: Text(
-            _msg(e),
           ),
-        ),
-      );
-    }
+    );
+    context.go(
+      RouteNames.home,
+    );
   }
 
   void _onSearch(
@@ -884,8 +871,3 @@ class NavPanelContainer
     return key;
   }
 }
-
-/// 剥掉 `XxxException:` 前缀，只留给用户看的那句。
-/// 与 `history_page.dart` / `chat_controller.dart` 同一套处理。
-String _msg(Object e) =>
-    e.toString().replaceFirst(RegExp(r'^\w*Exception:\s*'), '');

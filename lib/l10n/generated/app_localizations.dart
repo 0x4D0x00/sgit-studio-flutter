@@ -1676,6 +1676,18 @@ abstract class AppLocalizations {
   /// **'内核长时间无响应，已恢复可输入状态'**
   String get chatKernelStalled;
 
+  /// No description provided for @chatOpeningThread.
+  ///
+  /// In zh, this message translates to:
+  /// **'正在载入这条会话…'**
+  String get chatOpeningThread;
+
+  /// No description provided for @chatThreadOpenFailed.
+  ///
+  /// In zh, this message translates to:
+  /// **'打开会话失败：{reason}'**
+  String chatThreadOpenFailed(String reason);
+
   /// No description provided for @artifactsTitle.
   ///
   /// In zh, this message translates to:

@@ -1,10 +1,16 @@
+import 'dart:async';
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'package:sgit_studio_flutter/domain/models/chat/chat_item.dart';
+
 import 'package:sgit_studio_flutter/data/repositories/thread_repository.dart';
+import 'package:sgit_studio_flutter/data/transport/kernel/kernel_client_mock.dart';
 import 'package:sgit_studio_flutter/domain/models/chat/thread_summary.dart';
 import 'package:sgit_studio_flutter/features/chat/application/thread_list_controller.dart';
 import 'package:sgit_studio_flutter/features/shell/application/history_sort_group_controller.dart';
+import 'package:sgit_studio_flutter/services/chat/chat_controller.dart';
 
 /// 历史会话列表的回归。
 ///
@@ -29,12 +35,22 @@ class _FakeThreadRepository implements ThreadRepository {
     return page ?? const ThreadPage(threads: []);
   }
 
+  /// 挂住 `open`，用来断言"内容还没回来时的状态"。用例自己 complete。
+  Completer<void>? openGate;
+
+  /// 让 `open` 抛错（与 [throws] 分开：那个是 list/rename/delete 的）。
+  Object? openThrows;
+
   @override
-  Future<ThreadReplay> open(String threadId) async => ThreadReplay(
-        summary: ThreadSummary(
-            id: threadId, title: 't', preview: '', createdAt: null, updatedAt: null),
-        events: const [],
-      );
+  Future<ThreadReplay> open(String threadId) async {
+    if (openGate != null) await openGate!.future;
+    if (openThrows != null) throw openThrows!;
+    return ThreadReplay(
+      summary: ThreadSummary(
+          id: threadId, title: 't', preview: '', createdAt: null, updatedAt: null),
+      events: const [],
+    );
+  }
 
   @override
   Future<void> rename(String threadId, String name) async {
@@ -121,7 +137,18 @@ void main() {
     setUp(() {
       repo = _FakeThreadRepository();
       container = ProviderContainer(
-        overrides: [threadRepositoryProvider.overrideWithValue(repo)],
+        overrides: [
+          threadRepositoryProvider.overrideWithValue(repo),
+          // ⚠️ **必须注入假内核**。列表控制器 `build()` 里 listen 了
+          // `chatControllerProvider`（等连上再拉，见那边的注释），于是一读
+          // 列表就会把真 ChatController 建起来 —— 它 dlopen `sgit_ffi.dll`，
+          // 测试环境没那个库，八个用例一起挂。
+          //
+          // 用 MockKernelClient 而不是自己写一个空壳：别的 UI 测试
+          // （chat_ui / composer_ui / layout）都走这条，一致。
+          chatControllerProvider
+              .overrideWith(() => ChatController(client: MockKernelClient())),
+        ],
       );
       addTearDown(container.dispose);
     });
@@ -207,6 +234,91 @@ void main() {
       await container.read(threadListProvider.notifier).rename('t1', '更新的名');
       expect(container.read(threadListProvider).items.single.title, '新名',
           reason: '失败要回滚到上一个标题');
+    });
+  });
+
+  /// 点开历史会话 = **先进页面，内容后到**。
+  ///
+  /// 用户反馈的原话是「点历史会话要过很久才能进 L2 页面」。原先
+  /// `history_page._pick` 是 `await open()` 之后才 `context.go` —— 内容不回来
+  /// 页面就不动，长会话下就是干等，而且没有任何反馈。
+  ///
+  /// 这组钉住改完之后的三件事，每一件失效都会让那个症状原样回来，且**界面上
+  /// 看不出是回归**（只是"又变慢了"）。
+  group('打开历史会话', () {
+    late _FakeThreadRepository repo;
+    late ProviderContainer container;
+
+    setUp(() {
+      repo = _FakeThreadRepository();
+      container = ProviderContainer(
+        overrides: [
+          threadRepositoryProvider.overrideWithValue(repo),
+          chatControllerProvider
+              .overrideWith(() => ChatController(client: MockKernelClient())),
+        ],
+      );
+      addTearDown(container.dispose);
+    });
+
+    // ⚠️ **provider 建立时连接已经在了** —— 从别的页回工作台就是这条路。
+    //
+    // 列表控制器靠 `ref.listen(capabilities != null, fireImmediately: true)`
+    // 在"连上那一刻"拉数据。而 fireImmediately 的回调是在 `build()` **内部**
+    // 同步触发的：那时 `state` 还没赋值，`reload()` 第一行读 state 就抛
+    // `Bad state: Tried to read the state of an uninitialized provider`。
+    //
+    // 异常被 riverpod 的 listener guard 吞掉，界面上只是**列表空白** ——
+    // 与"还没连上"完全无法区分。所以必须有测试。
+    test('建立时连接已存在：首屏自己会拉，且不炸在未初始化的 state 上', () async {
+      repo.page = ThreadPage(threads: [_t('a'), _t('b')]);
+      // 先把连接建起来，让 capabilities 非空，再第一次读列表 provider。
+      await container.read(chatControllerProvider.notifier).connect();
+
+      expect(container.read(threadListProvider).items, isEmpty,
+          reason: 'build 刚回来，拉取还没跑');
+
+      await Future<void>.delayed(Duration.zero);
+      expect(container.read(threadListProvider).items, hasLength(2),
+          reason: '连接已在时首屏必须自己拉一次，不能等用户去切引擎');
+    });
+
+    // ⚠️ 这条是整个修复的支点。调用方的写法是
+    //   `unawaited(openThreadById(id)); context.go(home);`
+    // 它成立的前提是**清空 + 置位发生在首个 await 之前**（Dart 的 async 函数体
+    // 在首个 await 前同步执行）。哪天有人在 beginOpenThread() 之前插一个
+    // await（比如加个 `await someCheck()`），跳过去的那一瞬工作台就还是上一条
+    // 会话的残留内容 —— 闪一下再清空，比慢更糟，而测不到。
+    test('置"正在载入"是同步的，不等 open 返回', () {
+      repo.openGate = Completer<void>();
+      final ctrl = container.read(chatControllerProvider.notifier);
+
+      unawaited(ctrl.openThreadById('t1')); // 故意不 await
+
+      expect(container.read(chatControllerProvider).openingThread, isTrue,
+          reason: '调用方紧接着就要 context.go，此刻必须已经是载入态');
+    });
+
+    test('载入完成后清掉载入态', () async {
+      final ctrl = container.read(chatControllerProvider.notifier);
+      await ctrl.openThreadById('t1');
+      expect(container.read(chatControllerProvider).openingThread, isFalse);
+      expect(container.read(chatControllerProvider).fault, isNull);
+    });
+
+    // ⚠️ 失败必须落进 state，不能只 debugPrint。发起点（历史页/左栏）在
+    // `context.go` 之后已经卸载，弹不了 SnackBar —— 不落 state 就等于静默失败，
+    // 用户只看到一个永远转圈的载入态。
+    test('打开失败要报出来，且不卡在载入态', () async {
+      repo.openThrows = Exception('会话不存在');
+      final ctrl = container.read(chatControllerProvider.notifier);
+
+      await ctrl.openThreadById('t1');
+
+      final s = container.read(chatControllerProvider);
+      expect(s.openingThread, isFalse, reason: '失败也要退出载入态，否则永远转圈');
+      expect(s.fault, isA<ThreadOpenFailed>());
+      expect((s.fault! as ThreadOpenFailed).message, contains('会话不存在'));
     });
   });
 }

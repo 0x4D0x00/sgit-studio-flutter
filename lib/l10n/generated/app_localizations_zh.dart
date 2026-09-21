@@ -838,6 +838,14 @@ class AppLocalizationsZh extends AppLocalizations {
   String get chatKernelStalled => '内核长时间无响应，已恢复可输入状态';
 
   @override
+  String get chatOpeningThread => '正在载入这条会话…';
+
+  @override
+  String chatThreadOpenFailed(String reason) {
+    return '打开会话失败：$reason';
+  }
+
+  @override
   String get artifactsTitle => '输出产物';
 
   @override

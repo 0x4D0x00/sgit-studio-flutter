@@ -858,6 +858,14 @@ class AppLocalizationsEn extends AppLocalizations {
       'The kernel stopped responding — input re-enabled';
 
   @override
+  String get chatOpeningThread => 'Loading this conversation…';
+
+  @override
+  String chatThreadOpenFailed(String reason) {
+    return 'Couldn\'t open the conversation: $reason';
+  }
+
+  @override
   String get artifactsTitle => 'Artifacts';
 
   @override

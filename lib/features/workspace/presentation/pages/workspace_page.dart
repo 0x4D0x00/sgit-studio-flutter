@@ -48,6 +48,8 @@ class _WorkspacePageState extends ConsumerState<WorkspacePage> {
     final progress =
         ref.watch(chatControllerProvider.select((s) => s.progress));
     final notice = ref.watch(chatControllerProvider.select((s) => s.notice));
+    final openingThread =
+        ref.watch(chatControllerProvider.select((s) => s.openingThread));
 
     return Column(
       children: [
@@ -61,6 +63,10 @@ class _WorkspacePageState extends ConsumerState<WorkspacePage> {
             valueListenable: ctrl.itemsRevision,
             builder: (context, _, __) {
               final isEmpty = ctrl.items.isEmpty;
+              // ⚠️ 载入历史会话时**不能落到空态**。空态是"开始新对话"的欢迎页
+              // （Hero + 技能标签），而用户刚点的是一条有内容的旧会话 ——
+              // 先给他看一眼欢迎页再弹出内容，比等着更让人困惑。
+              if (isEmpty && openingThread) return const _OpeningThread();
               return isEmpty
                   ? const _EmptyState(
                       composer: ChatComposer(variant: ComposerVariant.empty),
@@ -129,6 +135,11 @@ class _WorkspacePageState extends ConsumerState<WorkspacePage> {
         ),
       KernelNotConnected() => (l10n.chatFaultNotConnected, true),
       KernelUnavailable(:final message) => (message, true),
+      // 不给重连按钮：坏的是这一条会话，不是连接。见 ThreadOpenFailed 的注释。
+      ThreadOpenFailed(:final message) => (
+          l10n.chatThreadOpenFailed(message),
+          false,
+        ),
     };
 
     return Container(
@@ -160,6 +171,41 @@ class _WorkspacePageState extends ConsumerState<WorkspacePage> {
 }
 
 /// 空态：Hero + 欢迎语 + 技能标签 + 输入框（在标签下方）。
+/// 「正在载入这条会话」。覆盖点开历史到内容装配之间那段空窗。
+///
+/// 刻意**不带输入框**：`thread/resume` 落地前 `turn/start` 找不到这条 thread，
+/// 此刻能发送只会得到一个 "thread not found"。没有输入框比有一个发不出去的
+/// 输入框诚实。
+class _OpeningThread extends StatelessWidget {
+  const _OpeningThread();
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final skin = AppSkin.of(context);
+    return Center(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          SizedBox(
+            width: 18,
+            height: 18,
+            child: CircularProgressIndicator(
+              strokeWidth: 2,
+              color: skin.textSecondary,
+            ),
+          ),
+          const SizedBox(height: 12),
+          Text(
+            l10n.chatOpeningThread,
+            style: TextStyle(fontSize: 12, color: skin.textSecondary),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
 class _EmptyState extends StatelessWidget {
   const _EmptyState({required this.composer});
 

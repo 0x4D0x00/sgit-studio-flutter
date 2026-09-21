@@ -25,6 +25,7 @@ class ChatSessionState {
   const ChatSessionState({
     this.busy = false,
     this.connecting = false,
+    this.openingThread = false,
     this.turnId,
     this.capabilities,
     this.lastTiming,
@@ -39,6 +40,16 @@ class ChatSessionState {
 
   /// 正在建连（首屏与重连时显示）。
   final bool connecting;
+
+  /// 正在载入一条历史会话。
+  ///
+  /// 点开历史会话是**先进页面、内容后到**的（见 `ChatController.openThreadById`）——
+  /// 原先要等 `thread/resume` 整条回来才 `context.go`，长会话下就是
+  /// **「点了半天进不去 L2 页面」**，而且没有任何反馈，像是没点中。
+  ///
+  /// 这个标志覆盖那段空窗：界面能显示"正在载入"，输入框能先禁掉
+  /// （resume 没落地前 `turn/start` 找不到 thread，发出去必然失败）。
+  final bool openingThread;
 
   final String? turnId;
   final KernelCapabilities? capabilities;
@@ -61,6 +72,7 @@ class ChatSessionState {
   ChatSessionState copyWith({
     bool? busy,
     bool? connecting,
+    bool? openingThread,
     String? turnId,
     KernelCapabilities? capabilities,
     TurnTiming? lastTiming,
@@ -74,6 +86,7 @@ class ChatSessionState {
       ChatSessionState(
         busy: busy ?? this.busy,
         connecting: connecting ?? this.connecting,
+        openingThread: openingThread ?? this.openingThread,
         // ⚠️ turnId 与 fault 刻意**不做 `?? this.x` 回落** —— 不传就等于清空。
         // turn 结束要清 turnId、重连成功要清 fault，回落会让它们粘住。
         turnId: turnId,

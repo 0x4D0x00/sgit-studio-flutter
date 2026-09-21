@@ -1,9 +1,12 @@
+import 'dart:async';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:sgit_studio_flutter/core/storage/local_storage.dart';
 import 'package:sgit_studio_flutter/data/transport/ffi/sgit_request_ffi.dart';
 import 'package:sgit_studio_flutter/data/repositories/auth_repository.dart';
+import 'package:sgit_studio_flutter/features/chat/application/session_sync_controller.dart';
 
 /// 登录态。`token == null` 即未登录。
 @immutable
@@ -92,6 +95,20 @@ class AuthController extends Notifier<AuthState> {
         await LocalStorage.instance.setAuthToken(result.token);
       }
       state = AuthState(token: _kSessionMark, cid: result.cid);
+
+      // ⚠️ **登录后拉一次会话历史**，别等第一轮对话结束。
+      //
+      // 同步器原本只有三个触发点（一轮对话结束去抖 30s / 切云端前 / 退出前），
+      // 全都要求用户**先做点什么**。于是「换台机器登录」这个最需要历史的时刻
+      // 反而一条都没有：本机 `<cid_home>/sessions/` 是空的，列表也就是空的，
+      // 而服务器上那份好好地在。
+      //
+      // 不 await：登录要立刻进主界面。列表那边自己会在内核连上时再拉一次
+      // （thread_list_controller 监听 capabilities），所以同步落地后不需要
+      // 这里再去戳它 —— 用户看到的是"进去先有旧的、稍后补齐"。
+      //
+      // 未启用同步时（服务端进程）是 no-op，不会白跑。
+      unawaited(ref.read(sessionSyncProvider).syncNow());
       return true;
     } catch (e) {
       final msg = e.toString().replaceFirst(RegExp(r'^ApiException\([^)]*\):\s*'), '');
