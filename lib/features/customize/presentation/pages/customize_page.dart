@@ -402,7 +402,12 @@ class _CustomizePageState extends State<CustomizePage> {
           children: items.map((skill) {
             return SizedBox(
               width: width,
-              child: SkillCard(skill: skill, skin: skin, l10n: l10n),
+              child: SkillCard(
+                skill: skill,
+                skin: skin,
+                l10n: l10n,
+                onTap: () => _notWired(context, l10n, '点击跳转'),
+              ),
             );
           }).toList(),
         );
@@ -455,27 +460,32 @@ class SkillCard extends StatelessWidget {
     required this.skill,
     required this.skin,
     required this.l10n,
+    required this.onTap,
   });
 
   final SkillItem skill;
   final AppSkin skin;
   final AppLocalizations l10n;
+  final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(AppSpacing.md),
-      decoration: BoxDecoration(
-        color: skin.containerBg,
-        border: Border.all(
-          color: skin.border,
-          width: 1,
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(AppRadius.md),
+      child: Container(
+        padding: const EdgeInsets.all(AppSpacing.md),
+        decoration: BoxDecoration(
+          color: skin.containerBg,
+          border: Border.all(
+            color: skin.border,
+            width: 1,
+          ),
+          borderRadius: BorderRadius.circular(AppRadius.md),
         ),
-        borderRadius: BorderRadius.circular(AppRadius.md),
-      ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
           Container(
             width: 40,
             height: 40,
@@ -553,12 +563,14 @@ class SkillCard extends StatelessWidget {
           const SizedBox(width: AppSpacing.sm),
           IconButton(
             icon: Icon(Icons.add, color: skin.text),
-            onPressed: () => ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text(l10n.commonNotWired(skill.title)),
-                duration: const Duration(seconds: 1),
-              ),
-            ),
+            onPressed: () {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text(l10n.commonNotWired(skill.title)),
+                  duration: const Duration(seconds: 1),
+                ),
+              );
+            },
             padding: EdgeInsets.zero,
             constraints: const BoxConstraints(
               minWidth: 32,
@@ -567,6 +579,7 @@ class SkillCard extends StatelessWidget {
             iconSize: 20,
           ),
         ],
+      ),
       ),
     );
   }
