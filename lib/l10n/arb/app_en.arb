@@ -439,6 +439,37 @@
   "projectsCreateDialogDescription": "What are you trying to achieve?",
   "projectsCreateDialogDescriptionHint": "Describe your project, goals, subject, etc...",
   "projectsSearchHint": "Search projects...",
+  "projectsMoreActions": "More actions",
+  "projectsPin": "Pin",
+  "projectsEditDetails": "Edit details",
+  "projectsEditDialogTitle": "Edit details",
+  "projectsEditDialogName": "Name",
+  "projectsEditDialogDescription": "Description",
+  "projectsUpdatedJustNow": "Just now",
+  "projectsUpdatedMinutesAgo": "{n} minutes ago",
+  "@projectsUpdatedMinutesAgo": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "projectsUpdatedHoursAgo": "{n} hours ago",
+  "@projectsUpdatedHoursAgo": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "projectsUpdatedDaysAgo": "{n} days ago",
+  "@projectsUpdatedDaysAgo": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
   "customizeTitle": "Customize",
   "customizeTabTheme": "Theme",
   "customizeTabLayout": "Layout",

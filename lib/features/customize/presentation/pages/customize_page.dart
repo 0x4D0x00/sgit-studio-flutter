@@ -44,6 +44,16 @@ class _CustomizePageState extends State<CustomizePage> {
         .toList(growable: false);
   }
 
+// TODO: 这个网格区域右上角+按钮暂未实现
+  void _notWired(BuildContext context, AppLocalizations l10n, String what) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(l10n.commonNotWired(what)),
+        duration: const Duration(seconds: 1),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final skin = AppSkin.of(context);
@@ -54,7 +64,7 @@ class _CustomizePageState extends State<CustomizePage> {
         children: [
           _buildHeader(context, skin),
           Expanded(
-            child: _buildContent(skin),
+            child: _buildContent(context, skin, AppLocalizations.of(context)),
           ),
         ],
       ),
@@ -87,7 +97,7 @@ class _CustomizePageState extends State<CustomizePage> {
                 Text(
                   'Customize',
                   style: TextStyle(
-                    fontSize: 28,
+                    fontSize: 18,
                     fontWeight: FontWeight.w600,
                     color: skin.text,
                     letterSpacing: -0.5,
@@ -110,18 +120,13 @@ class _CustomizePageState extends State<CustomizePage> {
                 if (!_searching)
                   IconButton(
                     icon: Icon(Icons.tune, color: skin.text),
-                    onPressed: () {},
-                    tooltip: 'Settings',
+                    // TODO: 这个类别按钮暂未实现
+                    onPressed: () => _notWired(context, l10n, 'category'),
+                    tooltip: 'Category',
                   ),
                 if (!_searching) const SizedBox(width: AppSpacing.xxs),
-                if (!_searching)
-                  IconButton(
-                    icon: Icon(Icons.sync, color: skin.text),
-                    onPressed: () {},
-                    tooltip: l10n.commonRefresh,
-                  ),
                 const SizedBox(width: AppSpacing.xs),
-                _buildAddButton(skin),
+                _buildAddButton(context, skin, l10n),
               ],
             ),
           ),
@@ -166,9 +171,10 @@ class _CustomizePageState extends State<CustomizePage> {
     );
   }
 
-  Widget _buildAddButton(AppSkin skin) {
+  Widget _buildAddButton(BuildContext context, AppSkin skin, AppLocalizations l10n) {
     return ElevatedButton(
-      onPressed: () {},
+      // TODO: 这个 Add 按钮暂未实现
+      onPressed: () => _notWired(context, l10n, l10n.commonAdd),
       style: ElevatedButton.styleFrom(
         backgroundColor: Colors.black,
         foregroundColor: Colors.white,
@@ -247,22 +253,28 @@ class _CustomizePageState extends State<CustomizePage> {
     );
   }
 
-  Widget _buildContent(AppSkin skin) {
+  Widget _buildContent(BuildContext context, AppSkin skin, AppLocalizations l10n) {
     return ListView(
       padding: const EdgeInsets.all(AppSpacing.lg),
       children: [
-        _buildSection('For you', skin),
+        _buildSection(context, 'For you', skin, l10n),
         const SizedBox(height: AppSpacing.lg),
-        _buildSkillsGrid(skin),
+        _buildSkillsGrid(context, skin, l10n),
         const SizedBox(height: AppSpacing.xl),
-        _buildSection('New', skin, showSeeAll: true),
+        _buildSection(context, 'New', skin, l10n, showSeeAll: true),
         const SizedBox(height: AppSpacing.lg),
-        _buildNewSkillsRow(skin),
+        _buildNewSkillsRow(context, skin, l10n),
       ],
     );
   }
 
-  Widget _buildSection(String title, AppSkin skin, {bool showSeeAll = false}) {
+  Widget _buildSection(
+    BuildContext context,
+    String title,
+    AppSkin skin,
+    AppLocalizations l10n, {
+    bool showSeeAll = false,
+  }) {
     return Row(
       children: [
         Text(
@@ -276,7 +288,8 @@ class _CustomizePageState extends State<CustomizePage> {
         const Spacer(),
         if (showSeeAll)
           TextButton(
-            onPressed: () {},
+            // TODO: 这个 See all 按钮暂未实现
+            onPressed: () => _notWired(context, l10n, 'See all'),
             style: TextButton.styleFrom(
               foregroundColor: skin.text,
               padding: EdgeInsets.zero,
@@ -304,7 +317,7 @@ class _CustomizePageState extends State<CustomizePage> {
     );
   }
 
-  Widget _buildSkillsGrid(AppSkin skin) {
+  Widget _buildSkillsGrid(BuildContext context, AppSkin skin, AppLocalizations l10n) {
     final skills = [
       SkillItem(
         icon: Icons.list_alt,
@@ -365,15 +378,31 @@ class _CustomizePageState extends State<CustomizePage> {
     ];
 
     final filtered = _filter(skills);
+    return _buildSkillsWrap(context, filtered, skin, l10n);
+  }
+
+  /// 一张卡片最少需要这么宽才放得下图标+文案+加号按钮，窄于此就退成单列，否则内容溢出
+  static const double _minCardWidth = 280;
+
+  Widget _buildSkillsWrap(
+    BuildContext context,
+    List<SkillItem> items,
+    AppSkin skin,
+    AppLocalizations l10n,
+  ) {
     return LayoutBuilder(
       builder: (context, constraints) {
+        final twoColumns = constraints.maxWidth >= _minCardWidth * 2 + AppSpacing.md;
+        final width = twoColumns
+            ? (constraints.maxWidth - AppSpacing.md) / 2
+            : constraints.maxWidth;
         return Wrap(
           spacing: AppSpacing.md,
           runSpacing: AppSpacing.md,
-          children: filtered.map((skill) {
+          children: items.map((skill) {
             return SizedBox(
-              width: (constraints.maxWidth - AppSpacing.md) / 2,
-              child: SkillCard(skill: skill, skin: skin),
+              width: width,
+              child: SkillCard(skill: skill, skin: skin, l10n: l10n),
             );
           }).toList(),
         );
@@ -381,7 +410,7 @@ class _CustomizePageState extends State<CustomizePage> {
     );
   }
 
-  Widget _buildNewSkillsRow(AppSkin skin) {
+  Widget _buildNewSkillsRow(BuildContext context, AppSkin skin, AppLocalizations l10n) {
     final newSkills = [
       SkillItem(
         icon: Icons.apartment,
@@ -400,20 +429,7 @@ class _CustomizePageState extends State<CustomizePage> {
     ];
 
     final filtered = _filter(newSkills);
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        return Wrap(
-          spacing: AppSpacing.md,
-          runSpacing: AppSpacing.md,
-          children: filtered.map((skill) {
-            return SizedBox(
-              width: (constraints.maxWidth - AppSpacing.md) / 2,
-              child: SkillCard(skill: skill, skin: skin),
-            );
-          }).toList(),
-        );
-      },
-    );
+    return _buildSkillsWrap(context, filtered, skin, l10n);
   }
 }
 
@@ -438,10 +454,12 @@ class SkillCard extends StatelessWidget {
     super.key,
     required this.skill,
     required this.skin,
+    required this.l10n,
   });
 
   final SkillItem skill;
   final AppSkin skin;
+  final AppLocalizations l10n;
 
   @override
   Widget build(BuildContext context) {
@@ -498,11 +516,14 @@ class SkillCard extends StatelessWidget {
                 const SizedBox(height: AppSpacing.xs),
                 Row(
                   children: [
-                    Text(
-                      skill.source,
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: skin.textSecondary.withValues(alpha: 0.7),
+                    Flexible(
+                      child: Text(
+                        skill.source,
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: skin.textSecondary.withValues(alpha: 0.7),
+                        ),
+                        overflow: TextOverflow.ellipsis,
                       ),
                     ),
                     const SizedBox(width: AppSpacing.xxs),
@@ -514,11 +535,14 @@ class SkillCard extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(width: AppSpacing.xxs),
-                    Text(
-                      skill.installs,
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: skin.textSecondary.withValues(alpha: 0.7),
+                    Flexible(
+                      child: Text(
+                        skill.installs,
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: skin.textSecondary.withValues(alpha: 0.7),
+                        ),
+                        overflow: TextOverflow.ellipsis,
                       ),
                     ),
                   ],
@@ -529,7 +553,12 @@ class SkillCard extends StatelessWidget {
           const SizedBox(width: AppSpacing.sm),
           IconButton(
             icon: Icon(Icons.add, color: skin.text),
-            onPressed: () {},
+            onPressed: () => ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(l10n.commonNotWired(skill.title)),
+                duration: const Duration(seconds: 1),
+              ),
+            ),
             padding: EdgeInsets.zero,
             constraints: const BoxConstraints(
               minWidth: 32,

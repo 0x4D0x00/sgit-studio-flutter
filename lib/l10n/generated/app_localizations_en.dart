@@ -919,6 +919,42 @@ class AppLocalizationsEn extends AppLocalizations {
   String get projectsSearchHint => 'Search projects...';
 
   @override
+  String get projectsMoreActions => 'More actions';
+
+  @override
+  String get projectsPin => 'Pin';
+
+  @override
+  String get projectsEditDetails => 'Edit details';
+
+  @override
+  String get projectsEditDialogTitle => 'Edit details';
+
+  @override
+  String get projectsEditDialogName => 'Name';
+
+  @override
+  String get projectsEditDialogDescription => 'Description';
+
+  @override
+  String get projectsUpdatedJustNow => 'Just now';
+
+  @override
+  String projectsUpdatedMinutesAgo(int n) {
+    return '$n minutes ago';
+  }
+
+  @override
+  String projectsUpdatedHoursAgo(int n) {
+    return '$n hours ago';
+  }
+
+  @override
+  String projectsUpdatedDaysAgo(int n) {
+    return '$n days ago';
+  }
+
+  @override
   String get customizeTitle => 'Customize';
 
   @override

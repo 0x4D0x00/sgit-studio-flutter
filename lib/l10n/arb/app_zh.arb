@@ -442,6 +442,37 @@
   "projectsCreateDialogDescription": "你想实现什么目标？",
   "projectsCreateDialogDescriptionHint": "描述你的项目、目标、主题等...",
   "projectsSearchHint": "搜索项目...",
+  "projectsMoreActions": "更多操作",
+  "projectsPin": "置顶",
+  "projectsEditDetails": "编辑细节",
+  "projectsEditDialogTitle": "编辑细节",
+  "projectsEditDialogName": "名称",
+  "projectsEditDialogDescription": "描述",
+  "projectsUpdatedJustNow": "刚刚",
+  "projectsUpdatedMinutesAgo": "{n} 分钟前",
+  "@projectsUpdatedMinutesAgo": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "projectsUpdatedHoursAgo": "{n} 小时前",
+  "@projectsUpdatedHoursAgo": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "projectsUpdatedDaysAgo": "{n} 天前",
+  "@projectsUpdatedDaysAgo": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
   "customizeTitle": "Customize",
   "customizeTabTheme": "主题",
   "customizeTabLayout": "布局",

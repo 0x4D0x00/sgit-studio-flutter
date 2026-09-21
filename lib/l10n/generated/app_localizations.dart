@@ -1790,6 +1790,66 @@ abstract class AppLocalizations {
   /// **'搜索项目...'**
   String get projectsSearchHint;
 
+  /// No description provided for @projectsMoreActions.
+  ///
+  /// In zh, this message translates to:
+  /// **'更多操作'**
+  String get projectsMoreActions;
+
+  /// No description provided for @projectsPin.
+  ///
+  /// In zh, this message translates to:
+  /// **'置顶'**
+  String get projectsPin;
+
+  /// No description provided for @projectsEditDetails.
+  ///
+  /// In zh, this message translates to:
+  /// **'编辑细节'**
+  String get projectsEditDetails;
+
+  /// No description provided for @projectsEditDialogTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'编辑细节'**
+  String get projectsEditDialogTitle;
+
+  /// No description provided for @projectsEditDialogName.
+  ///
+  /// In zh, this message translates to:
+  /// **'名称'**
+  String get projectsEditDialogName;
+
+  /// No description provided for @projectsEditDialogDescription.
+  ///
+  /// In zh, this message translates to:
+  /// **'描述'**
+  String get projectsEditDialogDescription;
+
+  /// No description provided for @projectsUpdatedJustNow.
+  ///
+  /// In zh, this message translates to:
+  /// **'刚刚'**
+  String get projectsUpdatedJustNow;
+
+  /// No description provided for @projectsUpdatedMinutesAgo.
+  ///
+  /// In zh, this message translates to:
+  /// **'{n} 分钟前'**
+  String projectsUpdatedMinutesAgo(int n);
+
+  /// No description provided for @projectsUpdatedHoursAgo.
+  ///
+  /// In zh, this message translates to:
+  /// **'{n} 小时前'**
+  String projectsUpdatedHoursAgo(int n);
+
+  /// No description provided for @projectsUpdatedDaysAgo.
+  ///
+  /// In zh, this message translates to:
+  /// **'{n} 天前'**
+  String projectsUpdatedDaysAgo(int n);
+
   /// No description provided for @customizeTitle.
   ///
   /// In zh, this message translates to:

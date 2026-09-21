@@ -897,6 +897,42 @@ class AppLocalizationsZh extends AppLocalizations {
   String get projectsSearchHint => '搜索项目...';
 
   @override
+  String get projectsMoreActions => '更多操作';
+
+  @override
+  String get projectsPin => '置顶';
+
+  @override
+  String get projectsEditDetails => '编辑细节';
+
+  @override
+  String get projectsEditDialogTitle => '编辑细节';
+
+  @override
+  String get projectsEditDialogName => '名称';
+
+  @override
+  String get projectsEditDialogDescription => '描述';
+
+  @override
+  String get projectsUpdatedJustNow => '刚刚';
+
+  @override
+  String projectsUpdatedMinutesAgo(int n) {
+    return '$n 分钟前';
+  }
+
+  @override
+  String projectsUpdatedHoursAgo(int n) {
+    return '$n 小时前';
+  }
+
+  @override
+  String projectsUpdatedDaysAgo(int n) {
+    return '$n 天前';
+  }
+
+  @override
   String get customizeTitle => 'Customize';
 
   @override
