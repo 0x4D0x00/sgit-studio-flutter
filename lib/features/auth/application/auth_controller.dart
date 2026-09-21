@@ -96,12 +96,15 @@ class AuthController extends Notifier<AuthState> {
       }
       state = AuthState(token: _kSessionMark, cid: result.cid);
 
-      // ⚠️ **登录后拉一次会话历史**，别等第一轮对话结束。
+      // ⚠️ **登录后同步一次会话历史**，别等第一轮对话结束。
       //
       // 同步器原本只有三个触发点（一轮对话结束去抖 30s / 切云端前 / 退出前），
       // 全都要求用户**先做点什么**。于是「换台机器登录」这个最需要历史的时刻
       // 反而一条都没有：本机 `<cid_home>/sessions/` 是空的，列表也就是空的，
       // 而服务器上那份好好地在。
+      //
+      // 同步本身是双向的，但这个时机的重点在**下行**；顺带把上次离线期间
+      // 没推上去的补齐也没坏处。
       //
       // 不 await：登录要立刻进主界面。列表那边自己会在内核连上时再拉一次
       // （thread_list_controller 监听 capabilities），所以同步落地后不需要
