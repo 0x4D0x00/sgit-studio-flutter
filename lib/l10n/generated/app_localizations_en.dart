@@ -864,22 +864,31 @@ class AppLocalizationsEn extends AppLocalizations {
   String get artifactsSearchClose => 'Close search';
 
   @override
-  String get artifactsRange => 'Time range';
+  String get artifactsTypeAll => 'All types';
 
   @override
-  String get artifactsRangeToday => 'Today';
+  String get artifactsTabAll => 'All';
 
   @override
-  String get artifactsRangeWeek => 'This week';
+  String get artifactsTabYours => 'Yours';
 
   @override
-  String get artifactsRangeMonth => 'This month';
+  String get artifactsTabShared => 'Shared with you';
 
   @override
-  String get artifactsRangeYear => 'This year';
+  String get artifactsNew => 'New artifact';
 
   @override
-  String get artifactsRangeAll => 'All';
+  String get artifactsViewGrid => 'Grid view';
+
+  @override
+  String get artifactsViewList => 'List view';
+
+  @override
+  String get artifactsMoreActions => 'More actions';
+
+  @override
+  String get artifactsRename => 'Rename';
 
   @override
   String artifactsEdited(String when) {

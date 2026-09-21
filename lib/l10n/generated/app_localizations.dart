@@ -1688,41 +1688,59 @@ abstract class AppLocalizations {
   /// **'关闭搜索'**
   String get artifactsSearchClose;
 
-  /// No description provided for @artifactsRange.
+  /// No description provided for @artifactsTypeAll.
   ///
   /// In zh, this message translates to:
-  /// **'时间范围'**
-  String get artifactsRange;
+  /// **'全部类型'**
+  String get artifactsTypeAll;
 
-  /// No description provided for @artifactsRangeToday.
-  ///
-  /// In zh, this message translates to:
-  /// **'今日'**
-  String get artifactsRangeToday;
-
-  /// No description provided for @artifactsRangeWeek.
-  ///
-  /// In zh, this message translates to:
-  /// **'本周'**
-  String get artifactsRangeWeek;
-
-  /// No description provided for @artifactsRangeMonth.
-  ///
-  /// In zh, this message translates to:
-  /// **'本月'**
-  String get artifactsRangeMonth;
-
-  /// No description provided for @artifactsRangeYear.
-  ///
-  /// In zh, this message translates to:
-  /// **'本年'**
-  String get artifactsRangeYear;
-
-  /// No description provided for @artifactsRangeAll.
+  /// No description provided for @artifactsTabAll.
   ///
   /// In zh, this message translates to:
   /// **'全部'**
-  String get artifactsRangeAll;
+  String get artifactsTabAll;
+
+  /// No description provided for @artifactsTabYours.
+  ///
+  /// In zh, this message translates to:
+  /// **'你的'**
+  String get artifactsTabYours;
+
+  /// No description provided for @artifactsTabShared.
+  ///
+  /// In zh, this message translates to:
+  /// **'与你共享'**
+  String get artifactsTabShared;
+
+  /// No description provided for @artifactsNew.
+  ///
+  /// In zh, this message translates to:
+  /// **'新建产物'**
+  String get artifactsNew;
+
+  /// No description provided for @artifactsViewGrid.
+  ///
+  /// In zh, this message translates to:
+  /// **'网格视图'**
+  String get artifactsViewGrid;
+
+  /// No description provided for @artifactsViewList.
+  ///
+  /// In zh, this message translates to:
+  /// **'列表视图'**
+  String get artifactsViewList;
+
+  /// No description provided for @artifactsMoreActions.
+  ///
+  /// In zh, this message translates to:
+  /// **'更多操作'**
+  String get artifactsMoreActions;
+
+  /// No description provided for @artifactsRename.
+  ///
+  /// In zh, this message translates to:
+  /// **'重命名'**
+  String get artifactsRename;
 
   /// 产物卡片上的最后编辑时间。when 已按当前语言格式化
   ///

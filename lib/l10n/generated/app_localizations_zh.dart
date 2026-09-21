@@ -844,22 +844,31 @@ class AppLocalizationsZh extends AppLocalizations {
   String get artifactsSearchClose => '关闭搜索';
 
   @override
-  String get artifactsRange => '时间范围';
+  String get artifactsTypeAll => '全部类型';
 
   @override
-  String get artifactsRangeToday => '今日';
+  String get artifactsTabAll => '全部';
 
   @override
-  String get artifactsRangeWeek => '本周';
+  String get artifactsTabYours => '你的';
 
   @override
-  String get artifactsRangeMonth => '本月';
+  String get artifactsTabShared => '与你共享';
 
   @override
-  String get artifactsRangeYear => '本年';
+  String get artifactsNew => '新建产物';
 
   @override
-  String get artifactsRangeAll => '全部';
+  String get artifactsViewGrid => '网格视图';
+
+  @override
+  String get artifactsViewList => '列表视图';
+
+  @override
+  String get artifactsMoreActions => '更多操作';
+
+  @override
+  String get artifactsRename => '重命名';
 
   @override
   String artifactsEdited(String when) {
