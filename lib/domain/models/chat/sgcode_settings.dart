@@ -296,7 +296,19 @@ class WebSearchSetting {
   /// 用户点一下就中招，且只能手工改文件恢复。实测有人中招。
   static const String enabledWire = 'cached';
 
-  bool get enabled => raw != null && raw != disabledWire;
+  /// 是不是开着。
+  ///
+  /// ⚠️ **键缺失（`raw == null`）算「开」**，不是「关」。
+  ///
+  /// 引擎侧 `WebSearchMode` 的 `#[default]` 是 `Cached` —— 配置文件里没写过
+  /// 这个键就是跟随默认档，也就是开着。
+  ///
+  /// 这里原先写的是 `raw != null && raw != disabledWire`，把「没配置」当成关，
+  /// 与 `tool_catalog.dart` 的 `toolEnabled`（那边判的是
+  /// `webSearch == null ? true : ...`）**恰好相反**。同一个键两处判断相反，
+  /// 之前因为这个开关整个是空转的（工具压根没下发）所以看不出来；现在它真正
+  /// 生效了，分歧会直接表现成「智能体面板显示开、输入框显示关」。
+  bool get enabled => raw != disabledWire;
 
   /// 切换。关 → 恢复成 [enabledWire]；开 → [disabledWire]。
   ///

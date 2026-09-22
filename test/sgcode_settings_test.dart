@@ -1,6 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:sgit_studio_flutter/domain/models/chat/sgcode_settings.dart';
+import 'package:sgit_studio_flutter/domain/models/studio/tool_catalog.dart';
 
 /// 钉住输入框设置的**线上取值**与 sgcode 引擎一字不差。
 ///
@@ -139,7 +140,11 @@ void main() {
       expect(parsed.sandboxMode, s.sandboxMode);
       expect(parsed.reasoningEffort, s.reasoningEffort);
       expect(parsed.memoryEnabled, isTrue, reason: '键缺失应视为引擎默认开');
-      expect(parsed.webSearch.enabled, isFalse);
+      expect(
+        parsed.webSearch.enabled,
+        isTrue,
+        reason: '键缺失 = 跟随引擎默认档 Cached = 开（与 memoryEnabled 同理）',
+      );
     });
 
     test('读出 Rust 两侧同形返回的六个字段', () {
@@ -150,7 +155,9 @@ void main() {
         'reasoningEffort': 'high',
         'requestUserInput': null,
         'sandboxMode': 'workspace-write',
-        'webSearch': 'enabled',
+        // 用引擎真实存在的档位。`'enabled'` 那个值根本不在 WebSearchMode 里
+        // （只有 disabled / cached / indexed / live），拿它当样例会误导下一个人。
+        'webSearch': 'cached',
       });
       expect(parsed.approvalPolicy, isA<NeverApproval>());
       expect(parsed.sandboxMode, SandboxMode.workspaceWrite);
@@ -176,12 +183,42 @@ void main() {
   });
 
   group('联网搜索开关', () {
-    test('缺键 = 关；非 disabled 的任意档位 = 开', () {
-      expect(const WebSearchSetting(null).enabled, isFalse);
+    // ⚠️ 这条原先断言「缺键 = 关」。改了 —— 引擎 WebSearchMode 的
+    // `#[default]` 是 Cached，没配置这个键就是跟随默认档，也就是**开着**。
+    //
+    // 之所以之前是错的也没人发现：那时这个开关整个是空转的（工具压根没下发，
+    // 见 `ext/web-search` 那次改造），开还是关都没有可观察的后果。
+    test('缺键 = 开（引擎默认 Cached）；只有显式 disabled 才算关', () {
+      expect(
+        const WebSearchSetting(null).enabled,
+        isTrue,
+        reason: '键缺失 = 跟随引擎默认档 Cached = 开',
+      );
       expect(const WebSearchSetting('disabled').enabled, isFalse);
-      expect(const WebSearchSetting('enabled').enabled, isTrue);
       // 用户在 CLI 里设的其它档位也算"开着"，不该被界面读成关。
       expect(const WebSearchSetting('cached').enabled, isTrue);
+      expect(const WebSearchSetting('indexed').enabled, isTrue);
+      expect(const WebSearchSetting('live').enabled, isTrue);
+    });
+
+    test('与 tool_catalog 的 toolEnabled 判断一致', () {
+      // ⚠️ 同一个 `web_search` 键有两处判断（输入框开关走
+      // WebSearchSetting.enabled，智能体工具面板走 toolEnabled）。
+      // 两处相反的话会直接表现成「面板显示开、输入框显示关」——
+      // 之前确实相反过，这条把它们绑在一起。
+      const webSearchTool = ToolDef(
+        id: 'web_search',
+        label: '联网搜索',
+        desc: '',
+        kind: ToolKind.webSearch,
+      );
+      for (final raw in [null, 'disabled', 'cached', 'indexed', 'live']) {
+        expect(
+          WebSearchSetting(raw).enabled,
+          toolEnabled(webSearchTool, features: const {}, webSearch: raw),
+          reason: 'raw=$raw 时两处判断应相同',
+        );
+      }
     });
 
     // ⚠️ 「开」必须写回引擎**真实存在**的档位。
@@ -191,8 +228,9 @@ void main() {
     // 用户点一下开关，config.toml 就被写成 `web_search = "enabled"`，
     // 本地引擎从此解析失败起不来，而报错完全看不出跟开关有关。实测有人中招。
     test('切换在两端之间来回，开写回引擎真实档位', () {
-      expect(const WebSearchSetting(null).toggled().raw, 'cached');
-      expect(const WebSearchSetting('enabled').toggled().raw, 'disabled');
+      // 缺键时是"开着"，所以切换后应该去 disabled。
+      expect(const WebSearchSetting(null).toggled().raw, 'disabled');
+      expect(const WebSearchSetting('cached').toggled().raw, 'disabled');
       expect(const WebSearchSetting('disabled').toggled().raw, 'cached');
     });
 

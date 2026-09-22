@@ -219,7 +219,7 @@ void main() {
       expect(settings.calls, contains('setToolConfig:approval_policy=never'));
     });
 
-    testWidgets('开联网搜索 → 写 web_search（不是某个自造键）', (tester) async {
+    testWidgets('切联网搜索 → 写 web_search（不是某个自造键）', (tester) async {
       await tester.pumpWidget(harness(ComposerVariant.empty));
       await tester.pump();
 
@@ -228,8 +228,45 @@ void main() {
       await tester.tap(find.text('联网搜索'));
       await tester.pumpAndSettle();
 
-      // `cached` 是引擎 WebSearchMode 的默认档。原先这里断言 `enabled`，
-      // 而那个档位根本不存在 —— 写进 config.toml 会让本地引擎起不来。
+      // ⚠️ fake 的初始 `webSearch` 是 null = 键缺失 = **跟随引擎默认档
+      // Cached = 开着**（fake_settings_repository.dart 的注释一直这么写，
+      // 是 WebSearchSetting.enabled 之前与它不符）。所以点一下是**关**。
+      //
+      // 键名和值两件事都要钉：
+      // - 键必须是 `web_search`，不是某个自造键；
+      // - 值必须是引擎 WebSearchMode 里真实存在的档位。原先这条断言写的是
+      //   `enabled` —— 那个档位根本不存在，写进 config.toml 会让本地引擎
+      //   解析失败起不来，而报错完全看不出跟这个开关有关。
+      expect(settings.calls, contains('setToolConfig:web_search=disabled'));
+    });
+
+    testWidgets('已关时再切一次 → 写回引擎真实存在的 cached', (tester) async {
+      // 补上另一个方向：上面那条只覆盖了「开 → 关」，写的是 disabledWire。
+      // `enabledWire` 那条路（也就是当初写出 `enabled` 把引擎搞挂的那条）
+      // 得由这里守住。
+      // ⚠️ 这个 map 不能加 `const`：`const` 字面量里展开另一个 const map
+      // 会在运行时炸在 `dart:_compact_hash` 的断言上（实测），报错跟这里
+      // 写了什么毫无关系，极难归因。
+      settings = FakeSettingsRepository(
+        pages: {
+          'tools': {
+            ...FakeSettingsRepository.toolsSnapshot,
+            'webSearch': 'disabled',
+          },
+        },
+      );
+
+      // ⚠️ 这里必须 pumpAndSettle 而不是 pump：设置是异步读回来的
+      // （`load()` 走 microtask）。只 pump 一帧的话控制器还停在默认态
+      // （缺键 = 开），点一下就成了「开 → 关」，这条测试会测成上一条。
+      await tester.pumpWidget(harness(ComposerVariant.empty));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.byIcon(Icons.add));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('联网搜索'));
+      await tester.pumpAndSettle();
+
       expect(settings.calls, contains('setToolConfig:web_search=cached'));
     });
 
