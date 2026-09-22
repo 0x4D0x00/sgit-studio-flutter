@@ -14,8 +14,22 @@
 set -euo pipefail
 
 REPO="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-# sgcode 的 checkout 位置因机器而异，用环境变量覆盖。
-SGCODE="${SGCODE_RS:-/program/sgcode/sgcode-rs}"
+# sgcode 的 checkout 位置因机器而异。
+#
+# 顺序：显式 SGCODE_RS → 几个常见位置里**第一个真实存在**的。
+# 原先只有一个写死的默认值，而它在多数机器上并不存在 —— 于是每次都要记着
+# 传环境变量，忘了就报"找不到 sgcode-rs"，对第一次跑这个脚本的人尤其劝退。
+if [ -n "${SGCODE_RS:-}" ]; then
+  SGCODE="$SGCODE_RS"
+else
+  SGCODE=""
+  for c in     "/program/sgcode/sgcode-rs"     "$HOME/sgcode-rs"     "$(dirname "$REPO")/sgit-code/sgcode-rs"     "$(dirname "$REPO")/sgcode-rs"; do
+    [ -d "$c" ] && { SGCODE="$c"; break; }
+  done
+  # 一个都没找到时仍给出默认值，好让下面那句检查报出清楚的路径。
+  SGCODE="${SGCODE:-/program/sgcode/sgcode-rs}"
+  echo ">> 自动探测到 sgcode-rs: $SGCODE（用 SGCODE_RS= 可覆盖）"
+fi
 
 export PATH="$HOME/.cargo/bin:$PATH"
 
