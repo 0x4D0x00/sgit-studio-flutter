@@ -3,6 +3,11 @@ import 'package:sgit_studio_flutter/design/extensions/app_skin.dart';
 import 'package:sgit_studio_flutter/design/tokens/app_spacing.dart';
 import 'package:sgit_studio_flutter/l10n/generated/app_localizations.dart';
 
+import '../widgets/customize_models.dart';
+import '../widgets/skill_card.dart';
+import '../widgets/connector_card.dart';
+import '../widgets/connectors_banner.dart';
+
 /// Customize 页面 - Skills, Connectors, Plugins 等自定义内容
 class CustomizePage extends StatefulWidget {
   const CustomizePage({super.key});
@@ -25,11 +30,11 @@ class _CustomizePageState extends State<CustomizePage> {
     super.dispose();
   }
 
-  List<SkillItem> _filter(List<SkillItem> items) {
+  List<T> _filterBy<T>(List<T> items, String Function(T) titleOf) {
     if (_query.isEmpty) return items;
     final q = _query.toLowerCase();
     return items
-        .where((s) => s.title.toLowerCase().contains(q))
+        .where((item) => titleOf(item).toLowerCase().contains(q))
         .toList(growable: false);
   }
 
@@ -429,6 +434,15 @@ class _CustomizePageState extends State<CustomizePage> {
   }
 
   Widget _buildContent(BuildContext context, AppSkin skin, AppLocalizations l10n) {
+    switch (_selectedTabIndex) {
+      case 1: // Connectors
+        return _buildConnectorsContent(context, skin, l10n);
+      default: // Skills, Plugins, Yours, Discover
+        return _buildSkillsContent(context, skin, l10n);
+    }
+  }
+
+  Widget _buildSkillsContent(BuildContext context, AppSkin skin, AppLocalizations l10n) {
     return ListView(
       padding: const EdgeInsets.all(AppSpacing.md),
       children: [
@@ -440,6 +454,147 @@ class _CustomizePageState extends State<CustomizePage> {
         const SizedBox(height: AppSpacing.md),
         _buildNewSkillsRow(context, skin, l10n),
       ],
+    );
+  }
+
+  Widget _buildConnectorsContent(BuildContext context, AppSkin skin, AppLocalizations l10n) {
+    final connectors = [
+      ConnectorItem(
+        icon: Icons.folder,
+        color: const Color(0xFF4285F4), // Google Blue
+        title: 'Google Drive',
+        description: 'Search, read, and upload files instantly',
+      ),
+      ConnectorItem(
+        icon: Icons.mail,
+        color: const Color(0xFFEA4335), // Gmail Red
+        title: 'Gmail',
+        description: 'Draft replies, summarize threads, & search your inbox',
+      ),
+      ConnectorItem(
+        icon: Icons.calendar_today,
+        color: const Color(0xFF4285F4), // Google Blue
+        title: 'Google Calendar',
+        description: 'Manage your schedule and coordinate meetings effortlessly',
+      ),
+      ConnectorItem(
+        icon: Icons.palette,
+        color: const Color(0xFF00C4CC), // Canva Teal
+        title: 'Canva',
+        description: 'Search, create, autofill, and export Canva designs',
+      ),
+      ConnectorItem(
+        icon: Icons.business,
+        color: const Color(0xFFD83B01), // Microsoft Orange-Red
+        title: 'Microsoft 365',
+        description: 'Access your company\'s SharePoint, OneDrive, Outlook, and Teams directly in Claude',
+      ),
+      ConnectorItem(
+        icon: Icons.description,
+        color: Colors.black,
+        title: 'Notion',
+        description: 'Connect your Notion workspace to search, update, and power workflows across tools',
+      ),
+      ConnectorItem(
+        icon: Icons.design_services,
+        color: const Color(0xFFF24E1E), // Figma Orange
+        title: 'Figma',
+        description: 'Generate diagrams and better code from Figma context',
+      ),
+      ConnectorItem(
+        icon: Icons.forum,
+        color: const Color(0xFF611f69), // Slack Purple
+        title: 'Slack',
+        description: 'Send messages, create canvases, and fetch Slack data',
+      ),
+    ];
+
+    final filtered = _filterBy(connectors, (c) => c.title);
+
+    return ListView(
+      padding: const EdgeInsets.all(AppSpacing.md),
+      children: [
+        ConnectorsPromoBanner(
+          skin: skin,
+          onExplore: () => _notWired(context, l10n, 'Explore'),
+        ),
+        const SizedBox(height: AppSpacing.lg),
+        _buildConnectorsSection(context, skin, l10n),
+        const SizedBox(height: AppSpacing.md),
+        _buildConnectorsWrap(context, filtered, skin, l10n),
+      ],
+    );
+  }
+
+  Widget _buildConnectorsSection(BuildContext context, AppSkin skin, AppLocalizations l10n) {
+    return Row(
+      children: [
+        Text(
+          'Top connectors',
+          style: TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.w600,
+            color: skin.text,
+          ),
+        ),
+        const Spacer(),
+        TextButton(
+          onPressed: () => _notWired(context, l10n, 'Show all'),
+          style: TextButton.styleFrom(
+            foregroundColor: skin.text,
+            padding: EdgeInsets.zero,
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                'Show all',
+                style: TextStyle(
+                  fontSize: 14,
+                  color: skin.textSecondary,
+                ),
+              ),
+              const SizedBox(width: AppSpacing.xxs),
+              Icon(
+                Icons.arrow_forward,
+                size: 16,
+                color: skin.textSecondary,
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildConnectorsWrap(
+    BuildContext context,
+    List<ConnectorItem> items,
+    AppSkin skin,
+    AppLocalizations l10n,
+  ) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final twoColumns = constraints.maxWidth >= _minCardWidth * 2 + AppSpacing.md;
+        final width = twoColumns
+            ? (constraints.maxWidth - AppSpacing.md) / 2
+            : constraints.maxWidth;
+        return Wrap(
+          spacing: AppSpacing.md,
+          runSpacing: AppSpacing.md,
+          children: items.map((connector) {
+            return SizedBox(
+              width: width,
+              child: ConnectorCard(
+                connector: connector,
+                skin: skin,
+                l10n: l10n,
+                onTap: () => _notWired(context, l10n, connector.title),
+              ),
+            );
+          }).toList(),
+        );
+      },
     );
   }
 
@@ -552,7 +707,7 @@ class _CustomizePageState extends State<CustomizePage> {
       ),
     ];
 
-    final filtered = _filter(skills);
+    final filtered = _filterBy(skills, (s) => s.title);
     return _buildSkillsWrap(context, filtered, skin, l10n);
   }
 
@@ -608,181 +763,8 @@ class _CustomizePageState extends State<CustomizePage> {
       ),
     ];
 
-    final filtered = _filter(newSkills);
+    final filtered = _filterBy(newSkills, (s) => s.title);
     return _buildSkillsWrap(context, filtered, skin, l10n);
   }
 }
 
-class SkillItem {
-  final IconData icon;
-  final String title;
-  final String description;
-  final String source;
-  final String installs;
-
-  SkillItem({
-    required this.icon,
-    required this.title,
-    required this.description,
-    required this.source,
-    required this.installs,
-  });
-}
-
-class SkillCard extends StatefulWidget {
-  const SkillCard({
-    super.key,
-    required this.skill,
-    required this.skin,
-    required this.l10n,
-    required this.onTap,
-  });
-
-  final SkillItem skill;
-  final AppSkin skin;
-  final AppLocalizations l10n;
-  final VoidCallback onTap;
-
-  @override
-  State<SkillCard> createState() => _SkillCardState();
-}
-
-class _SkillCardState extends State<SkillCard> {
-  bool _hovering = false;
-
-  @override
-  Widget build(BuildContext context) {
-    return MouseRegion(
-      onEnter: (_) => setState(() => _hovering = true),
-      onExit: (_) => setState(() => _hovering = false),
-      child: AnimatedScale(
-        scale: _hovering ? 1.01 : 1.0,
-        duration: const Duration(milliseconds: 150),
-        curve: Curves.easeOut,
-        child: InkWell(
-          onTap: widget.onTap,
-          borderRadius: BorderRadius.circular(AppRadius.md),
-          child: AnimatedContainer(
-            duration: const Duration(milliseconds: 150),
-            curve: Curves.easeOut,
-            padding: const EdgeInsets.all(AppSpacing.md),
-            decoration: BoxDecoration(
-              color: widget.skin.containerBg,
-              border: Border.all(
-                color: widget.skin.border,
-                width: 1,
-              ),
-              borderRadius: BorderRadius.circular(AppRadius.md),
-              boxShadow: _hovering
-                  ? [
-                      BoxShadow(
-                        color: widget.skin.border.withValues(alpha: 0.4),
-                        blurRadius: 12,
-                        offset: const Offset(0, 4),
-                      ),
-                    ]
-                  : null,
-            ),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-              Container(
-                width: 40,
-                height: 40,
-                decoration: BoxDecoration(
-                  color: widget.skin.textSecondary.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(AppRadius.sm),
-                ),
-                child: Icon(
-                  widget.skill.icon,
-                  size: 20,
-                  color: widget.skin.text,
-                ),
-              ),
-              const SizedBox(width: AppSpacing.sm),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      widget.skill.title,
-                      style: TextStyle(
-                        fontSize: 15,
-                        fontWeight: FontWeight.w600,
-                        color: widget.skin.text,
-                      ),
-                    ),
-                    const SizedBox(height: AppSpacing.xxs),
-                    Text(
-                      widget.skill.description,
-                      style: TextStyle(
-                        fontSize: 13,
-                        color: widget.skin.textSecondary,
-                        height: 1.4,
-                      ),
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    const SizedBox(height: AppSpacing.xs),
-                    Row(
-                      children: [
-                        Flexible(
-                          child: Text(
-                            widget.skill.source,
-                            style: TextStyle(
-                              fontSize: 12,
-                              color: widget.skin.textSecondary.withValues(alpha: 0.7),
-                            ),
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ),
-                        const SizedBox(width: AppSpacing.xxs),
-                        Text(
-                          '·',
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: widget.skin.textSecondary.withValues(alpha: 0.5),
-                          ),
-                        ),
-                        const SizedBox(width: AppSpacing.xxs),
-                        Flexible(
-                          child: Text(
-                            widget.skill.installs,
-                            style: TextStyle(
-                              fontSize: 12,
-                              color: widget.skin.textSecondary.withValues(alpha: 0.7),
-                            ),
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(width: AppSpacing.sm),
-              IconButton(
-                icon: Icon(Icons.add, color: widget.skin.text),
-                onPressed: () {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text(widget.l10n.commonNotWired(widget.skill.title)),
-                      duration: const Duration(seconds: 1),
-                    ),
-                  );
-                },
-                padding: EdgeInsets.zero,
-                constraints: const BoxConstraints(
-                  minWidth: 32,
-                  minHeight: 32,
-                ),
-                iconSize: 20,
-              ),
-            ],
-          ),
-          ),
-        ),
-      ),
-    );
-  }
-}
