@@ -412,6 +412,7 @@
   "chatSendWhileBusy": "Still running — type to steer the current turn",
   "chatNoTurnToSteer": "No turn in progress to steer",
   "chatKernelStalled": "The kernel stopped responding — input re-enabled",
+  "chatLocalExecUnavailable": "Local engine started, but command tools are unavailable (sgcode executable not found) — chat works, running commands and editing files does not. Install sgcode or switch to the remote engine.",
   "chatOpeningThread": "Loading this conversation…",
   "chatThreadOpenFailed": "Couldn't open the conversation: {reason}",
   "@chatThreadOpenFailed": {

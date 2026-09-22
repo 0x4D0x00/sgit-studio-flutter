@@ -141,7 +141,12 @@ class ChatController extends Notifier<ChatSessionState> {
         return;
       }
       state = state.copyWith(
-          connecting: false, capabilities: caps, clearProgress: true);
+          connecting: false,
+          capabilities: caps,
+          clearProgress: true,
+          // 引擎起来了但少了命令类工具 → 立刻说清楚。不是"坏了"，所以这条
+          // fault 不给重连按钮（见 LocalExecUnavailable）。
+          fault: caps.execUnavailable ? const LocalExecUnavailable() : null);
     } catch (e) {
       // ⚠️ 这里**必须**接住：以前是裸 await，异常直接进了未处理的 microtask，
       // 界面上一点提示都没有，用户只看到"发消息没反应"。

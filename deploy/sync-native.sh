@@ -23,11 +23,11 @@ export PATH="$HOME/.cargo/bin:$PATH"
 # （见 lib/data/transport/kernel/kernel_client_io.dart 的 _openLib）。
 case "$(uname -s)" in
   MINGW*|MSYS*|CYGWIN*)
-    OUT="$REPO/native/windows"; FILES=(sgit_ffi.dll sgit_crypto.dll) ;;
+    OUT="$REPO/native/windows"; FILES=(sgit_ffi.dll sgit_crypto.dll sgcode.exe) ;;
   Darwin)
-    OUT="$REPO/native/macos";   FILES=(libsgit_ffi.dylib libsgit_crypto.dylib) ;;
+    OUT="$REPO/native/macos";   FILES=(libsgit_ffi.dylib libsgit_crypto.dylib sgcode) ;;
   Linux)
-    OUT="$REPO/native/linux";   FILES=(libsgit_ffi.so libsgit_crypto.so) ;;
+    OUT="$REPO/native/linux";   FILES=(libsgit_ffi.so libsgit_crypto.so sgcode) ;;
   *)
     echo "!! 不认识的平台: $(uname -s)" >&2; exit 1 ;;
 esac
@@ -39,8 +39,18 @@ mkdir -p "$OUT"
 # 「现网 bin 用 dev profile」那条铁律对它们不适用（docs/KERNEL_FFI.md §7 明确写了这一点）。
 # 内核帧的流式解析上 dev / release 差一个数量级，而那正是整个 FFI 方案的全部意义；
 # 用 debug 产物分发等于把方案的收益扔掉，还会让契约 §8 的性能验收项无从谈起。
-echo ">> cargo build --release -p sgit-ffi -p sgit-crypto ..."
-(cd "$SGCODE" && cargo build --release -p sgit-ffi -p sgit-crypto)
+# ⚠️ **sgcode 可执行文件也要一起出**，而且必须是**同一次构建**。
+#
+# 本地引擎跑 shell / apply-patch / 沙箱要靠重新 exec 一个 sgcode 二进制做 argv0
+# 分发（cdylib 没有自己的 main，见 sgit-ffi 的 resolve_sgcode_exe）。
+#
+# 实测代价：同事拿到只有 DLL 的包，选本地引擎完全起不来 —— 他机器上没有
+# sgcode.exe，而我们这台恰好 `cargo install` 过，所以本机永远复现不出来。
+#
+# 「同一次构建」是要紧的：引擎内嵌在 DLL 里，DLL 与 exe 版本错位的毛病极难查。
+# 客户端查找时也把随包这份排在 PATH 之前，正是为此。
+echo ">> cargo build --release -p sgit-ffi -p sgit-crypto -p sgcode-cli ..."
+(cd "$SGCODE" && cargo build --release -p sgit-ffi -p sgit-crypto -p sgcode-cli)
 
 for f in "${FILES[@]}"; do
   src="$SGCODE/target/release/$f"

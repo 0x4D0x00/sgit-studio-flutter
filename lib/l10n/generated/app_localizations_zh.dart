@@ -838,6 +838,10 @@ class AppLocalizationsZh extends AppLocalizations {
   String get chatKernelStalled => '内核长时间无响应，已恢复可输入状态';
 
   @override
+  String get chatLocalExecUnavailable =>
+      '本地引擎已启动，但命令类能力不可用（未找到 sgcode 可执行文件）—— 可以对话，但无法执行命令或改文件。装上 sgcode 或改用云端引擎。';
+
+  @override
   String get chatOpeningThread => '正在载入这条会话…';
 
   @override

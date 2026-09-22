@@ -261,6 +261,9 @@ final class IoKernelClient implements KernelClient {
           frameVersion: kKernelFrameVersion,
           methods: _ops(caps['ops']),
           features: const {'relay'},
+          // 本地引擎可能"起来了但少了东西"（没找到 sgcode 可执行文件 →
+          // 命令类工具不可用）。云端路不会有这个字段，解出来就是空集。
+          degraded: _strSet(caps['degraded']),
         );
       }
       await Future<void>.delayed(poll);
@@ -294,6 +297,9 @@ final class IoKernelClient implements KernelClient {
         final List<Object?> l => l.whereType<String>().toSet(),
         _ => const <String>{},
       };
+
+  /// 同 [_ops]，但语义是"降级项"。字段缺失（云端路）解成空集 —— **不是**错误。
+  static Set<String> _strSet(Object? v) => _ops(v);
 
   @override
   void close() {

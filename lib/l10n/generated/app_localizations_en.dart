@@ -858,6 +858,10 @@ class AppLocalizationsEn extends AppLocalizations {
       'The kernel stopped responding — input re-enabled';
 
   @override
+  String get chatLocalExecUnavailable =>
+      'Local engine started, but command tools are unavailable (sgcode executable not found) — chat works, running commands and editing files does not. Install sgcode or switch to the remote engine.';
+
+  @override
   String get chatOpeningThread => 'Loading this conversation…';
 
   @override
