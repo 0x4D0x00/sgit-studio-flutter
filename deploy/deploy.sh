@@ -15,10 +15,9 @@ REPO="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$REPO"
 
 IMAGE="sgit/studio-flutter-nginx:offline"
-# ⚠️ 现网伺服本项目 web 产物(:18099)的容器叫 sgit-nexus（镜像 sgit/nexus-nginx:offline，
-# nginx root 仍是 /usr/share/nginx/studio-flutter）。`cp` 子命令必须打到它，
-# 否则 "No such container"。用 `CONTAINER=xxx ./deploy/deploy.sh cp` 覆盖。
-CONTAINER="${CONTAINER:-sgit-nexus}"
+# 现网伺服本项目 web 产物(:18099)的容器叫 sgit-studio-flutter（与项目/镜像名一致）。
+# 2026-09-11 从旧名 sgit-nexus 改过来。用 `CONTAINER=xxx ./deploy/deploy.sh cp` 覆盖。
+CONTAINER="${CONTAINER:-sgit-studio-flutter}"
 DOCKERFILE="deploy/studio-flutter-nginx.Dockerfile"
 WEBROOT_IN_CONTAINER="/usr/share/nginx/studio-flutter"
 
