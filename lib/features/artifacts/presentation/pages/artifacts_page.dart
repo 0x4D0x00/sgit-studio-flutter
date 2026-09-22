@@ -123,7 +123,7 @@ class _ArtifactsPageState extends ConsumerState<ArtifactsPage> {
                   },
                 ),
                 const SizedBox(width: AppSpacing.xs),
-                _typeMenu(l10n, skin, state.typeFilter, state.availableTypes, ctrl),
+                _typeMenu(l10n, skin, state.typeFilter, ctrl),
                 const SizedBox(width: AppSpacing.xs),
                 ElevatedButton(
                   onPressed: () => _notWired(l10n.artifactsNew),
@@ -219,7 +219,7 @@ class _ArtifactsPageState extends ConsumerState<ArtifactsPage> {
                   },
                 ),
                 const SizedBox(width: AppSpacing.xs),
-                _typeMenu(l10n, skin, state.typeFilter, state.availableTypes, ctrl),
+                _typeMenu(l10n, skin, state.typeFilter, ctrl),
                 const SizedBox(width: AppSpacing.xs),
                 ElevatedButton(
                   onPressed: () => _notWired(l10n.artifactsNew),
@@ -299,14 +299,16 @@ class _ArtifactsPageState extends ConsumerState<ArtifactsPage> {
     AppLocalizations l10n,
     AppSkin skin,
     String? current,
-    List<String> availableTypes,
     ArtifactsController ctrl,
   ) {
-    String label(String? type) =>
-        type == null ? l10n.artifactsTypeAll : _capitalizeLanguage(type);
+    String label(String? type) {
+      if (type == null) return l10n.artifactsTypeAll;
+      if (type == 'other') return 'Other';
+      return l10n.artifactsTypeAll;
+    }
 
-    // 构建选项：null（全部类型）+ 实际的语言类型
-    final values = <String?>[null, ...availableTypes];
+    // 构建选项：null（全部类型）+ 'other'（其他）
+    final values = <String?>[null, 'other'];
 
     return AppMenuAnchor(
       semanticLabel: l10n.artifactsTypeAll,
@@ -340,26 +342,6 @@ class _ArtifactsPageState extends ConsumerState<ArtifactsPage> {
         ),
       ),
     );
-  }
-
-  String _capitalizeLanguage(String lang) {
-    // 常见语言名称的首字母大写
-    final common = {
-      'dart': 'Dart',
-      'javascript': 'JavaScript',
-      'typescript': 'TypeScript',
-      'python': 'Python',
-      'java': 'Java',
-      'markdown': 'Markdown',
-      'json': 'JSON',
-      'yaml': 'YAML',
-      'html': 'HTML',
-      'css': 'CSS',
-      'bash': 'Bash',
-      'shell': 'Shell',
-    };
-    return common[lang.toLowerCase()] ??
-        lang[0].toUpperCase() + lang.substring(1);
   }
 
   Widget _emptyState(AppLocalizations l10n, AppSkin skin) => Padding(

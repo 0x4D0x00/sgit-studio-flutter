@@ -15,25 +15,19 @@ class ArtifactsState {
 
   final List<Artifact> items;
 
-  /// 类型过滤器（按 language 字段）。null = 全部类型。
+  /// 类型过滤器。null = 全部类型，'other' = 其他。
   final String? typeFilter;
 
   final String searchQuery;
   final bool loading;
 
-  /// 从当前 items 提取可用的类型列表（去重排序）。
-  List<String> get availableTypes {
-    final types = items.map((a) => a.language).toSet().toList()..sort();
-    return types;
-  }
-
   /// 应用过滤后的结果。
   List<Artifact> get filtered {
     var result = items;
 
-    // 类型过滤（按 language）
-    if (typeFilter != null) {
-      result = result.where((a) => a.language == typeFilter).toList();
+    // 类型过滤：只有 'other' 需要过滤（null 表示全部，显示所有）
+    if (typeFilter == 'other') {
+      result = result.where((a) => a.language == 'other').toList();
     }
 
     // 搜索过滤（标题）
