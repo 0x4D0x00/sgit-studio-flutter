@@ -283,7 +283,18 @@ class WebSearchSetting {
   final String? raw;
 
   static const String disabledWire = 'disabled';
-  static const String enabledWire = 'enabled';
+
+  /// 「开」写回哪一档。
+  ///
+  /// ⚠️ **必须是引擎 `WebSearchMode` 里真实存在的值**，这里是它的
+  /// `#[default]`（`protocol/src/config_types.rs`：disabled / cached /
+  /// indexed / live）。
+  ///
+  /// 原先写的是 `'enabled'` —— 那个档位**根本不存在**。后果不是"设置没生效"，
+  /// 而是**本地引擎从此起不来**：config.toml 整个解析失败，报
+  /// `unknown variant enabled`，而错误里完全看不出跟这个开关有关。
+  /// 用户点一下就中招，且只能手工改文件恢复。实测有人中招。
+  static const String enabledWire = 'cached';
 
   bool get enabled => raw != null && raw != disabledWire;
 
