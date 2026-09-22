@@ -228,7 +228,9 @@ void main() {
       await tester.tap(find.text('联网搜索'));
       await tester.pumpAndSettle();
 
-      expect(settings.calls, contains('setToolConfig:web_search=enabled'));
+      // `cached` 是引擎 WebSearchMode 的默认档。原先这里断言 `enabled`，
+      // 而那个档位根本不存在 —— 写进 config.toml 会让本地引擎起不来。
+      expect(settings.calls, contains('setToolConfig:web_search=cached'));
     });
 
     testWidgets('关记忆 → 写 memories.use_memories=false', (tester) async {

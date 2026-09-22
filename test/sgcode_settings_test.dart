@@ -184,10 +184,24 @@ void main() {
       expect(const WebSearchSetting('cached').enabled, isTrue);
     });
 
-    test('切换在两端之间来回', () {
-      expect(const WebSearchSetting(null).toggled().raw, 'enabled');
+    // ⚠️ 「开」必须写回引擎**真实存在**的档位。
+    //
+    // 这条原先断言写回 `'enabled'` —— 而引擎的 WebSearchMode 只有
+    // disabled / cached / indexed / live。于是测试把 bug 一起钉住了：
+    // 用户点一下开关，config.toml 就被写成 `web_search = "enabled"`，
+    // 本地引擎从此解析失败起不来，而报错完全看不出跟开关有关。实测有人中招。
+    test('切换在两端之间来回，开写回引擎真实档位', () {
+      expect(const WebSearchSetting(null).toggled().raw, 'cached');
       expect(const WebSearchSetting('enabled').toggled().raw, 'disabled');
-      expect(const WebSearchSetting('disabled').toggled().raw, 'enabled');
+      expect(const WebSearchSetting('disabled').toggled().raw, 'cached');
+    });
+
+    /// 钉死取值范围本身 —— 光测"切换结果等于某字符串"挡不住有人把它改成
+    /// 另一个同样不存在的值。
+    test('enabledWire 必须是引擎 WebSearchMode 里的档位', () {
+      const engineModes = {'disabled', 'cached', 'indexed', 'live'};
+      expect(engineModes, contains(WebSearchSetting.enabledWire));
+      expect(engineModes, contains(WebSearchSetting.disabledWire));
     });
   });
 }
