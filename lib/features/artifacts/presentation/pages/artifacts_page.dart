@@ -29,6 +29,7 @@ class _ArtifactsPageState extends ConsumerState<ArtifactsPage> {
   bool _searchOpen = false;
   final _searchController = TextEditingController();
   int _selectedTab = 0; // 0=All, 1=Yours, 2=Shared（仅视觉切换）
+  int? _hoveredTab;
   ArtifactViewMode _viewMode = ArtifactViewMode.grid;
 
   @override
@@ -97,154 +98,158 @@ class _ArtifactsPageState extends ConsumerState<ArtifactsPage> {
           ),
           const SizedBox(height: AppSpacing.sm),
           // 第二行：tabs（左）+ 搜索/视图切换/类型筛选/新建按钮（右）
-          // 当搜索打开且空间不足时，折行显示搜索框
-          if (_searchOpen) ...[
-            Row(
-              children: [
-                _buildTabs(l10n, skin),
-                const Spacer(),
-                IconButton(
-                  icon: Icon(
-                    _viewMode == ArtifactViewMode.grid
-                        ? Icons.view_list
-                        : Icons.grid_view,
+          LayoutBuilder(
+            builder: (context, constraints) {
+              // 估算一行所需最小宽度：tabs + 按钮们
+              // tabs约150px，搜索20px，视图20px，类型筛选80px，新建按钮100px，间距40px = 410px
+              final hasSpaceForInlineSearch = constraints.maxWidth >= 700;
+
+              return Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      _buildTabs(l10n, skin),
+                      const Spacer(),
+                      if (!_searchOpen || !hasSpaceForInlineSearch)
+                        IconButton(
+                          icon: const Icon(Icons.search),
+                          iconSize: 20,
+                          tooltip: l10n.artifactsSearch,
+                          color: skin.textSecondary,
+                          onPressed: () => setState(() => _searchOpen = true),
+                        )
+                      else
+                        Expanded(
+                          child: Padding(
+                            padding: const EdgeInsets.only(left: AppSpacing.md),
+                            child: SizedBox(
+                              height: 36,
+                              child: TextField(
+                                controller: _searchController,
+                                autofocus: true,
+                                style: const TextStyle(fontSize: 14),
+                                decoration: InputDecoration(
+                                  isDense: true,
+                                  hintText: l10n.artifactsSearchHint,
+                                  prefixIcon: Icon(
+                                    Icons.search,
+                                    size: 18,
+                                    color: skin.textSecondary,
+                                  ),
+                                  suffixIcon: IconButton(
+                                    icon: const Icon(Icons.close),
+                                    iconSize: 16,
+                                    tooltip: l10n.artifactsSearchClose,
+                                    color: skin.textSecondary,
+                                    onPressed: () {
+                                      setState(() => _searchOpen = false);
+                                      _searchController.clear();
+                                      ctrl.setSearchQuery('');
+                                    },
+                                  ),
+                                  border: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(AppRadius.sm),
+                                  ),
+                                  contentPadding: const EdgeInsets.symmetric(
+                                    horizontal: AppSpacing.sm,
+                                  ),
+                                ),
+                                onChanged: ctrl.setSearchQuery,
+                              ),
+                            ),
+                          ),
+                        ),
+                      const SizedBox(width: AppSpacing.xs),
+                      IconButton(
+                        icon: Icon(
+                          _viewMode == ArtifactViewMode.grid
+                              ? Icons.view_list
+                              : Icons.grid_view,
+                        ),
+                        iconSize: 20,
+                        tooltip: _viewMode == ArtifactViewMode.grid
+                            ? l10n.artifactsViewList
+                            : l10n.artifactsViewGrid,
+                        color: skin.textSecondary,
+                        onPressed: () {
+                          setState(() {
+                            _viewMode = _viewMode == ArtifactViewMode.grid
+                                ? ArtifactViewMode.list
+                                : ArtifactViewMode.grid;
+                          });
+                        },
+                      ),
+                      const SizedBox(width: AppSpacing.xs),
+                      _typeMenu(l10n, skin, state.typeFilter, ctrl),
+                      const SizedBox(width: AppSpacing.xs),
+                      ElevatedButton(
+                        onPressed: () => _notWired(l10n.artifactsNew),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.black,
+                          foregroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: AppSpacing.md,
+                            vertical: AppSpacing.sm,
+                          ),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(AppRadius.md),
+                          ),
+                          elevation: 0,
+                        ),
+                        child: Text(
+                          l10n.artifactsNew,
+                          style: const TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
-                  iconSize: 20,
-                  tooltip: _viewMode == ArtifactViewMode.grid
-                      ? l10n.artifactsViewList
-                      : l10n.artifactsViewGrid,
-                  color: skin.textSecondary,
-                  onPressed: () {
-                    setState(() {
-                      _viewMode = _viewMode == ArtifactViewMode.grid
-                          ? ArtifactViewMode.list
-                          : ArtifactViewMode.grid;
-                    });
-                  },
-                ),
-                const SizedBox(width: AppSpacing.xs),
-                _typeMenu(l10n, skin, state.typeFilter, ctrl),
-                const SizedBox(width: AppSpacing.xs),
-                ElevatedButton(
-                  onPressed: () => _notWired(l10n.artifactsNew),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.black,
-                    foregroundColor: Colors.white,
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: AppSpacing.md,
-                      vertical: AppSpacing.sm,
+                  // 当空间不足且搜索打开时，另起一行显示搜索框
+                  if (_searchOpen && !hasSpaceForInlineSearch) ...[
+                    const SizedBox(height: AppSpacing.sm),
+                    SizedBox(
+                      height: 36,
+                      child: TextField(
+                        controller: _searchController,
+                        autofocus: true,
+                        style: const TextStyle(fontSize: 14),
+                        decoration: InputDecoration(
+                          isDense: true,
+                          hintText: l10n.artifactsSearchHint,
+                          prefixIcon: Icon(
+                            Icons.search,
+                            size: 18,
+                            color: skin.textSecondary,
+                          ),
+                          suffixIcon: IconButton(
+                            icon: const Icon(Icons.close),
+                            iconSize: 16,
+                            tooltip: l10n.artifactsSearchClose,
+                            color: skin.textSecondary,
+                            onPressed: () {
+                              setState(() => _searchOpen = false);
+                              _searchController.clear();
+                              ctrl.setSearchQuery('');
+                            },
+                          ),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(AppRadius.sm),
+                          ),
+                          contentPadding: const EdgeInsets.symmetric(
+                            horizontal: AppSpacing.sm,
+                          ),
+                        ),
+                        onChanged: ctrl.setSearchQuery,
+                      ),
                     ),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(AppRadius.md),
-                    ),
-                    elevation: 0,
-                  ),
-                  child: Text(
-                    l10n.artifactsNew,
-                    style: const TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: AppSpacing.sm),
-            SizedBox(
-              height: 36,
-              child: TextField(
-                controller: _searchController,
-                autofocus: true,
-                style: const TextStyle(fontSize: 14),
-                decoration: InputDecoration(
-                  isDense: true,
-                  hintText: l10n.artifactsSearchHint,
-                  prefixIcon: Icon(
-                    Icons.search,
-                    size: 18,
-                    color: skin.textSecondary,
-                  ),
-                  suffixIcon: IconButton(
-                    icon: const Icon(Icons.close),
-                    iconSize: 16,
-                    tooltip: l10n.artifactsSearchClose,
-                    color: skin.textSecondary,
-                    onPressed: () {
-                      setState(() => _searchOpen = false);
-                      _searchController.clear();
-                      ctrl.setSearchQuery('');
-                    },
-                  ),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(AppRadius.sm),
-                  ),
-                  contentPadding: const EdgeInsets.symmetric(
-                    horizontal: AppSpacing.sm,
-                  ),
-                ),
-                onChanged: ctrl.setSearchQuery,
-              ),
-            ),
-          ] else
-            Row(
-              children: [
-                _buildTabs(l10n, skin),
-                const Spacer(),
-                IconButton(
-                  icon: const Icon(Icons.search),
-                  iconSize: 20,
-                  tooltip: l10n.artifactsSearch,
-                  color: skin.textSecondary,
-                  onPressed: () => setState(() => _searchOpen = true),
-                ),
-                const SizedBox(width: AppSpacing.xs),
-                // 视图切换按钮
-                IconButton(
-                  icon: Icon(
-                    _viewMode == ArtifactViewMode.grid
-                        ? Icons.view_list
-                        : Icons.grid_view,
-                  ),
-                  iconSize: 20,
-                  tooltip: _viewMode == ArtifactViewMode.grid
-                      ? l10n.artifactsViewList
-                      : l10n.artifactsViewGrid,
-                  color: skin.textSecondary,
-                  onPressed: () {
-                    setState(() {
-                      _viewMode = _viewMode == ArtifactViewMode.grid
-                          ? ArtifactViewMode.list
-                          : ArtifactViewMode.grid;
-                    });
-                  },
-                ),
-                const SizedBox(width: AppSpacing.xs),
-                _typeMenu(l10n, skin, state.typeFilter, ctrl),
-                const SizedBox(width: AppSpacing.xs),
-                ElevatedButton(
-                  onPressed: () => _notWired(l10n.artifactsNew),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.black,
-                    foregroundColor: Colors.white,
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: AppSpacing.md,
-                      vertical: AppSpacing.sm,
-                    ),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(AppRadius.md),
-                    ),
-                    elevation: 0,
-                  ),
-                  child: Text(
-                    l10n.artifactsNew,
-                    style: const TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                ),
-              ],
-            ),
+                  ],
+                ],
+              );
+            },
+          ),
         ],
       ),
     );
@@ -260,32 +265,40 @@ class _ArtifactsPageState extends ConsumerState<ArtifactsPage> {
     return Row(
       children: List.generate(tabs.length, (index) {
         final isSelected = _selectedTab == index;
+        final isHovered = _hoveredTab == index;
         return Padding(
-          padding: const EdgeInsets.only(right: AppSpacing.sm),
-          child: InkWell(
-            onTap: () {
-              setState(() {
-                _selectedTab = index;
-              });
-            },
-            borderRadius: BorderRadius.circular(AppRadius.sm),
-            child: Container(
-              padding: const EdgeInsets.symmetric(
-                horizontal: AppSpacing.sm,
-                vertical: AppSpacing.xs,
-              ),
-              decoration: BoxDecoration(
-                color: isSelected
-                    ? skin.textSecondary.withValues(alpha: 0.1)
-                    : Colors.transparent,
-                borderRadius: BorderRadius.circular(AppRadius.sm),
-              ),
-              child: Text(
-                tabs[index],
-                style: TextStyle(
-                  fontSize: 14,
-                  fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
-                  color: isSelected ? skin.text : skin.textSecondary,
+          padding: const EdgeInsets.only(right: AppSpacing.xs),
+          child: MouseRegion(
+            onEnter: (_) => setState(() => _hoveredTab = index),
+            onExit: (_) => setState(() => _hoveredTab = null),
+            child: InkWell(
+              onTap: () {
+                setState(() {
+                  _selectedTab = index;
+                });
+              },
+              borderRadius: BorderRadius.circular(AppRadius.sm),
+              hoverColor: Colors.transparent,
+              splashColor: Colors.transparent,
+              highlightColor: Colors.transparent,
+              child: Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: AppSpacing.sm,
+                  vertical: AppSpacing.xs,
+                ),
+                decoration: BoxDecoration(
+                  color: isSelected || isHovered
+                      ? skin.textSecondary.withValues(alpha: 0.1)
+                      : Colors.transparent,
+                  borderRadius: BorderRadius.circular(AppRadius.sm),
+                ),
+                child: Text(
+                  tabs[index],
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
+                    color: isSelected ? skin.text : skin.textSecondary,
+                  ),
                 ),
               ),
             ),

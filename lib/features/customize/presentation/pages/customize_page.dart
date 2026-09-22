@@ -13,8 +13,9 @@ class CustomizePage extends StatefulWidget {
 
 class _CustomizePageState extends State<CustomizePage> {
   int _selectedTabIndex = 0;
+  int? _hoveredTabIndex;
+  bool _searchExpanded = false;
 
-  bool _searching = false;
   final _searchController = TextEditingController();
   String _query = '';
 
@@ -22,18 +23,6 @@ class _CustomizePageState extends State<CustomizePage> {
   void dispose() {
     _searchController.dispose();
     super.dispose();
-  }
-
-  void _startSearch() {
-    setState(() => _searching = true);
-  }
-
-  void _stopSearch() {
-    setState(() {
-      _searching = false;
-      _query = '';
-      _searchController.clear();
-    });
   }
 
   List<SkillItem> _filter(List<SkillItem> items) {
@@ -88,72 +77,192 @@ class _CustomizePageState extends State<CustomizePage> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Padding(
-            padding: const EdgeInsets.symmetric(
-              horizontal: AppSpacing.lg,
-              vertical: AppSpacing.md,
-            ),
-            child: Row(
-              children: [
-                Text(
-                  'Customize',
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.w600,
-                    color: skin.text,
-                    letterSpacing: -0.5,
-                  ),
-                ),
-                const Spacer(),
-                if (!_searching)
-                  IconButton(
-                    icon: Icon(Icons.search, color: skin.text),
-                    onPressed: _startSearch,
-                    tooltip: l10n.commonSearch,
-                  )
-                else
-                  SizedBox(
-                    width: 280,
-                    height: 36,
-                    child: _buildSearchField(skin, l10n),
-                  ),
-                if (!_searching) const SizedBox(width: AppSpacing.xxs),
-                if (!_searching)
-                  IconButton(
-                    icon: Icon(Icons.tune, color: skin.text),
-                    // TODO: 这个类别按钮暂未实现
-                    onPressed: () => _notWired(context, l10n, 'category'),
-                    tooltip: 'Category',
-                  ),
-                if (!_searching) const SizedBox(width: AppSpacing.xxs),
-                const SizedBox(width: AppSpacing.xs),
-                _buildAddButton(context, skin, l10n),
-              ],
+            padding:
+            const EdgeInsetsGeometry.all(AppSpacing.md), 
+            child: Text(
+              'Customize',
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.w600,
+                color: skin.text,
+                letterSpacing: -0.5,
+              ),
             ),
           ),
-          _buildTabs(skin),
+          Padding( 
+            padding: const EdgeInsets.fromLTRB(
+              AppSpacing.md,
+              0,
+              AppSpacing.md,
+              AppSpacing.md,
+            ),
+            child: _buildTabsAndActions(context, skin, l10n),
+          ),
         ],
       ),
+    );
+  }
+
+  /// 中栏宽度低于此值时，搜索框收窄；低于 [_stackBreakpoint] 时标签和操作分两行
+  static const double _compactBreakpoint = 900;
+  static const double _stackBreakpoint = 620;
+
+  Widget _buildTabsAndActions(
+    BuildContext context,
+    AppSkin skin,
+    AppLocalizations l10n,
+  ) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final width = constraints.maxWidth;
+        final stacked = width < _stackBreakpoint;
+        final showFullSearch = width >= _compactBreakpoint;
+
+        if (!stacked) {
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  _buildTabs(skin),
+                  const Spacer(),
+                  _buildActionsRow(
+                    context,
+                    skin,
+                    l10n,
+                    showFullSearch: showFullSearch,
+                  ),
+                ],
+              ),
+              if (_searchExpanded && !showFullSearch) ...[
+                const SizedBox(height: AppSpacing.sm),
+                _buildExpandedSearchField(skin, l10n),
+              ],
+            ],
+          );
+        }
+
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                _buildTabs(skin),
+                const Spacer(),
+                _buildActionsRow(
+                  context,
+                  skin,
+                  l10n,
+                  showFullSearch: false,
+                ),
+              ],
+            ),
+            if (_searchExpanded) ...[
+              const SizedBox(height: AppSpacing.sm),
+              _buildExpandedSearchField(skin, l10n),
+            ],
+          ],
+        );
+      },
+    );
+  }
+
+  Widget _buildActionsRow(
+    BuildContext context,
+    AppSkin skin,
+    AppLocalizations l10n, {
+    required bool showFullSearch,
+  }) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        if (showFullSearch) ...[
+          SizedBox(
+            width: 300,
+            height: 40,
+            child: _buildSearchField(skin, l10n),
+          ),
+          const SizedBox(width: AppSpacing.xs),
+        ] else ...[
+          IconButton(
+            icon: Icon(Icons.search, color: skin.text, size: 20),
+            onPressed: () {
+              setState(() {
+                _searchExpanded = !_searchExpanded;
+                if (!_searchExpanded) {
+                  _query = '';
+                  _searchController.clear();
+                }
+              });
+            },
+            tooltip: 'Search',
+            padding: const EdgeInsets.all(AppSpacing.xs),
+            constraints: const BoxConstraints(
+              minWidth: 40,
+              minHeight: 40,
+            ),
+          ),
+          const SizedBox(width: AppSpacing.xxs),
+        ],
+        IconButton(
+          icon: Icon(Icons.tune, color: skin.text, size: 20),
+          onPressed: () => _notWired(context, l10n, 'category'),
+          tooltip: 'Category',
+          padding: const EdgeInsets.all(AppSpacing.xs),
+          constraints: const BoxConstraints(
+            minWidth: 40,
+            minHeight: 40,
+          ),
+        ),
+        const SizedBox(width: AppSpacing.xxs),
+        IconButton(
+          icon: Icon(Icons.sort, color: skin.text, size: 20),
+          onPressed: () => _notWired(context, l10n, 'sort'),
+          tooltip: 'Sort',
+          padding: const EdgeInsets.all(AppSpacing.xs),
+          constraints: const BoxConstraints(
+            minWidth: 40,
+            minHeight: 40,
+          ),
+        ),
+        const SizedBox(width: AppSpacing.xs),
+        _buildAddButton(context, skin, l10n),
+      ],
+    );
+  }
+
+  Widget _buildExpandedSearchField(AppSkin skin, AppLocalizations l10n) {
+    return SizedBox(
+      width: double.infinity,
+      height: 40,
+      child: _buildSearchField(skin, l10n),
     );
   }
 
   Widget _buildSearchField(AppSkin skin, AppLocalizations l10n) {
     return TextField(
       controller: _searchController,
-      autofocus: true,
       onChanged: (v) => setState(() => _query = v),
       style: TextStyle(fontSize: 14, color: skin.text),
       decoration: InputDecoration(
         isDense: true,
-        prefixIcon: Icon(Icons.search, size: 18, color: skin.textSecondary),
+        prefixIcon: Icon(Icons.search, size: 20, color: skin.textSecondary),
         hintText: l10n.customizeSearchHint,
-        hintStyle: TextStyle(color: skin.textTertiary),
-        suffixIcon: IconButton(
-          icon: Icon(Icons.close, size: 18, color: skin.textSecondary),
-          onPressed: _stopSearch,
-        ),
+        hintStyle: TextStyle(color: skin.textTertiary, fontSize: 14),
+        suffixIcon: _query.isNotEmpty
+            ? IconButton(
+                icon: Icon(Icons.close, size: 18, color: skin.textSecondary),
+                onPressed: () {
+                  setState(() {
+                    _query = '';
+                    _searchController.clear();
+                  });
+                },
+              )
+            : null,
         contentPadding: const EdgeInsets.symmetric(
           horizontal: AppSpacing.sm,
-          vertical: AppSpacing.xs,
+          vertical: AppSpacing.sm,
         ),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(AppRadius.md),
@@ -165,29 +274,29 @@ class _CustomizePageState extends State<CustomizePage> {
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(AppRadius.md),
-          borderSide: BorderSide(color: skin.accentChip, width: 2),
+          borderSide: BorderSide(color: skin.accentChip, width: 1.5),
         ),
       ),
     );
   }
 
   Widget _buildAddButton(BuildContext context, AppSkin skin, AppLocalizations l10n) {
-    return ElevatedButton(
-      // TODO: 这个 Add 按钮暂未实现
+    return ElevatedButton.icon(
       onPressed: () => _notWired(context, l10n, l10n.commonAdd),
       style: ElevatedButton.styleFrom(
         backgroundColor: Colors.black,
         foregroundColor: Colors.white,
         padding: const EdgeInsets.symmetric(
-          horizontal: AppSpacing.md,
-          vertical: AppSpacing.sm,
+          horizontal: AppSpacing.xxs,
+          vertical: AppSpacing.xxs,
         ),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(AppRadius.md),
         ),
         elevation: 0,
       ),
-      child: Row(
+      icon: const Icon(Icons.add, size: 18),
+      label: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
           const Text(
@@ -197,7 +306,7 @@ class _CustomizePageState extends State<CustomizePage> {
               fontWeight: FontWeight.w500,
             ),
           ),
-          const SizedBox(width: AppSpacing.xxs),
+          const SizedBox(width: 2),
           Icon(
             Icons.keyboard_arrow_down,
             size: 18,
@@ -209,60 +318,126 @@ class _CustomizePageState extends State<CustomizePage> {
   }
 
   Widget _buildTabs(AppSkin skin) {
-    final tabs = ['Skills', 'Connectors', 'Plugins', 'Yours', 'Discover'];
+    final tabs = [
+      {'label': 'Skills'},
+      {'label': 'Connectors'},
+      {'label': 'Plugins'},
+      {'label': 'Yours'},
+      {'label': 'Discover'},
+    ];
 
     return SingleChildScrollView(
       scrollDirection: Axis.horizontal,
-      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
       child: Row(
-        children: List.generate(tabs.length, (index) {
-          final isSelected = _selectedTabIndex == index;
-          return Padding(
-            padding: const EdgeInsets.only(right: AppSpacing.xs),
-            child: InkWell(
-              onTap: () {
-                setState(() {
-                  _selectedTabIndex = index;
-                });
-              },
-              borderRadius: BorderRadius.circular(AppRadius.sm),
-              child: Container(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          ...List.generate(tabs.length, (index) {
+            final tab = tabs[index];
+            final isSelected = _selectedTabIndex == index;
+
+            // 在 Plugins 之后插入分割线
+            if (index == 3) {
+              return Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Container(
+                    width: 1,
+                    height: 20,
+                    margin: const EdgeInsets.symmetric(horizontal: AppSpacing.xs),
+                    color: skin.border,
+                  ),
+                  _buildTabItem(tab, isSelected, index, skin),
+                ],
+              );
+            }
+
+            return Padding(
+              padding: EdgeInsets.only(
+                right: index < tabs.length - 1 ? AppSpacing.xs : 0,
+              ),
+              child: _buildTabItem(tab, isSelected, index, skin),
+            );
+          }),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildTabItem(Map<String, dynamic> tab, bool isSelected, int index, AppSkin skin) {
+    final isHovered = _hoveredTabIndex == index;
+    return MouseRegion(
+      onEnter: (_) => setState(() => _hoveredTabIndex = index),
+      onExit: (_) => setState(() => _hoveredTabIndex = null),
+      child: InkWell(
+        onTap: () {
+          setState(() {
+            _selectedTabIndex = index;
+          });
+        },
+        borderRadius: BorderRadius.circular(AppRadius.sm),
+        hoverColor: Colors.transparent,
+        splashColor: Colors.transparent,
+        highlightColor: Colors.transparent,
+        child: Container(
+          padding: const EdgeInsets.symmetric(
+            horizontal: AppSpacing.xs,
+            vertical: AppSpacing.xs,
+          ),
+          decoration: BoxDecoration(
+            color: isSelected || isHovered
+                ? skin.textSecondary.withValues(alpha: 0.08)
+                : Colors.transparent,
+            borderRadius: BorderRadius.circular(AppRadius.sm),
+          ),
+          child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              tab['label'] as String,
+              style: TextStyle(
+                fontSize: 14,
+                fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
+                color: isSelected ? skin.text : skin.textSecondary,
+              ),
+            ),
+            if (tab['badge'] != null) ...[
+              const SizedBox(width: AppSpacing.xs),
+              Container(
                 padding: const EdgeInsets.symmetric(
-                  horizontal: AppSpacing.md,
-                  vertical: AppSpacing.xs,
+                  horizontal: 6,
+                  vertical: 2,
                 ),
                 decoration: BoxDecoration(
-                  color: isSelected
-                      ? skin.textSecondary.withValues(alpha: 0.1)
-                      : Colors.transparent,
+                  color: skin.textSecondary.withValues(alpha: 0.15),
                   borderRadius: BorderRadius.circular(AppRadius.sm),
                 ),
                 child: Text(
-                  tabs[index],
+                  tab['badge'] as String,
                   style: TextStyle(
-                    fontSize: 14,
-                    fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
-                    color: isSelected ? skin.text : skin.textSecondary,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w500,
+                    color: skin.textSecondary,
                   ),
                 ),
               ),
-            ),
-          );
-        }),
+            ],
+          ],
+          ),
+        ),
       ),
     );
   }
 
   Widget _buildContent(BuildContext context, AppSkin skin, AppLocalizations l10n) {
     return ListView(
-      padding: const EdgeInsets.all(AppSpacing.lg),
+      padding: const EdgeInsets.all(AppSpacing.md),
       children: [
         _buildSection(context, 'For you', skin, l10n),
-        const SizedBox(height: AppSpacing.lg),
+        const SizedBox(height: AppSpacing.md),
         _buildSkillsGrid(context, skin, l10n),
-        const SizedBox(height: AppSpacing.xl),
+        const SizedBox(height: AppSpacing.md),
         _buildSection(context, 'New', skin, l10n, showSeeAll: true),
-        const SizedBox(height: AppSpacing.lg),
+        const SizedBox(height: AppSpacing.md),
         _buildNewSkillsRow(context, skin, l10n),
       ],
     );
@@ -323,56 +498,56 @@ class _CustomizePageState extends State<CustomizePage> {
         icon: Icons.list_alt,
         title: 'Operations',
         description: 'Optimize business operations — vendor management, process documentation, change...',
-        source: 'from Anthropic',
+        source: 'Anthropic',
         installs: '1.3M installs',
       ),
       SkillItem(
         icon: Icons.store,
         title: 'Small Business',
         description: 'Pre-built small business workflows to help you run and grow your business. Supports a majority of the...',
-        source: 'from Anthropic',
+        source: 'Anthropic',
         installs: '931.4K installs',
       ),
       SkillItem(
         icon: Icons.science,
         title: 'Bio Research',
         description: 'Connect to preclinical research tools and databases (literature search, genomics analysis, target...',
-        source: 'from Anthropic',
+        source: 'Anthropic',
         installs: '487.3K installs',
       ),
       SkillItem(
         icon: Icons.videocam,
         title: 'Zoom',
         description: 'Plan, build, and debug Zoom integrations across REST APIs, Meeting SDK, Video SDK, webhooks, bots, an...',
-        source: 'from Zoom',
+        source: 'Zoom',
         installs: '243.1K installs',
       ),
       SkillItem(
         icon: Icons.bar_chart,
         title: 'Bright Data',
         description: 'Web scraping, Google search, structured data extraction, and MCP server integration powered by...',
-        source: 'from Bright Data',
+        source: 'Bright Data',
         installs: '237.9K installs',
       ),
       SkillItem(
         icon: Icons.shopping_bag,
         title: 'Product Tracking',
         description: 'AI agent skills that make SaaS products data-ready for product analytics — from codebase scan to...',
-        source: 'from Accoll',
+        source: 'Accoll',
         installs: '211K installs',
       ),
       SkillItem(
         icon: Icons.code,
         title: 'Zapier',
         description: 'Connect 8,000+ apps to your AI workflow. Discover, enable, and execute Zapier actions directly from yo...',
-        source: 'from Zapier',
+        source: 'Zapier',
         installs: '149.7K installs',
       ),
       SkillItem(
         icon: Icons.table_chart,
         title: 'Airtable',
         description: 'Airtable is the database and operations layer for your agents — whether running product, marketing, sale...',
-        source: 'from Airtable',
+        source: 'Airtable',
         installs: '117.3K installs',
       ),
     ];
@@ -421,14 +596,14 @@ class _CustomizePageState extends State<CustomizePage> {
         icon: Icons.apartment,
         title: 'Wingspan',
         description: 'Ask Claude about the contractors you pay through Wingspan, what you owe them, and what is holding...',
-        source: 'from Wingspan Engineering',
+        source: 'Wingspan Engineering',
         installs: 'added 2 days ago',
       ),
       SkillItem(
         icon: Icons.warning,
         title: 'incident.io',
         description: 'Work with incident.io from Claude: respond to and investigate incidents, check on-call schedules and...',
-        source: 'from incident.io',
+        source: 'incident.io',
         installs: 'added 2 days ago',
       ),
     ];
