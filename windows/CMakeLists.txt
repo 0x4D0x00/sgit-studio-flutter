@@ -88,9 +88,18 @@ if(PLUGIN_BUNDLED_LIBRARIES)
 endif()
 
 # 打包原生加密库(FFI)：安装进 bundle。构建期拷贝在 runner/CMakeLists.txt。
+#
+# ⚠️ **这里是真正的分发路径** —— `flutter build windows` 出的包走 install，
+# runner/ 里那份 POST_BUILD 只管本机 `flutter run`。两处都要加，漏了这边
+# 就是"我本机好使、发出去的包不好使"。
+#
+# sgcode.exe：本地引擎跑 shell / apply-patch / 沙箱靠重新 exec 它做 argv0
+# 分发（cdylib 没有自己的 main）。实测同事拿到只有 DLL 的包，本地引擎完全
+# 用不了 —— 而我们这台恰好 `cargo install` 过，本机永远复现不出来。
 install(FILES
     "${CMAKE_SOURCE_DIR}/../native/windows/sgit_crypto.dll"
     "${CMAKE_SOURCE_DIR}/../native/windows/sgit_ffi.dll"
+    "${CMAKE_SOURCE_DIR}/../native/windows/sgcode.exe"
   DESTINATION "${INSTALL_BUNDLE_LIB_DIR}" COMPONENT Runtime)
 
 # Copy the native assets provided by the build.dart from all packages.

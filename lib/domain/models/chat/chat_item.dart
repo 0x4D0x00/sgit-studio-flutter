@@ -182,6 +182,18 @@ final class KernelUnavailable extends ChatFault {
   final String message;
 }
 
+/// 本地引擎起来了，但**命令类工具不可用**（没找到 sgcode 可执行文件）。
+///
+/// ⚠️ 这条不是"坏了"，是"少了一半"—— 能聊天、能读，但 shell / apply-patch /
+/// 沙箱跑不了。所以**不给重连按钮**：重连一百次也变不出那个可执行文件，
+/// 要么把它装上，要么用云端引擎。
+///
+/// 为什么在建连时就报、而不是等用户真去跑命令：那种失败发生在一轮对话中间，
+/// 用户既不知道为什么、也不知道是不是自己问法不对，归因成本高得多。
+final class LocalExecUnavailable extends ChatFault {
+  const LocalExecUnavailable();
+}
+
 /// 打开历史会话失败。[message] 是后端原文。
 ///
 /// ⚠️ 这条**不给「重连」按钮**：连接多半好好的，坏的是这一条会话

@@ -140,6 +140,8 @@ class _WorkspacePageState extends ConsumerState<WorkspacePage> {
           l10n.chatThreadOpenFailed(message),
           false,
         ),
+      // 同样不给重连：重连变不出一个不存在的可执行文件。
+      LocalExecUnavailable() => (l10n.chatLocalExecUnavailable, false),
     };
 
     return Container(

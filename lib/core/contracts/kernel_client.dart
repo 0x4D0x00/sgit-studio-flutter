@@ -109,11 +109,25 @@ final class KernelCapabilities {
     required this.frameVersion,
     required this.methods,
     required this.features,
+    this.degraded = const {},
   });
 
   final int frameVersion;
   final Set<String> methods;
   final Set<String> features;
+
+  /// **起来了但不可用**的能力。空集 = 一切正常。
+  ///
+  /// 目前只有一个值：`exec` —— 本地引擎没找到 sgcode 可执行文件，于是
+  /// shell / apply-patch / 沙箱这些要重新 exec 自身的工具没有落点。引擎能聊，
+  /// 但跑不了命令。
+  ///
+  /// ⚠️ 必须在**建连时**就让界面知道。让用户等到真要跑命令时才撞上一个费解的
+  /// 失败，比一开始说清楚糟得多 —— 而那种失败发生在一轮对话中间，更难归因。
+  final Set<String> degraded;
+
+  /// 命令类工具是否不可用。
+  bool get execUnavailable => degraded.contains('exec');
 
   /// 是否支持某个中继动作。
   ///
