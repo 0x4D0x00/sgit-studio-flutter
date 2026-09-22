@@ -194,10 +194,12 @@ final class IoKernelClient implements KernelClient {
       // native 侧拒绝的两种情形：
       // - 云上路：地址空、或没有进程内会话（未登录 / 进程重启后未恢复）
       // - 本地路：引擎初始化失败
-      throw const KernelException('内核连接建立失败（地址无效或会话已失效，请重新登录）');
+      throw KernelException(engineMode == EngineMode.local
+          ? '本地引擎初始化失败（会话已失效，请重新登录）'
+          : '内核连接建立失败（地址无效或会话已失效，请重新登录）');
     }
 
-    final caps = await _awaitCaps(onProgress);
+    final caps = await _awaitCaps(onProgress, engineMode);
     _caps = caps;
     // ⚠️ **成功也要留一行**。失败路径各有各的日志，成功路径原先一个字都不打 ——
     // 于是"连上了"和"卡在 45s 轮询里"在日志上长得**一模一样**（都是建连那行之后
@@ -208,9 +210,17 @@ final class IoKernelClient implements KernelClient {
   }
 
   /// 等 `hello`（gateway 的能力协商）。与 Web 侧同一套超时与轮询节奏。
+  /// [engineMode] 只用来**说对话** —— 两条路共用这个循环，但错误里提到的东西
+  /// 必须分开。
+  ///
+  /// ⚠️ 实测踩过：同事选**本地引擎**，收到的是「内核连接超时（gateway 未响应）」
+  /// —— 本地模式压根不碰 gateway。他和我们都被这句话带偏，真正的原因
+  /// （他机器上没有 sgcode 可执行文件）在 native 侧被吞掉了。
   Future<KernelCapabilities> _awaitCaps(
     void Function(KernelConnectProgress)? onProgress,
+    EngineMode engineMode,
   ) async {
+    final isLocal = engineMode == EngineMode.local;
     // ⚠️ **必须大于 gateway 的沙箱等待上限**（那边是 30s）。客户端先超时的话，
     // 我们会判连接失败并重连，而每次重连 gateway 又拉一次沙箱 —— 连接越堆越多
     // （现网见过同一 cid 同时 6 条）。这里留足余量。
@@ -233,7 +243,8 @@ final class IoKernelClient implements KernelClient {
         // 直到超时，而真实原因第一秒就知道了（实测踩过）。
         if (status['phase'] == 'failed') {
           final reason = status['reason']?.toString() ?? '未知原因';
-          throw KernelException('云端引擎连接失败：$reason');
+          throw KernelException(
+              isLocal ? '本地引擎启动失败：$reason' : '云端引擎连接失败：$reason');
         }
         onProgress?.call(KernelConnectProgress(
           phase: KernelConnectPhase.fromWire(status['phase']),
@@ -254,7 +265,9 @@ final class IoKernelClient implements KernelClient {
       }
       await Future<void>.delayed(poll);
     }
-    throw const KernelException('内核连接超时（gateway 未响应）');
+    throw KernelException(isLocal
+        ? '本地引擎启动超时（引擎未就绪）'
+        : '内核连接超时（gateway 未响应）');
   }
 
   /// 取一个 native 返回的 JSON 字符串并释放它。`"null"` / 空 / 非对象都返回 null。
