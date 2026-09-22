@@ -374,17 +374,32 @@ class _ProjectCardState extends State<ProjectCard> {
     return MouseRegion(
       onEnter: (_) => setState(() => _hovering = true),
       onExit: (_) => setState(() => _hovering = false),
-      child: InkWell(
-        onTap: widget.onTap,
-        borderRadius: BorderRadius.circular(AppRadius.md),
-        child: Container(
-          width: double.infinity,
-          padding: const EdgeInsets.all(AppSpacing.md),
-          decoration: BoxDecoration(
-            color: skin.containerBg,
-            border: Border.all(color: skin.border, width: 1),
-            borderRadius: BorderRadius.circular(AppRadius.md),
-          ),
+      child: AnimatedScale(
+        scale: _hovering ? 1.01 : 1.0,
+        duration: const Duration(milliseconds: 150),
+        curve: Curves.easeOut,
+        child: InkWell(
+          onTap: widget.onTap,
+          borderRadius: BorderRadius.circular(AppRadius.md),
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 150),
+            curve: Curves.easeOut,
+            width: double.infinity,
+            padding: const EdgeInsets.all(AppSpacing.md),
+            decoration: BoxDecoration(
+              color: skin.containerBg,
+              border: Border.all(color: skin.border, width: 1),
+              borderRadius: BorderRadius.circular(AppRadius.md),
+              boxShadow: _hovering
+                  ? [
+                      BoxShadow(
+                        color: skin.border.withValues(alpha: 0.4),
+                        blurRadius: 12,
+                        offset: const Offset(0, 4),
+                      ),
+                    ]
+                  : null,
+            ),
           child: Stack(
             children: [
             Column(
@@ -464,6 +479,7 @@ class _ProjectCardState extends State<ProjectCard> {
           ],
         ),
       ),
+        ),
       ),
     );
   }

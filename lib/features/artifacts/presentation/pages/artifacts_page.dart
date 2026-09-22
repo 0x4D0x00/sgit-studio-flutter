@@ -492,16 +492,31 @@ class _ArtifactCardState extends State<ArtifactCard> {
     return MouseRegion(
       onEnter: (_) => setState(() => _hovering = true),
       onExit: (_) => setState(() => _hovering = false),
-      child: InkWell(
-        onTap: widget.onTap,
-        borderRadius: BorderRadius.circular(AppRadius.md),
-        child: Container(
-          width: 220,
-          decoration: BoxDecoration(
-            color: skin.containerBg,
-            borderRadius: BorderRadius.circular(AppRadius.md),
-            border: Border.all(color: skin.borderSecondary),
-          ),
+      child: AnimatedScale(
+        scale: _hovering ? 1.01 : 1.0,
+        duration: const Duration(milliseconds: 150),
+        curve: Curves.easeOut,
+        child: InkWell(
+          onTap: widget.onTap,
+          borderRadius: BorderRadius.circular(AppRadius.md),
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 150),
+            curve: Curves.easeOut,
+            width: 220,
+            decoration: BoxDecoration(
+              color: skin.containerBg,
+              borderRadius: BorderRadius.circular(AppRadius.md),
+              border: Border.all(color: skin.borderSecondary),
+              boxShadow: _hovering
+                  ? [
+                      BoxShadow(
+                        color: skin.border.withValues(alpha: 0.5),
+                        blurRadius: 16,
+                        offset: const Offset(0, 6),
+                      ),
+                    ]
+                  : null,
+            ),
           child: Stack(
             children: [
               Column(
@@ -591,6 +606,7 @@ class _ArtifactCardState extends State<ArtifactCard> {
           ],
         ),
       ),
+        ),
       ),
     );
   }
@@ -647,72 +663,75 @@ class _ArtifactListRowState extends State<ArtifactListRow> {
         onTap: widget.onTap,
         child: Container(
           padding: const EdgeInsets.symmetric(
-            horizontal: AppSpacing.md,
-            vertical: AppSpacing.sm,
+            horizontal: AppSpacing.xxs,
+            vertical: AppSpacing.xs,
           ),
           color: _hovering
-              ? skin.text.withValues(alpha: 0.03)
+              ? skin.text.withValues(alpha: 0.05)
               : Colors.transparent,
           child: Row(
             children: [
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    artifact.title,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w600,
-                      color: skin.text,
-                    ),
-                  ),
-                  const SizedBox(height: 2),
-                  Text(
-                    artifact.preview,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: skin.textTertiary,
-                    ),
-                  ),
-                ],
+              // 左侧统一图标
+              Container(
+                width: 30,
+                height: 30,
+                decoration: BoxDecoration(
+                  color: skin.containerBgSecondary,
+                  borderRadius: BorderRadius.circular(AppRadius.sm),
+                ),
+                child: Icon(
+                  Icons.description_outlined,
+                  size: 20,
+                  color: skin.textSecondary,
+                ),
               ),
-            ),
-            const SizedBox(width: AppSpacing.md),
-            Text(
-              l10n.artifactsEdited(when),
-              style: TextStyle(
-                fontSize: 12,
-                color: skin.textSecondary,
+              const SizedBox(width: AppSpacing.sm),
+              // 标题
+              Expanded(
+                child: Text(
+                  artifact.title,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w500,
+                    color: skin.text,
+                  ),
+                ),
               ),
-            ),
-            const SizedBox(width: AppSpacing.sm),
-            SizedBox(
-              width: 28,
-              height: 28,
-              child: showMenuButton
-                  ? AppMenuAnchor(
-                      trigger: AppMenuTrigger.tap,
-                      align: AppMenuAlign.underEnd,
-                      minWidth: 160,
-                      semanticLabel: l10n.artifactsMoreActions,
-                      onOpenChanged: (open) => setState(() => _menuOpen = open),
-                      entries: _menuEntries(l10n),
-                      child: Icon(
-                        Icons.more_vert,
-                        size: 18,
-                        color: skin.textSecondary,
-                      ),
-                    )
-                  : const SizedBox.shrink(),
-            ),
-          ],
+              const SizedBox(width: AppSpacing.md),
+              // 编辑时间
+              Text(
+                l10n.artifactsEdited(when),
+                style: TextStyle(
+                  fontSize: 12,
+                  color: skin.textSecondary,
+                ),
+              ),
+              const SizedBox(width: AppSpacing.sm),
+              // 三点菜单
+              SizedBox(
+                width: 28,
+                height: 28,
+                child: showMenuButton
+                    ? AppMenuAnchor(
+                        trigger: AppMenuTrigger.tap,
+                        align: AppMenuAlign.underEnd,
+                        minWidth: 160,
+                        semanticLabel: l10n.artifactsMoreActions,
+                        onOpenChanged: (open) => setState(() => _menuOpen = open),
+                        entries: _menuEntries(l10n),
+                        child: Icon(
+                          Icons.more_vert,
+                          size: 18,
+                          color: skin.textSecondary,
+                        ),
+                      )
+                    : const SizedBox.shrink(),
+              ),
+            ],
+          ),
         ),
-      ),
       ),
     );
   }
