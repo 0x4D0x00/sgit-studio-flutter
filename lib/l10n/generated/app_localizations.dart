@@ -1166,6 +1166,222 @@ abstract class AppLocalizations {
   /// **'恢复默认'**
   String get settingsResetDefault;
 
+  /// No description provided for @settingsPrivacy.
+  ///
+  /// In zh, this message translates to:
+  /// **'隐私'**
+  String get settingsPrivacy;
+
+  /// No description provided for @settingsBilling.
+  ///
+  /// In zh, this message translates to:
+  /// **'账单'**
+  String get settingsBilling;
+
+  /// No description provided for @settingsCapabilities.
+  ///
+  /// In zh, this message translates to:
+  /// **'能力'**
+  String get settingsCapabilities;
+
+  /// No description provided for @settingsMemory.
+  ///
+  /// In zh, this message translates to:
+  /// **'记忆'**
+  String get settingsMemory;
+
+  /// No description provided for @settingsReflect.
+  ///
+  /// In zh, this message translates to:
+  /// **'反思'**
+  String get settingsReflect;
+
+  /// No description provided for @settingsTimeFocus.
+  ///
+  /// In zh, this message translates to:
+  /// **'时间和专注'**
+  String get settingsTimeFocus;
+
+  /// No description provided for @settingsClaudeCode.
+  ///
+  /// In zh, this message translates to:
+  /// **'Claude Code'**
+  String get settingsClaudeCode;
+
+  /// No description provided for @settingsCustomize.
+  ///
+  /// In zh, this message translates to:
+  /// **'自定义'**
+  String get settingsCustomize;
+
+  /// No description provided for @settingsSkills.
+  ///
+  /// In zh, this message translates to:
+  /// **'技能'**
+  String get settingsSkills;
+
+  /// No description provided for @settingsConnectors.
+  ///
+  /// In zh, this message translates to:
+  /// **'连接器'**
+  String get settingsConnectors;
+
+  /// No description provided for @settingsPlugins.
+  ///
+  /// In zh, this message translates to:
+  /// **'插件'**
+  String get settingsPlugins;
+
+  /// No description provided for @settingsSearch.
+  ///
+  /// In zh, this message translates to:
+  /// **'搜索'**
+  String get settingsSearch;
+
+  /// No description provided for @settingsAppearance.
+  ///
+  /// In zh, this message translates to:
+  /// **'外观'**
+  String get settingsAppearance;
+
+  /// No description provided for @settingsTheme.
+  ///
+  /// In zh, this message translates to:
+  /// **'主题'**
+  String get settingsTheme;
+
+  /// No description provided for @settingsChatFont.
+  ///
+  /// In zh, this message translates to:
+  /// **'聊天字体'**
+  String get settingsChatFont;
+
+  /// No description provided for @settingsMotion.
+  ///
+  /// In zh, this message translates to:
+  /// **'动效'**
+  String get settingsMotion;
+
+  /// No description provided for @settingsMotionDesc.
+  ///
+  /// In zh, this message translates to:
+  /// **'减少流式响应和其他界面元素的动画'**
+  String get settingsMotionDesc;
+
+  /// No description provided for @settingsMotionSystem.
+  ///
+  /// In zh, this message translates to:
+  /// **'系统'**
+  String get settingsMotionSystem;
+
+  /// No description provided for @settingsMotionReduced.
+  ///
+  /// In zh, this message translates to:
+  /// **'减少'**
+  String get settingsMotionReduced;
+
+  /// No description provided for @settingsVoice.
+  ///
+  /// In zh, this message translates to:
+  /// **'语音'**
+  String get settingsVoice;
+
+  /// No description provided for @settingsVoiceLanguage.
+  ///
+  /// In zh, this message translates to:
+  /// **'语言'**
+  String get settingsVoiceLanguage;
+
+  /// No description provided for @settingsVoiceStyle.
+  ///
+  /// In zh, this message translates to:
+  /// **'风格'**
+  String get settingsVoiceStyle;
+
+  /// No description provided for @settingsVoiceSpeed.
+  ///
+  /// In zh, this message translates to:
+  /// **'速度'**
+  String get settingsVoiceSpeed;
+
+  /// No description provided for @settingsNotifications.
+  ///
+  /// In zh, this message translates to:
+  /// **'通知'**
+  String get settingsNotifications;
+
+  /// No description provided for @settingsNotifResponseComplete.
+  ///
+  /// In zh, this message translates to:
+  /// **'响应完成'**
+  String get settingsNotifResponseComplete;
+
+  /// No description provided for @settingsNotifResponseCompleteDesc.
+  ///
+  /// In zh, this message translates to:
+  /// **'当 Claude 完成响应时通知。对长时间运行的任务很有用。'**
+  String get settingsNotifResponseCompleteDesc;
+
+  /// No description provided for @settingsFontAnthropic.
+  ///
+  /// In zh, this message translates to:
+  /// **'Anthropic Serif'**
+  String get settingsFontAnthropic;
+
+  /// No description provided for @settingsFontSystem.
+  ///
+  /// In zh, this message translates to:
+  /// **'系统字体'**
+  String get settingsFontSystem;
+
+  /// No description provided for @settingsVoiceEnglish.
+  ///
+  /// In zh, this message translates to:
+  /// **'English'**
+  String get settingsVoiceEnglish;
+
+  /// No description provided for @settingsVoiceChinese.
+  ///
+  /// In zh, this message translates to:
+  /// **'中文'**
+  String get settingsVoiceChinese;
+
+  /// No description provided for @settingsVoiceStyleButtery.
+  ///
+  /// In zh, this message translates to:
+  /// **'Buttery'**
+  String get settingsVoiceStyleButtery;
+
+  /// No description provided for @settingsVoiceStyleNormal.
+  ///
+  /// In zh, this message translates to:
+  /// **'Normal'**
+  String get settingsVoiceStyleNormal;
+
+  /// No description provided for @settingsVoiceSpeedNormal.
+  ///
+  /// In zh, this message translates to:
+  /// **'Normal'**
+  String get settingsVoiceSpeedNormal;
+
+  /// No description provided for @settingsVoiceSpeedFast.
+  ///
+  /// In zh, this message translates to:
+  /// **'Fast'**
+  String get settingsVoiceSpeedFast;
+
+  /// No description provided for @settingsComingSoon.
+  ///
+  /// In zh, this message translates to:
+  /// **'即将推出'**
+  String get settingsComingSoon;
+
+  /// No description provided for @settingsComingSoonDesc.
+  ///
+  /// In zh, this message translates to:
+  /// **'此功能正在开发中'**
+  String get settingsComingSoonDesc;
+
   /// No description provided for @accountAvatar.
   ///
   /// In zh, this message translates to:
@@ -1267,6 +1483,252 @@ abstract class AppLocalizations {
   /// In zh, this message translates to:
   /// **'图片过大，请选择小于 5MB 的图片'**
   String get accountAvatarTooLarge;
+
+  /// No description provided for @accountProfile.
+  ///
+  /// In zh, this message translates to:
+  /// **'个人资料'**
+  String get accountProfile;
+
+  /// No description provided for @accountWorkDescription.
+  ///
+  /// In zh, this message translates to:
+  /// **'您的工作类型？'**
+  String get accountWorkDescription;
+
+  /// No description provided for @accountWorkPlaceholder.
+  ///
+  /// In zh, this message translates to:
+  /// **'选择您的角色'**
+  String get accountWorkPlaceholder;
+
+  /// No description provided for @accountWorkRoleProductManagement.
+  ///
+  /// In zh, this message translates to:
+  /// **'产品管理'**
+  String get accountWorkRoleProductManagement;
+
+  /// No description provided for @accountWorkRoleEngineering.
+  ///
+  /// In zh, this message translates to:
+  /// **'工程'**
+  String get accountWorkRoleEngineering;
+
+  /// No description provided for @accountWorkRoleHumanResources.
+  ///
+  /// In zh, this message translates to:
+  /// **'人力资源'**
+  String get accountWorkRoleHumanResources;
+
+  /// No description provided for @accountWorkRoleDesign.
+  ///
+  /// In zh, this message translates to:
+  /// **'设计'**
+  String get accountWorkRoleDesign;
+
+  /// No description provided for @accountWorkRoleSoftwareEngineering.
+  ///
+  /// In zh, this message translates to:
+  /// **'软件工程'**
+  String get accountWorkRoleSoftwareEngineering;
+
+  /// No description provided for @accountWorkRoleStudent.
+  ///
+  /// In zh, this message translates to:
+  /// **'学生'**
+  String get accountWorkRoleStudent;
+
+  /// No description provided for @accountWorkRoleOther.
+  ///
+  /// In zh, this message translates to:
+  /// **'其他'**
+  String get accountWorkRoleOther;
+
+  /// No description provided for @accountInstructions.
+  ///
+  /// In zh, this message translates to:
+  /// **'给 Claude 的指示'**
+  String get accountInstructions;
+
+  /// No description provided for @accountInstructionsDesc.
+  ///
+  /// In zh, this message translates to:
+  /// **'Claude 将在 Anthropic 准则范围内，在此账户及关联账户的所有对话和协作中记住这些内容。'**
+  String get accountInstructionsDesc;
+
+  /// No description provided for @accountInstructionsPlaceholder.
+  ///
+  /// In zh, this message translates to:
+  /// **'例如：在学习新概念时，我发现类比特别有帮助'**
+  String get accountInstructionsPlaceholder;
+
+  /// No description provided for @accountInstructionsLearnMore.
+  ///
+  /// In zh, this message translates to:
+  /// **'了解更多'**
+  String get accountInstructionsLearnMore;
+
+  /// No description provided for @accountSectionTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'账户'**
+  String get accountSectionTitle;
+
+  /// No description provided for @accountLogoutAll.
+  ///
+  /// In zh, this message translates to:
+  /// **'退出所有设备'**
+  String get accountLogoutAll;
+
+  /// No description provided for @accountLogout.
+  ///
+  /// In zh, this message translates to:
+  /// **'退出登录'**
+  String get accountLogout;
+
+  /// No description provided for @accountDelete.
+  ///
+  /// In zh, this message translates to:
+  /// **'删除您的账户'**
+  String get accountDelete;
+
+  /// No description provided for @accountDeleteButton.
+  ///
+  /// In zh, this message translates to:
+  /// **'删除账户'**
+  String get accountDeleteButton;
+
+  /// No description provided for @accountOrgId.
+  ///
+  /// In zh, this message translates to:
+  /// **'组织 ID'**
+  String get accountOrgId;
+
+  /// No description provided for @privacyTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'隐私'**
+  String get privacyTitle;
+
+  /// No description provided for @privacyIntro.
+  ///
+  /// In zh, this message translates to:
+  /// **'Anthropic 倡导透明的数据实践。了解使用 Anthropic 产品时如何保护您的信息，请访问我们的{privacyCenter}和{privacyPolicy}了解更多详情。'**
+  String privacyIntro(Object privacyCenter, Object privacyPolicy);
+
+  /// No description provided for @privacyCenter.
+  ///
+  /// In zh, this message translates to:
+  /// **'隐私中心'**
+  String get privacyCenter;
+
+  /// No description provided for @privacyPolicy.
+  ///
+  /// In zh, this message translates to:
+  /// **'隐私政策'**
+  String get privacyPolicy;
+
+  /// No description provided for @privacyProtectData.
+  ///
+  /// In zh, this message translates to:
+  /// **'我们如何保护您的数据'**
+  String get privacyProtectData;
+
+  /// No description provided for @privacyUseData.
+  ///
+  /// In zh, this message translates to:
+  /// **'我们如何使用您的数据'**
+  String get privacyUseData;
+
+  /// No description provided for @privacyPreferences.
+  ///
+  /// In zh, this message translates to:
+  /// **'偏好设置'**
+  String get privacyPreferences;
+
+  /// No description provided for @privacyLocationMetadata.
+  ///
+  /// In zh, this message translates to:
+  /// **'位置元数据'**
+  String get privacyLocationMetadata;
+
+  /// No description provided for @privacyLocationMetadataDesc.
+  ///
+  /// In zh, this message translates to:
+  /// **'允许 Claude 使用粗略的位置元数据（城市/地区）来改进产品体验。{learnMore}'**
+  String privacyLocationMetadataDesc(Object learnMore);
+
+  /// No description provided for @privacyLocationMetadataLearnMore.
+  ///
+  /// In zh, this message translates to:
+  /// **'了解更多。'**
+  String get privacyLocationMetadataLearnMore;
+
+  /// No description provided for @privacyImproveModels.
+  ///
+  /// In zh, this message translates to:
+  /// **'帮助改进我们的 AI 模型'**
+  String get privacyImproveModels;
+
+  /// No description provided for @privacyImproveModelsDesc.
+  ///
+  /// In zh, this message translates to:
+  /// **'允许使用您的对话和编程会话来训练和改进 Anthropic AI 模型。{learnMore}'**
+  String privacyImproveModelsDesc(Object learnMore);
+
+  /// No description provided for @privacyImproveModelsLearnMore.
+  ///
+  /// In zh, this message translates to:
+  /// **'了解更多。'**
+  String get privacyImproveModelsLearnMore;
+
+  /// No description provided for @privacyYourData.
+  ///
+  /// In zh, this message translates to:
+  /// **'您的数据'**
+  String get privacyYourData;
+
+  /// No description provided for @privacyExportData.
+  ///
+  /// In zh, this message translates to:
+  /// **'导出数据'**
+  String get privacyExportData;
+
+  /// No description provided for @privacyExportDataButton.
+  ///
+  /// In zh, this message translates to:
+  /// **'导出数据'**
+  String get privacyExportDataButton;
+
+  /// No description provided for @privacySharedChats.
+  ///
+  /// In zh, this message translates to:
+  /// **'共享对话'**
+  String get privacySharedChats;
+
+  /// No description provided for @privacySharedArtifacts.
+  ///
+  /// In zh, this message translates to:
+  /// **'共享产物'**
+  String get privacySharedArtifacts;
+
+  /// No description provided for @privacyUploadedFiles.
+  ///
+  /// In zh, this message translates to:
+  /// **'上传的文件'**
+  String get privacyUploadedFiles;
+
+  /// No description provided for @privacyYourFeedback.
+  ///
+  /// In zh, this message translates to:
+  /// **'您的反馈'**
+  String get privacyYourFeedback;
+
+  /// No description provided for @privacyManage.
+  ///
+  /// In zh, this message translates to:
+  /// **'管理'**
+  String get privacyManage;
 
   /// No description provided for @commonSave.
   ///

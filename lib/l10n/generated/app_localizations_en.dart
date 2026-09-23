@@ -582,6 +582,116 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settingsResetDefault => 'Reset to default';
 
   @override
+  String get settingsPrivacy => 'Privacy';
+
+  @override
+  String get settingsBilling => 'Billing';
+
+  @override
+  String get settingsCapabilities => 'Capabilities';
+
+  @override
+  String get settingsMemory => 'Memory';
+
+  @override
+  String get settingsReflect => 'Reflect';
+
+  @override
+  String get settingsTimeFocus => 'Time and focus';
+
+  @override
+  String get settingsClaudeCode => 'Claude Code';
+
+  @override
+  String get settingsCustomize => 'Customize';
+
+  @override
+  String get settingsSkills => 'Skills';
+
+  @override
+  String get settingsConnectors => 'Connectors';
+
+  @override
+  String get settingsPlugins => 'Plugins';
+
+  @override
+  String get settingsSearch => 'Search';
+
+  @override
+  String get settingsAppearance => 'Appearance';
+
+  @override
+  String get settingsTheme => 'Theme';
+
+  @override
+  String get settingsChatFont => 'Chat font';
+
+  @override
+  String get settingsMotion => 'Motion';
+
+  @override
+  String get settingsMotionDesc =>
+      'Reduce animation in streaming responses and other interface elements.';
+
+  @override
+  String get settingsMotionSystem => 'System';
+
+  @override
+  String get settingsMotionReduced => 'Reduced';
+
+  @override
+  String get settingsVoice => 'Voice';
+
+  @override
+  String get settingsVoiceLanguage => 'Language';
+
+  @override
+  String get settingsVoiceStyle => 'Style';
+
+  @override
+  String get settingsVoiceSpeed => 'Speed';
+
+  @override
+  String get settingsNotifications => 'Notifications';
+
+  @override
+  String get settingsNotifResponseComplete => 'Response completions';
+
+  @override
+  String get settingsNotifResponseCompleteDesc =>
+      'Get notified when Claude has finished a response. Useful for long-running tasks.';
+
+  @override
+  String get settingsFontAnthropic => 'Anthropic Serif';
+
+  @override
+  String get settingsFontSystem => 'System font';
+
+  @override
+  String get settingsVoiceEnglish => 'English';
+
+  @override
+  String get settingsVoiceChinese => '中文';
+
+  @override
+  String get settingsVoiceStyleButtery => 'Buttery';
+
+  @override
+  String get settingsVoiceStyleNormal => 'Normal';
+
+  @override
+  String get settingsVoiceSpeedNormal => 'Normal';
+
+  @override
+  String get settingsVoiceSpeedFast => 'Fast';
+
+  @override
+  String get settingsComingSoon => 'Coming soon';
+
+  @override
+  String get settingsComingSoonDesc => 'This feature is under development';
+
+  @override
   String get accountAvatar => 'Avatar';
 
   @override
@@ -633,6 +743,137 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get accountAvatarTooLarge =>
       'Image is too large, please choose one under 5MB';
+
+  @override
+  String get accountProfile => 'Profile';
+
+  @override
+  String get accountWorkDescription => 'What best describes your work?';
+
+  @override
+  String get accountWorkPlaceholder => 'Select your role';
+
+  @override
+  String get accountWorkRoleProductManagement => 'Product management';
+
+  @override
+  String get accountWorkRoleEngineering => 'Engineering';
+
+  @override
+  String get accountWorkRoleHumanResources => 'Human resources';
+
+  @override
+  String get accountWorkRoleDesign => 'Design';
+
+  @override
+  String get accountWorkRoleSoftwareEngineering => 'Software engineering';
+
+  @override
+  String get accountWorkRoleStudent => 'Student';
+
+  @override
+  String get accountWorkRoleOther => 'Other';
+
+  @override
+  String get accountInstructions => 'Instructions for Claude';
+
+  @override
+  String get accountInstructionsDesc =>
+      'Claude will keep these in mind for this and any of your associated accounts across chats and Cowork within Anthropic\'s guidelines.';
+
+  @override
+  String get accountInstructionsPlaceholder =>
+      'e.g. when learning new concepts, I find analogies particularly helpful';
+
+  @override
+  String get accountInstructionsLearnMore => 'Learn more';
+
+  @override
+  String get accountSectionTitle => 'Account';
+
+  @override
+  String get accountLogoutAll => 'Log out of all devices';
+
+  @override
+  String get accountLogout => 'Log out';
+
+  @override
+  String get accountDelete => 'Delete your account';
+
+  @override
+  String get accountDeleteButton => 'Delete account';
+
+  @override
+  String get accountOrgId => 'Organization ID';
+
+  @override
+  String get privacyTitle => 'Privacy';
+
+  @override
+  String privacyIntro(Object privacyCenter, Object privacyPolicy) {
+    return 'Anthropic believes in transparent data practices. Learn how your information is protected when using Anthropic products, and visit our $privacyCenter and $privacyPolicy for more details.';
+  }
+
+  @override
+  String get privacyCenter => 'Privacy Center';
+
+  @override
+  String get privacyPolicy => 'Privacy Policy';
+
+  @override
+  String get privacyProtectData => 'How we protect your data';
+
+  @override
+  String get privacyUseData => 'How we use your data';
+
+  @override
+  String get privacyPreferences => 'Preferences';
+
+  @override
+  String get privacyLocationMetadata => 'Location metadata';
+
+  @override
+  String privacyLocationMetadataDesc(Object learnMore) {
+    return 'Allow Claude to use coarse location metadata (city/region) to improve product experiences. $learnMore';
+  }
+
+  @override
+  String get privacyLocationMetadataLearnMore => 'Learn more.';
+
+  @override
+  String get privacyImproveModels => 'Help improve our AI models';
+
+  @override
+  String privacyImproveModelsDesc(Object learnMore) {
+    return 'Allow the use of your chats and coding sessions to train and improve Anthropic AI models. $learnMore';
+  }
+
+  @override
+  String get privacyImproveModelsLearnMore => 'Learn more.';
+
+  @override
+  String get privacyYourData => 'Your data';
+
+  @override
+  String get privacyExportData => 'Export data';
+
+  @override
+  String get privacyExportDataButton => 'Export data';
+
+  @override
+  String get privacySharedChats => 'Shared chats';
+
+  @override
+  String get privacySharedArtifacts => 'Shared artifacts';
+
+  @override
+  String get privacyUploadedFiles => 'Uploaded files';
+
+  @override
+  String get privacyYourFeedback => 'Your feedback';
+
+  @override
+  String get privacyManage => 'Manage';
 
   @override
   String get commonSave => 'Save';

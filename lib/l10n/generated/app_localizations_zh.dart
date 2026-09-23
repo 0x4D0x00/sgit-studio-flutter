@@ -571,6 +571,115 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settingsResetDefault => '恢复默认';
 
   @override
+  String get settingsPrivacy => '隐私';
+
+  @override
+  String get settingsBilling => '账单';
+
+  @override
+  String get settingsCapabilities => '能力';
+
+  @override
+  String get settingsMemory => '记忆';
+
+  @override
+  String get settingsReflect => '反思';
+
+  @override
+  String get settingsTimeFocus => '时间和专注';
+
+  @override
+  String get settingsClaudeCode => 'Claude Code';
+
+  @override
+  String get settingsCustomize => '自定义';
+
+  @override
+  String get settingsSkills => '技能';
+
+  @override
+  String get settingsConnectors => '连接器';
+
+  @override
+  String get settingsPlugins => '插件';
+
+  @override
+  String get settingsSearch => '搜索';
+
+  @override
+  String get settingsAppearance => '外观';
+
+  @override
+  String get settingsTheme => '主题';
+
+  @override
+  String get settingsChatFont => '聊天字体';
+
+  @override
+  String get settingsMotion => '动效';
+
+  @override
+  String get settingsMotionDesc => '减少流式响应和其他界面元素的动画';
+
+  @override
+  String get settingsMotionSystem => '系统';
+
+  @override
+  String get settingsMotionReduced => '减少';
+
+  @override
+  String get settingsVoice => '语音';
+
+  @override
+  String get settingsVoiceLanguage => '语言';
+
+  @override
+  String get settingsVoiceStyle => '风格';
+
+  @override
+  String get settingsVoiceSpeed => '速度';
+
+  @override
+  String get settingsNotifications => '通知';
+
+  @override
+  String get settingsNotifResponseComplete => '响应完成';
+
+  @override
+  String get settingsNotifResponseCompleteDesc =>
+      '当 Claude 完成响应时通知。对长时间运行的任务很有用。';
+
+  @override
+  String get settingsFontAnthropic => 'Anthropic Serif';
+
+  @override
+  String get settingsFontSystem => '系统字体';
+
+  @override
+  String get settingsVoiceEnglish => 'English';
+
+  @override
+  String get settingsVoiceChinese => '中文';
+
+  @override
+  String get settingsVoiceStyleButtery => 'Buttery';
+
+  @override
+  String get settingsVoiceStyleNormal => 'Normal';
+
+  @override
+  String get settingsVoiceSpeedNormal => 'Normal';
+
+  @override
+  String get settingsVoiceSpeedFast => 'Fast';
+
+  @override
+  String get settingsComingSoon => '即将推出';
+
+  @override
+  String get settingsComingSoonDesc => '此功能正在开发中';
+
+  @override
   String get accountAvatar => '头像';
 
   @override
@@ -620,6 +729,136 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get accountAvatarTooLarge => '图片过大，请选择小于 5MB 的图片';
+
+  @override
+  String get accountProfile => '个人资料';
+
+  @override
+  String get accountWorkDescription => '您的工作类型？';
+
+  @override
+  String get accountWorkPlaceholder => '选择您的角色';
+
+  @override
+  String get accountWorkRoleProductManagement => '产品管理';
+
+  @override
+  String get accountWorkRoleEngineering => '工程';
+
+  @override
+  String get accountWorkRoleHumanResources => '人力资源';
+
+  @override
+  String get accountWorkRoleDesign => '设计';
+
+  @override
+  String get accountWorkRoleSoftwareEngineering => '软件工程';
+
+  @override
+  String get accountWorkRoleStudent => '学生';
+
+  @override
+  String get accountWorkRoleOther => '其他';
+
+  @override
+  String get accountInstructions => '给 Claude 的指示';
+
+  @override
+  String get accountInstructionsDesc =>
+      'Claude 将在 Anthropic 准则范围内，在此账户及关联账户的所有对话和协作中记住这些内容。';
+
+  @override
+  String get accountInstructionsPlaceholder => '例如：在学习新概念时，我发现类比特别有帮助';
+
+  @override
+  String get accountInstructionsLearnMore => '了解更多';
+
+  @override
+  String get accountSectionTitle => '账户';
+
+  @override
+  String get accountLogoutAll => '退出所有设备';
+
+  @override
+  String get accountLogout => '退出登录';
+
+  @override
+  String get accountDelete => '删除您的账户';
+
+  @override
+  String get accountDeleteButton => '删除账户';
+
+  @override
+  String get accountOrgId => '组织 ID';
+
+  @override
+  String get privacyTitle => '隐私';
+
+  @override
+  String privacyIntro(Object privacyCenter, Object privacyPolicy) {
+    return 'Anthropic 倡导透明的数据实践。了解使用 Anthropic 产品时如何保护您的信息，请访问我们的$privacyCenter和$privacyPolicy了解更多详情。';
+  }
+
+  @override
+  String get privacyCenter => '隐私中心';
+
+  @override
+  String get privacyPolicy => '隐私政策';
+
+  @override
+  String get privacyProtectData => '我们如何保护您的数据';
+
+  @override
+  String get privacyUseData => '我们如何使用您的数据';
+
+  @override
+  String get privacyPreferences => '偏好设置';
+
+  @override
+  String get privacyLocationMetadata => '位置元数据';
+
+  @override
+  String privacyLocationMetadataDesc(Object learnMore) {
+    return '允许 Claude 使用粗略的位置元数据（城市/地区）来改进产品体验。$learnMore';
+  }
+
+  @override
+  String get privacyLocationMetadataLearnMore => '了解更多。';
+
+  @override
+  String get privacyImproveModels => '帮助改进我们的 AI 模型';
+
+  @override
+  String privacyImproveModelsDesc(Object learnMore) {
+    return '允许使用您的对话和编程会话来训练和改进 Anthropic AI 模型。$learnMore';
+  }
+
+  @override
+  String get privacyImproveModelsLearnMore => '了解更多。';
+
+  @override
+  String get privacyYourData => '您的数据';
+
+  @override
+  String get privacyExportData => '导出数据';
+
+  @override
+  String get privacyExportDataButton => '导出数据';
+
+  @override
+  String get privacySharedChats => '共享对话';
+
+  @override
+  String get privacySharedArtifacts => '共享产物';
+
+  @override
+  String get privacyUploadedFiles => '上传的文件';
+
+  @override
+  String get privacyYourFeedback => '您的反馈';
+
+  @override
+  String get privacyManage => '管理';
 
   @override
   String get commonSave => '保存';
