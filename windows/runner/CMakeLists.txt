@@ -44,15 +44,16 @@ add_custom_command(TARGET ${BINARY_NAME} POST_BUILD
   COMMAND ${CMAKE_COMMAND} -E copy_if_different
     "${CMAKE_SOURCE_DIR}/../native/windows/sgit_ffi.dll"
     "$<TARGET_FILE_DIR:${BINARY_NAME}>/sgit_ffi.dll"
-  # ⚠️ sgcode.exe 也要拷 —— 本地引擎跑 shell / apply-patch / 沙箱靠重新 exec
-  # 它做 argv0 分发（cdylib 没有自己的 main）。客户端在**宿主 exe 同目录**找它，
-  # 所以必须落到这里。
+  # ⚠️ sgcode-helper.exe 也要拷 —— 本地引擎进沙箱读写文件、包 Windows 沙箱时
+  # 要重新 exec 一个带分发表的可执行文件（cdylib 没有自己的 main）。客户端在
+  # **宿主 exe 同目录**找它，所以必须落到这里。
   #
-  # 少了它，本地引擎只能降级启动（能聊、不能执行命令），界面会挂一条提示。
-  # 实测：同事拿到只有 DLL 的包，本地引擎完全用不了。
+  # 它只含分发表（约 8MB），取代以前随包的完整 sgcode.exe（约 360MB，里面又是
+  # 一份和 DLL 重复的引擎）。少了它，本地引擎降级启动：能聊、无沙箱的读写照常，
+  # 要进沙箱的文件操作不可用，界面会挂一条提示。
   COMMAND ${CMAKE_COMMAND} -E copy_if_different
-    "${CMAKE_SOURCE_DIR}/../native/windows/sgcode.exe"
-    "$<TARGET_FILE_DIR:${BINARY_NAME}>/sgcode.exe")
+    "${CMAKE_SOURCE_DIR}/../native/windows/sgcode-helper.exe"
+    "$<TARGET_FILE_DIR:${BINARY_NAME}>/sgcode-helper.exe")
 
 # Run the Flutter tool portions of the build. This must not be removed.
 add_dependencies(${BINARY_NAME} flutter_assemble)
