@@ -4,13 +4,13 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:sgit_studio_flutter/l10n/generated/app_localizations.dart';
 import 'package:sgit_studio_flutter/design/tokens/app_spacing.dart';
+import 'package:sgit_studio_flutter/features/auth/application/auth_controller.dart';
 import 'package:sgit_studio_flutter/features/settings/application/user_profile_controller.dart';
+import 'package:sgit_studio_flutter/features/settings/presentation/widgets/settings_section.dart';
+import 'package:sgit_studio_flutter/ui/components/menu/app_menu.dart';
 
-/// 头像大小上限（字节）：5MB，避免把过大的图片塞进 SharedPreferences。
 const _kMaxAvatarBytes = 5 * 1024 * 1024;
 
-/// 账户设置页：头像、用户名等基本信息管理
-/// 密码还未确定
 class AccountPage extends ConsumerStatefulWidget {
   const AccountPage({super.key});
 
@@ -19,80 +19,17 @@ class AccountPage extends ConsumerStatefulWidget {
 }
 
 class _AccountPageState extends ConsumerState<AccountPage> {
-  final _usernameController = TextEditingController();
-  final _currentPasswordController = TextEditingController();
-  final _newPasswordController = TextEditingController();
-  final _confirmPasswordController = TextEditingController();
-
-  // final bool _isEditingPassword = false;
-  // final bool _obscureCurrentPassword = true;
-  // final bool _obscureNewPassword = true;
-  // final bool _obscureConfirmPassword = true;
-
-  // String? _errorMessage;
-  // final bool _isLoading = false;
+  final _fullNameController = TextEditingController();
+  final _callYouController = TextEditingController();
+  final _instructionsController = TextEditingController();
+  String _workDescription = 'product_management';
 
   @override
   void dispose() {
-    _usernameController.dispose();
-    _currentPasswordController.dispose();
-    _newPasswordController.dispose();
-    _confirmPasswordController.dispose();
+    _fullNameController.dispose();
+    _callYouController.dispose();
+    _instructionsController.dispose();
     super.dispose();
-  }
-
-  //修改密码
-
-  void _showUsernameDialog() {
-    final l10n = AppLocalizations.of(context);
-    final profile = ref.read(userProfileControllerProvider);
-    _usernameController.text = profile.username;
-
-    showDialog<void>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text(l10n.accountUsername),
-        content: TextField(
-          controller: _usernameController,
-          autofocus: true,
-          decoration: InputDecoration(
-            hintText: l10n.accountUsernamePlaceholder,
-          ),
-          onSubmitted: (_) => _saveUsername(),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: Text(l10n.commonCancel),
-          ),
-          FilledButton(
-            onPressed: _saveUsername,
-            child: Text(l10n.commonSave),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Future<void> _saveUsername() async {
-    final l10n = AppLocalizations.of(context);
-    final username = _usernameController.text.trim();
-
-    if (username.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(l10n.accountUsernamePlaceholder)),
-      );
-      return;
-    }
-
-    // 更新用户名到状态管理
-    await ref.read(userProfileControllerProvider.notifier).updateUsername(username);
-
-    if (!mounted) return;
-    Navigator.of(context).pop();
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(l10n.accountUpdateSuccess)),
-    );
   }
 
   Future<void> _resetAvatar() async {
@@ -135,6 +72,67 @@ class _AccountPageState extends ConsumerState<AccountPage> {
     );
   }
 
+  void _showUsernameDialog() {
+    final l10n = AppLocalizations.of(context);
+    final profile = ref.read(userProfileControllerProvider);
+    final usernameController = TextEditingController(text: profile.username);
+
+    showDialog<void>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(l10n.accountUsername),
+        content: TextField(
+          controller: usernameController,
+          autofocus: true,
+          decoration: InputDecoration(
+            hintText: l10n.accountUsernamePlaceholder,
+          ),
+          onSubmitted: (_) => _saveUsername(usernameController.text),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: Text(l10n.commonCancel),
+          ),
+          FilledButton(
+            onPressed: () => _saveUsername(usernameController.text),
+            child: Text(l10n.commonSave),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _saveUsername(String username) async {
+    final l10n = AppLocalizations.of(context);
+    final trimmed = username.trim();
+
+    if (trimmed.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(l10n.accountUsernamePlaceholder)),
+      );
+      return;
+    }
+
+    await ref.read(userProfileControllerProvider.notifier).updateUsername(trimmed);
+
+    if (!mounted) return;
+    Navigator.of(context).pop();
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(l10n.accountUpdateSuccess)),
+    );
+  }
+
+  void _notWired(String what) {
+    final l10n = AppLocalizations.of(context);
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(l10n.commonNotWired(what)),
+        duration: const Duration(seconds: 1),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
@@ -143,18 +141,16 @@ class _AccountPageState extends ConsumerState<AccountPage> {
     final dividerColor = theme.colorScheme.outlineVariant.withValues(alpha: 0.4);
 
     return ListView(
-      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
+      padding: const EdgeInsets.all(AppSpacing.lg),
       children: [
-        Padding(
-          padding: const EdgeInsets.symmetric(vertical: AppSpacing.lg),
-          child: Text(l10n.settingsAccount, style: theme.textTheme.headlineSmall),
-        ),
+        // Profile section title
+        SettingsSectionHeader(l10n.accountProfile),
+        const SizedBox(height: AppSpacing.sm),
 
-        // 头像部分 - 点击头像中心图标触发修改
-        _section(
-          theme,
-          l10n.accountAvatar,
-          SizedBox(
+        // 头像行
+        SettingsSectionRow(
+          title: l10n.accountAvatar,
+          trailing: SizedBox(
             width: 76,
             height: 76,
             child: Stack(
@@ -183,7 +179,7 @@ class _AccountPageState extends ConsumerState<AccountPage> {
                                 )
                               : null,
                         ),
-                        // 中心相机图标
+                        // Camera overlay
                         Container(
                           decoration: BoxDecoration(
                             color: Colors.black.withValues(alpha: 0.5),
@@ -200,7 +196,7 @@ class _AccountPageState extends ConsumerState<AccountPage> {
                     ),
                   ),
                 ),
-                // 右上角关闭按钮 - 恢复默认头像
+                // Close button for reset
                 if (profile.avatarBytes != null)
                   Positioned(
                     right: 0,
@@ -230,13 +226,12 @@ class _AccountPageState extends ConsumerState<AccountPage> {
           ),
         ),
 
-        Divider(height: 1, thickness: 0.5, color: dividerColor),
+        const SettingsSectionDivider(),
 
-        // 用户名部分 - 点击用户名直接弹出编辑对话框
-        _section(
-          theme,
-          l10n.accountUsername,
-          InkWell(
+        // 用户名
+        SettingsSectionRow(
+          title: l10n.accountUsername,
+          trailing: InkWell(
             onTap: _showUsernameDialog,
             borderRadius: BorderRadius.circular(AppRadius.sm),
             child: Padding(
@@ -265,24 +260,176 @@ class _AccountPageState extends ConsumerState<AccountPage> {
           ),
         ),
 
-        Divider(height: 1, thickness: 0.5, color: dividerColor),
+        const SettingsSectionDivider(),
 
-        // 密码部分
+        // 工作描述-下拉菜单
+        SettingsSectionRow(
+          title: l10n.accountWorkDescription,
+          trailing: AppMenuAnchor(
+            entries: [
+              AppMenuRadioGroup(
+                values: const [
+                  'product_management',
+                  'engineering',
+                  'human_resources',
+                  'design',
+                  'software_engineering',
+                  'student',
+                  'other',
+                ],
+                selected: _workDescription,
+                labelOf: (value) {
+                  switch (value) {
+                    case 'product_management':
+                      return l10n.accountWorkRoleProductManagement;
+                    case 'engineering':
+                      return l10n.accountWorkRoleEngineering;
+                    case 'human_resources':
+                      return l10n.accountWorkRoleHumanResources;
+                    case 'design':
+                      return l10n.accountWorkRoleDesign;
+                    case 'software_engineering':
+                      return l10n.accountWorkRoleSoftwareEngineering;
+                    case 'student':
+                      return l10n.accountWorkRoleStudent;
+                    case 'other':
+                      return l10n.accountWorkRoleOther;
+                    default:
+                      return value;
+                  }
+                },
+                onSelect: (value) {
+                  setState(() {
+                    _workDescription = value;
+                  });
+                },
+              ),
+            ],
+            align: AppMenuAlign.underEnd,
+            child: Container(
+              padding: const EdgeInsets.symmetric(
+                horizontal: AppSpacing.sm,
+                vertical: AppSpacing.xs,
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    () {
+                      switch (_workDescription) {
+                        case 'product_management':
+                          return l10n.accountWorkRoleProductManagement;
+                        case 'engineering':
+                          return l10n.accountWorkRoleEngineering;
+                        case 'human_resources':
+                          return l10n.accountWorkRoleHumanResources;
+                        case 'design':
+                          return l10n.accountWorkRoleDesign;
+                        case 'software_engineering':
+                          return l10n.accountWorkRoleSoftwareEngineering;
+                        case 'student':
+                          return l10n.accountWorkRoleStudent;
+                        case 'other':
+                          return l10n.accountWorkRoleOther;
+                        default:
+                          return _workDescription;
+                      }
+                    }(),
+                    style: theme.textTheme.bodyLarge,
+                  ),
+                  const SizedBox(width: AppSpacing.xs),
+                  Icon(
+                    Icons.keyboard_arrow_down,
+                    size: 18,
+                    color: theme.colorScheme.onSurfaceVariant,
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
 
-        // 错误提示
+        const SizedBox(height: AppSpacing.md),
+
+        // 说明
+        SettingsSectionHeader(l10n.accountInstructions),
+        const SizedBox(height: AppSpacing.xs),
+        Text(
+          l10n.accountInstructionsDesc,
+          style: theme.textTheme.bodySmall?.copyWith(
+            color: theme.colorScheme.onSurfaceVariant,
+          ),
+        ),
+        const SizedBox(height: AppSpacing.sm),
+        Container(
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(AppRadius.sm),
+          ),
+          child: TextField(
+            controller: _instructionsController,
+            maxLines: 5,
+            style: theme.textTheme.bodyMedium,
+            decoration: InputDecoration(
+              isDense: true,
+              border: InputBorder.none,
+              hintText: l10n.accountInstructionsPlaceholder,
+              hintStyle: TextStyle(
+                color: theme.colorScheme.onSurfaceVariant,
+              ),
+              contentPadding: const EdgeInsets.all(AppSpacing.sm),
+            ),
+          ),
+        ),
+
+        const SizedBox(height: AppSpacing.md),
+
+        // Account section
+        SettingsSectionHeader(l10n.accountSectionTitle),
+        const SizedBox(height: AppSpacing.sm),
+
+        // 退出登录
+        SettingsSectionRow(
+          title: l10n.accountLogoutAll,
+          trailing: FilledButton(
+            onPressed: () => ref.read(authControllerProvider.notifier).logout(),
+            style: FilledButton.styleFrom(
+              backgroundColor: theme.colorScheme.surface,
+              foregroundColor: theme.colorScheme.onSurface,
+              side: BorderSide(color: dividerColor),
+            ),
+            child: Text(l10n.accountLogout),
+          ),
+        ),
+
+        const SettingsSectionDivider(),
+
+        // 删除账户
+        SettingsSectionRow(
+          title: l10n.accountDelete,
+          trailing: FilledButton(
+            onPressed: () => _notWired(l10n.accountDeleteButton),
+            style: FilledButton.styleFrom(
+              backgroundColor: theme.colorScheme.surface,
+              foregroundColor: theme.colorScheme.onSurface,
+            ),
+            child: Text(l10n.accountDeleteButton),
+          ),
+        ),
+
+        const SettingsSectionDivider(),
+
+        // Organization ID
+        SettingsSectionRow(
+          title: l10n.accountOrgId,
+          trailing: SelectableText(
+            '7f58d316-46af-4a6c-a9b2-111da584d443',
+            style: theme.textTheme.bodyMedium?.copyWith(
+              color: theme.colorScheme.onSurfaceVariant,
+              fontFamily: 'monospace',
+            ),
+          ),
+        ),
       ],
     );
   }
-
-  Widget _section(ThemeData theme, String title, Widget child) => Padding(
-        padding: const EdgeInsets.symmetric(vertical: AppSpacing.md),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            Text(title, style: theme.textTheme.bodyLarge),
-            child,
-          ],
-        ),
-      );
 }
