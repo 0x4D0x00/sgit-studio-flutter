@@ -553,6 +553,8 @@ class _CustomizePageState extends State<CustomizePage> {
 
   // Skills/Plugins + Yours 页面：显示列表样式（图1）
   Widget _buildSkillsYoursContent(BuildContext context, AppSkin skin, AppLocalizations l10n) {
+    final filtered = _filterBy(_yoursSkills, (s) => s['title'] as String);
+
     return Column(
       children: [
         Container(
@@ -579,22 +581,32 @@ class _CustomizePageState extends State<CustomizePage> {
           ),
         ),
         Expanded(
-          child: ListView.builder(
-            itemCount: _yoursSkills.length,
-            itemBuilder: (context, index) {
-              final skill = _yoursSkills[index];
-              return YoursListItem(
-                icon: skill['icon'] as IconData,
-                title: skill['title'] as String,
-                source: skill['source'] as String,
-                description: skill['description'] as String,
-                timeAgo: skill['timeAgo'] as String,
-                skin: skin,
-                onTap: () => _notWired(context, l10n, skill['title'] as String),
-                onRemove: () => _removeYoursSkill(skill),
-              );
-            },
-          ),
+          child: filtered.isEmpty
+              ? Center(
+                  child: Text(
+                    'No skills found',
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: skin.textSecondary,
+                    ),
+                  ),
+                )
+              : ListView.builder(
+                  itemCount: filtered.length,
+                  itemBuilder: (context, index) {
+                    final skill = filtered[index];
+                    return YoursListItem(
+                      icon: skill['icon'] as IconData,
+                      title: skill['title'] as String,
+                      source: skill['source'] as String,
+                      description: skill['description'] as String,
+                      timeAgo: skill['timeAgo'] as String,
+                      skin: skin,
+                      onTap: () => _notWired(context, l10n, skill['title'] as String),
+                      onRemove: () => _removeYoursSkill(skill),
+                    );
+                  },
+                ),
         ),
       ],
     );
@@ -681,13 +693,25 @@ class _CustomizePageState extends State<CustomizePage> {
       ),
     ];
 
+    final filtered = _filterBy(connectors, (c) => c.name);
+
     return Padding(
       padding: const EdgeInsets.all(AppSpacing.md),
-      child: YoursConnectorTable(
-        skin: skin,
-        connectors: connectors,
-        onConnect: (connector) => _notWired(context, l10n, connector.name),
-      ),
+      child: filtered.isEmpty
+          ? Center(
+              child: Text(
+                'No connectors found',
+                style: TextStyle(
+                  fontSize: 14,
+                  color: skin.textSecondary,
+                ),
+              ),
+            )
+          : YoursConnectorTable(
+              skin: skin,
+              connectors: filtered,
+              onConnect: (connector) => _notWired(context, l10n, connector.name),
+            ),
     );
   }
 
