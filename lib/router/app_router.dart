@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import 'package:sgit_studio_flutter/features/artifacts/presentation/pages/artifacts_new_page.dart';
 import 'package:sgit_studio_flutter/features/artifacts/presentation/pages/artifacts_page.dart';
 import 'package:sgit_studio_flutter/features/auth/application/auth_controller.dart';
 import 'package:sgit_studio_flutter/features/auth/presentation/pages/login_page.dart';
@@ -36,7 +37,8 @@ final routerProvider = Provider<GoRouter>((ref) {
           // 确定当前激活的导航项：产物页 / studio 子页 / 默认 null（工作台）。
           final path = state.uri.path;
           final activeNavId = switch (path) {
-            RouteNames.artifacts => NavPanelContainer.idArtifacts,
+            RouteNames.artifacts || RouteNames.artifactsNew =>
+              NavPanelContainer.idArtifacts,
             RouteNames.history => NavPanelContainer.idHistory,
             RouteNames.projects => NavPanelContainer.idProjects,
             RouteNames.customize => NavPanelContainer.idCustomize,
@@ -53,6 +55,10 @@ final routerProvider = Provider<GoRouter>((ref) {
           GoRoute(
             path: RouteNames.artifacts,
             builder: (_, _) => const ArtifactsPage(),
+          ),
+          GoRoute(
+            path: RouteNames.artifactsNew,
+            builder: (_, _) => const ArtifactsNewPage(),
           ),
           GoRoute(
             path: RouteNames.projects,

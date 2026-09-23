@@ -16,6 +16,9 @@ class RouteNames {
   /// 输出产物页。
   static const String artifacts = '/artifacts';
 
+  /// 新建产物 —— 分类选择页。
+  static const String artifactsNew = '/artifacts/new';
+
   /// 历史对话「查看全部」页。
   static const String history = '/history';
 

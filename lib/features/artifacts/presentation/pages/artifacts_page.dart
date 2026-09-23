@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
 import 'package:sgit_studio_flutter/design/extensions/app_skin.dart';
@@ -7,6 +8,7 @@ import 'package:sgit_studio_flutter/design/tokens/app_spacing.dart';
 import 'package:sgit_studio_flutter/domain/models/artifact/artifact.dart';
 import 'package:sgit_studio_flutter/features/artifacts/application/artifacts_controller.dart';
 import 'package:sgit_studio_flutter/l10n/generated/app_localizations.dart';
+import 'package:sgit_studio_flutter/router/route_names.dart';
 import 'package:sgit_studio_flutter/ui/components/menu/app_menu.dart';
 
 /// 视图模式：网格 / 列表。
@@ -184,7 +186,7 @@ class _ArtifactsPageState extends ConsumerState<ArtifactsPage> {
                       _typeMenu(l10n, skin, state.typeFilter, ctrl),
                       const SizedBox(width: AppSpacing.xs),
                       ElevatedButton(
-                        onPressed: () => _notWired(l10n.artifactsNew),
+                        onPressed: () => context.go(RouteNames.artifactsNew),
                         style: ElevatedButton.styleFrom(
                           backgroundColor: Colors.black,
                           foregroundColor: Colors.white,

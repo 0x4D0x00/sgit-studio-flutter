@@ -912,6 +912,31 @@ class AppLocalizationsEn extends AppLocalizations {
   String get artifactsCopyLink => 'Copy link';
 
   @override
+  String get artifactsNewHeading =>
+      'Let\'s get cooking! Pick an artifact category or start building your idea from scratch.';
+
+  @override
+  String get artifactsCategoryApps => 'Apps and websites';
+
+  @override
+  String get artifactsCategoryDocs => 'Documents and templates';
+
+  @override
+  String get artifactsCategoryGames => 'Games';
+
+  @override
+  String get artifactsCategoryProductivity => 'Productivity tools';
+
+  @override
+  String get artifactsCategoryCreative => 'Creative projects';
+
+  @override
+  String get artifactsCategoryQuiz => 'Quiz or survey';
+
+  @override
+  String get artifactsCategoryScratch => 'Start from scratch';
+
+  @override
   String artifactsEdited(String when) {
     return 'Edited $when';
   }
