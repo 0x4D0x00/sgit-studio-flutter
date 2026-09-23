@@ -3,10 +3,14 @@ import 'package:sgit_studio_flutter/design/extensions/app_skin.dart';
 import 'package:sgit_studio_flutter/design/tokens/app_spacing.dart';
 import 'package:sgit_studio_flutter/l10n/generated/app_localizations.dart';
 
+import 'package:sgit_studio_flutter/ui/components/confirm.dart';
+
 import '../widgets/customize_models.dart';
 import '../widgets/skill_card.dart';
 import '../widgets/connector_card.dart';
 import '../widgets/connectors_banner.dart';
+import '../widgets/yours_list_item.dart';
+import '../widgets/yours_connector_table.dart';
 
 /// Customize 页面 - Skills, Connectors, Plugins 等自定义内容
 class CustomizePage extends StatefulWidget {
@@ -17,12 +21,80 @@ class CustomizePage extends StatefulWidget {
 }
 
 class _CustomizePageState extends State<CustomizePage> {
+  // 默认选中 Skills (0) + Discover (4)
   int _selectedTabIndex = 0;
+  int _selectedViewIndex = 4; // Discover
   int? _hoveredTabIndex;
   bool _searchExpanded = false;
 
   final _searchController = TextEditingController();
   String _query = '';
+
+  // Skills/Plugins + Yours 列表的数据。用 State 字段而不是局部变量，
+  // 这样点「···」→ Remove 才能真的从列表里删掉一项。
+  final List<Map<String, Object>> _yoursSkills = [
+    {
+      'icon': Icons.list_alt,
+      'title': 'analyze',
+      'source': 'Anthropic',
+      'description': 'Answer data questions — from quick lookups to full analyses. Use when looking up a single metric, investigat...',
+      'timeAgo': '12h ago',
+    },
+    {
+      'icon': Icons.build,
+      'title': 'build-dashboard',
+      'source': 'Anthropic',
+      'description': 'Build an interactive HTML dashboard with charts, filters, and tables. Use when creating an executive overvie...',
+      'timeAgo': '12h ago',
+    },
+    {
+      'icon': Icons.palette,
+      'title': 'create-viz',
+      'source': 'Anthropic',
+      'description': 'Create publication-quality visualizations with Python. Use when turning query results or a DataFrame into a c...',
+      'timeAgo': '12h ago',
+    },
+    {
+      'icon': Icons.data_exploration,
+      'title': 'data-context-extractor',
+      'source': 'Anthropic',
+      'description': 'Generate or improve a company-specific data analysis skill by extracting tribal knowledge from analysts BO...',
+      'timeAgo': '12h ago',
+    },
+    {
+      'icon': Icons.bar_chart,
+      'title': 'data-visualization',
+      'source': 'Anthropic',
+      'description': 'Create effective data visualizations with Python (matplotlib, seaborn, plotly). Use when building charts, choo...',
+      'timeAgo': '12h ago',
+    },
+    {
+      'icon': Icons.storage,
+      'title': 'explore-data',
+      'source': 'Anthropic',
+      'description': 'Profile and explore a dataset to understand its shape, quality, and patterns. Use when encountering a new ta...',
+      'timeAgo': '12h ago',
+    },
+    {
+      'icon': Icons.code,
+      'title': 'sql-queries',
+      'source': 'Anthropic',
+      'description': 'Write correct, performant SQL across all major data warehouse dialects (Snowflake, BigQuery, Databricks, P...',
+      'timeAgo': '12h ago',
+    },
+  ];
+
+  Future<void> _removeYoursSkill(Map<String, Object> skill) async {
+    final l10n = AppLocalizations.of(context);
+    final ok = await confirmDanger(
+      context,
+      title: l10n.studioRemoveConfirm(skill['title'] as String),
+      confirmText: l10n.commonDelete,
+    );
+    if (!ok) return;
+
+    setState(() => _yoursSkills.remove(skill));
+  }
 
   @override
   void dispose() {
@@ -83,7 +155,7 @@ class _CustomizePageState extends State<CustomizePage> {
         children: [
           Padding(
             padding:
-            const EdgeInsetsGeometry.all(AppSpacing.md), 
+            const EdgeInsetsGeometry.all(AppSpacing.md),
             child: Text(
               'Customize',
               style: TextStyle(
@@ -94,7 +166,7 @@ class _CustomizePageState extends State<CustomizePage> {
               ),
             ),
           ),
-          Padding( 
+          Padding(
             padding: const EdgeInsets.fromLTRB(
               AppSpacing.md,
               0,
@@ -338,7 +410,10 @@ class _CustomizePageState extends State<CustomizePage> {
         children: [
           ...List.generate(tabs.length, (index) {
             final tab = tabs[index];
-            final isSelected = _selectedTabIndex == index;
+            // Yours 和 Discover 根据 _selectedViewIndex 判断选中
+            final isSelected = (index == 3 || index == 4)
+                ? _selectedViewIndex == index
+                : _selectedTabIndex == index;
 
             // 在 Plugins 之后插入分割线
             if (index == 3) {
@@ -376,7 +451,12 @@ class _CustomizePageState extends State<CustomizePage> {
       child: InkWell(
         onTap: () {
           setState(() {
-            _selectedTabIndex = index;
+            // Yours (3) 和 Discover (4) 是视图切换，其他是类型切换
+            if (index == 3 || index == 4) {
+              _selectedViewIndex = index;
+            } else {
+              _selectedTabIndex = index;
+            }
           });
         },
         borderRadius: BorderRadius.circular(AppRadius.sm),
@@ -434,15 +514,29 @@ class _CustomizePageState extends State<CustomizePage> {
   }
 
   Widget _buildContent(BuildContext context, AppSkin skin, AppLocalizations l10n) {
-    switch (_selectedTabIndex) {
-      case 1: // Connectors
-        return _buildConnectorsContent(context, skin, l10n);
-      default: // Skills, Plugins, Yours, Discover
-        return _buildSkillsContent(context, skin, l10n);
+    // 判断是 Yours 还是 Discover 视图
+    final isYoursView = _selectedViewIndex == 3;
+
+    // Skills (0), Connectors (1), Plugins (2)
+    if (_selectedTabIndex == 1) {
+      // Connectors
+      if (isYoursView) {
+        return _buildConnectorsYoursContent(context, skin, l10n);
+      } else {
+        return _buildConnectorsDiscoverContent(context, skin, l10n);
+      }
+    } else {
+      // Skills / Plugins
+      if (isYoursView) {
+        return _buildSkillsYoursContent(context, skin, l10n);
+      } else {
+        return _buildSkillsDiscoverContent(context, skin, l10n);
+      }
     }
   }
 
-  Widget _buildSkillsContent(BuildContext context, AppSkin skin, AppLocalizations l10n) {
+  // Skills/Plugins + Discover 页面：显示 "For you" + "New" 区域
+  Widget _buildSkillsDiscoverContent(BuildContext context, AppSkin skin, AppLocalizations l10n) {
     return ListView(
       padding: const EdgeInsets.all(AppSpacing.md),
       children: [
@@ -457,35 +551,85 @@ class _CustomizePageState extends State<CustomizePage> {
     );
   }
 
-  Widget _buildConnectorsContent(BuildContext context, AppSkin skin, AppLocalizations l10n) {
+  // Skills/Plugins + Yours 页面：显示列表样式（图1）
+  Widget _buildSkillsYoursContent(BuildContext context, AppSkin skin, AppLocalizations l10n) {
+    return Column(
+      children: [
+        Container(
+          padding: const EdgeInsets.all(AppSpacing.md),
+          decoration: BoxDecoration(
+            border: Border(
+              bottom: BorderSide(
+                color: skin.border,
+                width: 0.5,
+              ),
+            ),
+          ),
+          child: Row(
+            children: [
+              Text(
+                'From Anthropic & Partners',
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                  color: skin.text,
+                ),
+              ),
+            ],
+          ),
+        ),
+        Expanded(
+          child: ListView.builder(
+            itemCount: _yoursSkills.length,
+            itemBuilder: (context, index) {
+              final skill = _yoursSkills[index];
+              return YoursListItem(
+                icon: skill['icon'] as IconData,
+                title: skill['title'] as String,
+                source: skill['source'] as String,
+                description: skill['description'] as String,
+                timeAgo: skill['timeAgo'] as String,
+                skin: skin,
+                onTap: () => _notWired(context, l10n, skill['title'] as String),
+                onRemove: () => _removeYoursSkill(skill),
+              );
+            },
+          ),
+        ),
+      ],
+    );
+  }
+
+  // Connectors + Discover 页面：显示带轮播图的页面
+  Widget _buildConnectorsDiscoverContent(BuildContext context, AppSkin skin, AppLocalizations l10n) {
     final connectors = [
       ConnectorItem(
         icon: Icons.folder,
-        color: const Color(0xFF4285F4), // Google Blue
+        color: const Color(0xFF4285F4),
         title: 'Google Drive',
         description: 'Search, read, and upload files instantly',
       ),
       ConnectorItem(
         icon: Icons.mail,
-        color: const Color(0xFFEA4335), // Gmail Red
+        color: const Color(0xFFEA4335),
         title: 'Gmail',
         description: 'Draft replies, summarize threads, & search your inbox',
       ),
       ConnectorItem(
         icon: Icons.calendar_today,
-        color: const Color(0xFF4285F4), // Google Blue
+        color: const Color(0xFF4285F4),
         title: 'Google Calendar',
         description: 'Manage your schedule and coordinate meetings effortlessly',
       ),
       ConnectorItem(
         icon: Icons.palette,
-        color: const Color(0xFF00C4CC), // Canva Teal
+        color: const Color(0xFF00C4CC),
         title: 'Canva',
         description: 'Search, create, autofill, and export Canva designs',
       ),
       ConnectorItem(
         icon: Icons.business,
-        color: const Color(0xFFD83B01), // Microsoft Orange-Red
+        color: const Color(0xFFD83B01),
         title: 'Microsoft 365',
         description: 'Access your company\'s SharePoint, OneDrive, Outlook, and Teams directly in Claude',
       ),
@@ -497,13 +641,13 @@ class _CustomizePageState extends State<CustomizePage> {
       ),
       ConnectorItem(
         icon: Icons.design_services,
-        color: const Color(0xFFF24E1E), // Figma Orange
+        color: const Color(0xFFF24E1E),
         title: 'Figma',
         description: 'Generate diagrams and better code from Figma context',
       ),
       ConnectorItem(
         icon: Icons.forum,
-        color: const Color(0xFF611f69), // Slack Purple
+        color: const Color(0xFF611f69),
         title: 'Slack',
         description: 'Send messages, create canvases, and fetch Slack data',
       ),
@@ -523,6 +667,27 @@ class _CustomizePageState extends State<CustomizePage> {
         const SizedBox(height: AppSpacing.md),
         _buildConnectorsWrap(context, filtered, skin, l10n),
       ],
+    );
+  }
+
+  // Connectors + Yours 页面：显示表格样式
+  Widget _buildConnectorsYoursContent(BuildContext context, AppSkin skin, AppLocalizations l10n) {
+    final connectors = [
+      YoursConnectorRow(
+        icon: Icons.code,
+        name: 'GitHub Integration',
+        type: 'Web',
+        status: 'Connect',
+      ),
+    ];
+
+    return Padding(
+      padding: const EdgeInsets.all(AppSpacing.md),
+      child: YoursConnectorTable(
+        skin: skin,
+        connectors: connectors,
+        onConnect: (connector) => _notWired(context, l10n, connector.name),
+      ),
     );
   }
 
@@ -767,4 +932,3 @@ class _CustomizePageState extends State<CustomizePage> {
     return _buildSkillsWrap(context, filtered, skin, l10n);
   }
 }
-
