@@ -1071,6 +1071,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get chatSendWhileBusy => '上一轮还在跑，可直接输入插话';
 
   @override
+  String get chatNoModelAvailable => '没有可用模型，请先在中转站启用一个厂商与模型';
+
+  @override
   String get chatNoTurnToSteer => '当前没有进行中的对话，无法插话';
 
   @override

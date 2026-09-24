@@ -176,6 +176,12 @@ class ChatController extends Notifier<ChatSessionState> {
       state = state.copyWith(notice: ChatNotice.busy);
       return false;
     }
+    // 模型由调用方按「用户选的，否则列表第一个」定好传进来；为空 = 中转站没有
+    // 可用模型 → **拒绝发送**，不交给引擎去兜底。
+    if (model == null || model.isEmpty) {
+      state = state.copyWith(notice: ChatNotice.noModel);
+      return false;
+    }
 
     // ⚠️ 没连上就**不能**进 busy 态。以前这里不判连接，结果消息发不出去、
     // 按钮却永远停在"停止"，用户完全不知道发生了什么（真踩过）。

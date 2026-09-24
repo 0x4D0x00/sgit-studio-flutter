@@ -490,6 +490,7 @@
   "kernelPhaseSandbox6": "正在等待引擎握手…",
   "kernelPhaseReady": "内核已就绪",
   "chatSendWhileBusy": "上一轮还在跑，可直接输入插话",
+  "chatNoModelAvailable": "没有可用模型，请先在中转站启用一个厂商与模型",
   "chatNoTurnToSteer": "当前没有进行中的对话，无法插话",
   "chatKernelStalled": "内核长时间无响应，已恢复可输入状态",
   "chatLocalExecUnavailable": "本地引擎已启动，但命令类能力不可用（未找到 sgcode 可执行文件）—— 可以对话，但无法执行命令或改文件。装上 sgcode 或改用云端引擎。",

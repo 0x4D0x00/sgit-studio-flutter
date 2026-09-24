@@ -2126,6 +2126,12 @@ abstract class AppLocalizations {
   /// **'上一轮还在跑，可直接输入插话'**
   String get chatSendWhileBusy;
 
+  /// No description provided for @chatNoModelAvailable.
+  ///
+  /// In zh, this message translates to:
+  /// **'没有可用模型，请先在中转站启用一个厂商与模型'**
+  String get chatNoModelAvailable;
+
   /// No description provided for @chatNoTurnToSteer.
   ///
   /// In zh, this message translates to:

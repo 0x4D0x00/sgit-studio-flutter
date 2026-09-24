@@ -1092,6 +1092,10 @@ class AppLocalizationsEn extends AppLocalizations {
       'Still running — type to steer the current turn';
 
   @override
+  String get chatNoModelAvailable =>
+      'No model available — enable a provider and model in Relay first';
+
+  @override
   String get chatNoTurnToSteer => 'No turn in progress to steer';
 
   @override

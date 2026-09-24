@@ -487,6 +487,7 @@
   "kernelPhaseSandbox6": "Waiting for the engine handshake…",
   "kernelPhaseReady": "Kernel ready",
   "chatSendWhileBusy": "Still running — type to steer the current turn",
+  "chatNoModelAvailable": "No model available — enable a provider and model in Relay first",
   "chatNoTurnToSteer": "No turn in progress to steer",
   "chatKernelStalled": "The kernel stopped responding — input re-enabled",
   "chatLocalExecUnavailable": "Local engine started, but command tools are unavailable (sgcode executable not found) — chat works, running commands and editing files does not. Install sgcode or switch to the remote engine.",

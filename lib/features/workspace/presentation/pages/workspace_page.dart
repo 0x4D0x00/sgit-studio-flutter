@@ -103,6 +103,7 @@ class _WorkspacePageState extends ConsumerState<WorkspacePage> {
       ChatNotice.busy => l10n.chatSendWhileBusy,
       ChatNotice.noTurnToSteer => l10n.chatNoTurnToSteer,
       ChatNotice.stalled => l10n.chatKernelStalled,
+      ChatNotice.noModel => l10n.chatNoModelAvailable,
     };
     return Container(
       width: double.infinity,

@@ -16,6 +16,9 @@ enum ChatNotice {
 
   /// 发出去后内核长时间没有任何回应，已放开输入。
   stalled,
+
+  /// 中转站没有可用模型（选择器为空），拒绝发送。
+  noModel,
 }
 
 /// 会话级状态。**不含消息列表** —— 列表走 `ChatController.items` +

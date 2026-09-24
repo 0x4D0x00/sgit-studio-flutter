@@ -134,8 +134,14 @@ class _ChatComposerState extends ConsumerState<ChatComposer> {
       return;
     }
     // 跑着的时候提交 = 插话；空闲时提交 = 新一轮。
-    final model =
-        ref.read(composerSettingsProvider).settings.selectedModel;
+    //
+    // 模型规则：用户选的 → 否则模型列表第一个 → 列表为空则拒绝发送
+    // （`ChatController.send` 收到空模型会拒）。**永远由这里定好再下发**，
+    // 不下发 null 让引擎自己兜底。`effective` 与选择器显示的是同一个。
+    final model = ref
+        .read(modelListProvider)
+        .effective(ref.read(composerSettingsProvider).settings.selectedModel)
+        ?.id;
     final accepted = busy ? ctrl.steer(text) : ctrl.send(text, model: model);
     // ⚠️ **只在受理后才清空**。被拒时保留用户输入，让他改完能直接重发。
     if (accepted) _ctl.clear();
