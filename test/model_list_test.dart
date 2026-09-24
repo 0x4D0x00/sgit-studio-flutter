@@ -195,7 +195,7 @@ void main() {
       expect(s.engineMode, EngineMode.remote, reason: '重读配置把引擎模式冲掉了');
     });
 
-    test('选回「默认模型」要能真的清空', () async {
+    test('setSelectedModel(null) 要能真的清空选择', () async {
       final c = makeContainer(newSettings());
       final notifier = c.read(composerSettingsProvider.notifier);
 
@@ -207,7 +207,7 @@ void main() {
       expect(
         c.read(composerSettingsProvider).settings.selectedModel,
         isNull,
-        reason: '点了"默认模型"却切不回去',
+        reason: 'copyWith 把 null 当成没传，选择清不掉',
       );
     });
   });

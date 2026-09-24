@@ -490,9 +490,6 @@ class AppLocalizationsZh extends AppLocalizations {
   String get modelSelector => '选择模型';
 
   @override
-  String get modelSelectorDefault => '默认模型';
-
-  @override
   String get modelSelectorNone => '暂无可用模型';
 
   @override

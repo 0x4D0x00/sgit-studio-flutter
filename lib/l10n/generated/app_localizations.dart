@@ -1004,12 +1004,6 @@ abstract class AppLocalizations {
   /// **'选择模型'**
   String get modelSelector;
 
-  /// No description provided for @modelSelectorDefault.
-  ///
-  /// In zh, this message translates to:
-  /// **'默认模型'**
-  String get modelSelectorDefault;
-
   /// No description provided for @modelSelectorNone.
   ///
   /// In zh, this message translates to:

@@ -168,13 +168,13 @@ void main() {
       await tester.pumpWidget(harness(ComposerVariant.empty));
       await tester.pumpAndSettle();
 
-      // 不选模型时引擎用的就是列表第一个，显示"默认"等于把用户实际在用的模型藏起来。
+      // 没选过就用列表第一个，标签显示的就是它。
       expect(find.text('GLM-4'), findsOneWidget);
       expect(find.text('默认模型'), findsNothing);
       expect(find.text('暂无可用模型'), findsNothing);
     });
 
-    testWidgets('菜单里的「默认模型」标出它实际解析成谁', (tester) async {
+    testWidgets('菜单里没有「默认模型」这一项，只列真实模型', (tester) async {
       settings = FakeSettingsRepository(
         pages: const {'tools': FakeSettingsRepository.toolsSnapshot},
       );
@@ -184,9 +184,8 @@ void main() {
       await tester.tap(find.text('GLM-4'));
       await tester.pumpAndSettle();
 
-      // 菜单里既有「默认模型」这一项，右侧又标着它解析到的模型名 ——
-      // 否则触发器显示 GLM-4、菜单勾着"默认模型"，像两个不同的选择。
-      expect(find.text('默认模型'), findsOneWidget);
+      // 规则是「选的，否则列表第一个」，不存在「默认模型」这个选项。
+      expect(find.text('默认模型'), findsNothing);
       expect(find.text('GLM-4'), findsWidgets);
     });
   });

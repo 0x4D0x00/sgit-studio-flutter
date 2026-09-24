@@ -376,10 +376,10 @@ class ComposerSettings {
     bool? memoryEnabled,
     EngineMode? engineMode,
     String? selectedModel,
-    /// 把 [selectedModel] 显式清成 null（= 选回"默认模型"）。
+    /// 把 [selectedModel] 显式清成 null（= 未选，回到用列表第一个）。
     ///
     /// ⚠️ 光传 `selectedModel: null` 没用 —— 下面是 `?? this.selectedModel`，
-    /// null 会被当成"没传"而保留旧值，用户点了"默认模型"却切不回去。
+    /// null 会被当成"没传"而保留旧值。
     bool clearSelectedModel = false,
   }) =>
       ComposerSettings(

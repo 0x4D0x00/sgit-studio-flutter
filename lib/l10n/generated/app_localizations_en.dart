@@ -500,9 +500,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get modelSelector => 'Select model';
 
   @override
-  String get modelSelectorDefault => 'Default model';
-
-  @override
   String get modelSelectorNone => 'No models available';
 
   @override

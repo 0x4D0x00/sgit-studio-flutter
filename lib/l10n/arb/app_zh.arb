@@ -260,7 +260,6 @@
   "relaySync": "同步模型",
   "relayNoProvider": "尚未配置任何厂商",
   "modelSelector": "选择模型",
-  "modelSelectorDefault": "默认模型",
   "modelSelectorNone": "暂无可用模型",
   "navNewChatDone": "已开始新对话",
   "loginButton": "登 录",

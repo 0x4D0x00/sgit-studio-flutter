@@ -368,8 +368,7 @@ class _ChatComposerState extends ConsumerState<ChatComposer> {
     final selected =
         ref.watch(composerSettingsProvider.select((x) => x.settings.selectedModel));
     final notifier = ref.read(composerSettingsProvider.notifier);
-    // ⚠️ 用 effective 而不是 find：没选过时要显示**列表第一个**（引擎实际会用的
-    // 那个），不是「默认模型」四个字。见 ModelListState.effective 的注释。
+    // 用 effective 而不是 find：没选过时显示并勾中**列表第一个**，与发送用的同一个。
     final current = s.effective(selected);
 
     return AppMenuAnchor(
@@ -380,14 +379,8 @@ class _ChatComposerState extends ConsumerState<ChatComposer> {
       maxWidth: 340,
       maxHeight: 420,
       entries: [
-        // 「默认模型」这一项**把它实际解析成谁**标在右侧 —— 否则标签显示 "GLM-4"
-        // 而菜单里勾着"默认模型"，看起来像两个不同的选择。
-        AppMenuAction(
-          label: l10n.modelSelectorDefault,
-          trailingValue: s.first?.displayName,
-          checked: selected == null,
-          onTap: () => notifier.setSelectedModel(null),
-        ),
+        // 只列真实模型，**没有「默认模型」这一项**。勾的是实际会用的那个：
+        // 选过的，否则列表第一个。
         for (final g in s.groups) ...[
           AppMenuLabel(g.name),
           for (final m in g.models)
@@ -396,7 +389,7 @@ class _ChatComposerState extends ConsumerState<ChatComposer> {
               trailingValue: m.contextWindow == null
                   ? null
                   : l10n.relayContextWindow(m.contextWindow!),
-              checked: m.id == selected,
+              checked: m.id == current?.id,
               onTap: () => notifier.setSelectedModel(m.id),
             ),
         ],
@@ -408,7 +401,7 @@ class _ChatComposerState extends ConsumerState<ChatComposer> {
           (true, _, _) => l10n.commonLoading,
           (_, true, _) => l10n.modelSelectorNone,
           (_, _, final m?) => m.displayName,
-          _ => l10n.modelSelectorDefault,
+          _ => l10n.modelSelectorNone,
         },
         // ⚠️ 不传 onTap：AppMenuAnchor 已在外面套了 InkWell 负责开合。
         // 再套一层内层会先命中、吃掉点击 —— 菜单永远打不开且看不出异常。

@@ -258,7 +258,6 @@
   "relaySync": "Sync models",
   "relayNoProvider": "No provider configured yet",
   "modelSelector": "Select model",
-  "modelSelectorDefault": "Default model",
   "modelSelectorNone": "No models available",
   "navNewChatDone": "Started a new conversation",
   "loginButton": "Sign in",

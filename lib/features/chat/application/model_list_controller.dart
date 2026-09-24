@@ -111,9 +111,8 @@ class ModelListState {
 
   /// 界面该显示哪个模型。
   ///
-  /// ⚠️ 没选过时回落到 [first]，**不是显示「默认模型」四个字**。
-  /// 理由：不选模型时引擎用的就是列表第一个，显示"默认"等于把用户实际在用的
-  /// 模型藏起来 —— 他想知道的是"现在这条消息由谁回答"，不是"我有没有手动选过"。
+  /// 规则：用户选的，否则列表第一个；列表为空返回 null（调用方据此拒绝发送）。
+  /// **不存在「默认模型」这个概念**，发送与显示都用这一个结果。
   /// React studio 的 ModelLabel 同样如此（`hasStored ? stored : firstModel?.id`）。
   ModelChoice? effective(String? selected) => find(selected) ?? first;
 }

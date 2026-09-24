@@ -145,7 +145,7 @@ class ComposerSettingsController extends Notifier<ComposerSettingsState> {
     return true;
   }
 
-  /// 选模型。`null` = 选回"默认模型"（用列表第一个）。
+  /// 选模型。`null` = 未选（发送与显示都用列表第一个）。
   ///
   /// ⚠️ 放在 provider 里而不是 `ChatComposer` 的 State：空态与会话态是**两棵
   /// 不同的子树**，发第一条消息时 widget 会销毁重建 —— 私有字段活不过那一下，
