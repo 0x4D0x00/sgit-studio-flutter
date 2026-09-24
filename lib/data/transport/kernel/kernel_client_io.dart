@@ -9,6 +9,7 @@ import 'package:flutter/foundation.dart';
 import 'package:sgit_studio_flutter/core/config/runtime_config.dart';
 import 'package:sgit_studio_flutter/core/contracts/kernel_client.dart';
 import 'package:sgit_studio_flutter/core/contracts/kernel_ops.dart';
+import 'package:sgit_studio_flutter/data/transport/ffi/sgit_request_ffi_io.dart';
 import 'package:sgit_studio_flutter/data/transport/kernel/kernel_frame.dart';
 import 'package:sgit_studio_flutter/domain/models/chat/sgcode_settings.dart';
 
@@ -144,7 +145,26 @@ final class IoKernelClient implements KernelClient {
     // 而 Go 后端 API 在另一个端口（如 :32717）。用错了就是
     // 「云端对话 404」或「本地推理打到 SPA 首页」。
     // 同机部署时 gatewayBaseUrl 自动回落到 apiBaseUrl，不用额外配。
-    final base = RuntimeConfig.gatewayBaseUrl; // 未配置会抛 StateError，是刻意的
+    //
+    // ⚠️ 用户不会去设环境变量。没有显式配置时，**跟随 Rust `ApiConfig` 选中的端点**
+    // —— 登录、模型同步、本地引擎用的就是它（代码内置端点池 + 探测，
+    // `SGIT_API_BASE_URL` 可覆盖）。默认值只有 Rust 那一处，Dart 不另写死地址；
+    // 以前这里只读环境变量，没设就报「后端地址未配置」，而登录明明是通的。
+    //
+    // gateway 同理：它和后端 API **不在同一个端口**（后端 32717、gateway 经 nginx 在
+    // 18088），只跟随后端地址会连到没有 `/sgcode-kernel/ws` 的端口 → 404。
+    if (!RuntimeConfig.isConfigured || !RuntimeConfig.isGatewayConfigured) {
+      final probed = SgitRequestFfi.instance.probeEndpoint();
+      if (!RuntimeConfig.isConfigured) {
+        RuntimeConfig.applyOverride(probed.baseUrl);
+      }
+      if (!RuntimeConfig.isGatewayConfigured) {
+        RuntimeConfig.applyGatewayOverride(probed.gatewayUrl);
+      }
+      debugPrint('[kernel] 未显式配置地址，跟随 sgcode 端点: '
+          'api=${probed.baseUrl} gateway=${probed.gatewayUrl}');
+    }
+    final base = RuntimeConfig.gatewayBaseUrl; // Rust 也给不出地址时才抛 StateError
     final ws = base.startsWith('https://')
         ? base.replaceFirst('https://', 'wss://')
         : base.replaceFirst('http://', 'ws://');

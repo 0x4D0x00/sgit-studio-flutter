@@ -10,7 +10,15 @@ class Captcha {
 
 /// 探测结果：可用端点 + 是否密码登录。
 class EndpointInfo {
-  const EndpointInfo({required this.baseUrl, required this.preferPasswordLogin});
+  const EndpointInfo({
+    required this.baseUrl,
+    required this.preferPasswordLogin,
+    this.gatewayUrl = '',
+  });
   final String baseUrl;
   final bool preferPasswordLogin;
+
+  /// 云端引擎连的 gateway 基址。**与 [baseUrl] 不是同一个端口**
+  /// （Rust `ApiConfig::gateway_base_url`）。空 = 这端给不出。
+  final String gatewayUrl;
 }

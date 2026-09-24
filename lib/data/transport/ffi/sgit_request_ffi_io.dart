@@ -73,6 +73,7 @@ class SgitRequestFfi {
     return EndpointInfo(
       baseUrl: m['base_url'].toString(),
       preferPasswordLogin: m['prefer_password_login'] == true,
+      gatewayUrl: (m['gateway_url'] ?? '').toString(),
     );
   }
 

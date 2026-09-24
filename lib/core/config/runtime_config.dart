@@ -13,7 +13,10 @@ import 'runtime_env_io.dart'
 ///   1. 运行时注入 [applyOverride]（Web 从同源 `/_config/runtime.json` 读，换后端不重编）
 ///   2. 运行时环境变量 [envVarName]（桌面端主用 —— 与 Rust 侧同一个名字）
 ///   3. `--dart-define=SGIT_API_BASE_URL=...`（构建期固化，做内网包时用）
-///   4. 都没有 —— 抛 [StateError]，让问题在启动时炸出来，而不是在客户网络里静默打错地址
+///   4. 桌面端：以上都没有时，由调用方注入 **Rust `ApiConfig` 选中的端点**
+///      （代码内置端点池 + 探测，登录/本地引擎用的同一个；见 `kernel_client_io.dart`
+///      的 `_kernelWsUrl`）。用户不会设环境变量，默认值只有 Rust 那一处。
+///   5. 仍然没有 —— 抛 [StateError]
 ///
 /// ## ⚠️ 变量名必须与 Rust 侧一致
 ///
@@ -92,8 +95,7 @@ class RuntimeConfig {
         '后端地址未配置。任选其一：\n'
         '  1) 设环境变量 $envVarName=<url>（桌面端推荐，与 sgcode 共用同一个变量）\n'
         '  2) 构建时 --dart-define=$envVarName=<url>（做内网包）\n'
-        '  3) Web：在 /_config/runtime.json 里提供 apiBaseUrl\n'
-        '禁止回落到任何内置域名。',
+        '  3) Web：在 /_config/runtime.json 里提供 apiBaseUrl',
       );
     }
     return v;
@@ -116,6 +118,10 @@ class RuntimeConfig {
     final v = _gatewayOverride ?? _envGateway() ?? _compileGateway();
     return v ?? apiBaseUrl; // 回落；apiBaseUrl 未配置时由它抛错
   }
+
+  /// gateway 是否**显式**配置过（注入 / 环境变量 / 构建期）。回落到 [apiBaseUrl] 不算。
+  static bool get isGatewayConfigured =>
+      _gatewayOverride != null || _envGateway() != null || _compileGateway() != null;
 
   static String? _compileGateway() {
     final v = _stripTrailingSlash(_compileTimeGateway);
