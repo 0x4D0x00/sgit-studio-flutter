@@ -30,6 +30,9 @@ dependencies:
   # 无边框桌面窗口 + 真透明背景
   window_manager: ^0.5.2
 
+  # 获取屏幕信息(分辨率/缩放比/可用区域等)，计算桌面端窗口初始尺寸
+  screen_retriever: ^0.2.2
+
   # 国际化
   intl: any
 
