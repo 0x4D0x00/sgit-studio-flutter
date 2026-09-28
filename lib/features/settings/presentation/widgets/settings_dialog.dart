@@ -338,7 +338,7 @@ class _SidebarItem extends StatelessWidget {
             height: 36,
             padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm),
             decoration: BoxDecoration(
-              color: selected ? skin.navItemActive : Colors.transparent,
+              color: selected ? skin.text.withValues(alpha: 0.06) : Colors.transparent,
               borderRadius: BorderRadius.circular(AppRadius.sm),
             ),
             child: Row(

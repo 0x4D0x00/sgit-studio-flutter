@@ -814,7 +814,7 @@ _itemStyle(
       if (states.contains(
         WidgetState.hovered,
       )) {
-        return skin.navItemActive;
+        return skin.text.withValues(alpha: 0.06);
       }
       return null;
     }),

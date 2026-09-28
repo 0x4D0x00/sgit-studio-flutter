@@ -286,6 +286,7 @@ class _ThemeModeButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final skin = AppSkin.of(context);
     return InkWell(
       onTap: onTap,
       borderRadius: BorderRadius.circular(AppRadius.sm),
@@ -293,13 +294,13 @@ class _ThemeModeButton extends StatelessWidget {
         width: 44,
         height: 44,
         decoration: BoxDecoration(
-          color: selected ? theme.colorScheme.secondaryContainer : Colors.transparent,
+          color: selected ? skin.text.withValues(alpha: 0.06) : Colors.transparent,
           borderRadius: BorderRadius.circular(AppRadius.sm),
         ),
         child: Icon(
           icon,
           size: 20,
-          color: selected ? theme.colorScheme.onSecondaryContainer : theme.colorScheme.onSurface,
+          color: selected ? skin.text : theme.colorScheme.onSurface,
         ),
       ),
     );
@@ -377,6 +378,7 @@ class _SegmentedToggle extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final skin = AppSkin.of(context);
     return Container(
       decoration: BoxDecoration(
         border: Border.all(color: theme.colorScheme.outlineVariant),
@@ -396,7 +398,7 @@ class _SegmentedToggle extends StatelessWidget {
                 ),
                 decoration: BoxDecoration(
                   color: selected == option
-                      ? theme.colorScheme.secondaryContainer
+                      ? skin.text.withValues(alpha: 0.06)
                       : Colors.transparent,
                   borderRadius: BorderRadius.circular(AppRadius.sm),
                 ),
@@ -405,9 +407,7 @@ class _SegmentedToggle extends StatelessWidget {
                   style: TextStyle(
                     fontSize: 14,
                     fontWeight: selected == option ? FontWeight.w500 : FontWeight.normal,
-                    color: selected == option
-                        ? theme.colorScheme.onSecondaryContainer
-                        : theme.colorScheme.onSurface,
+                    color: selected == option ? skin.text : theme.colorScheme.onSurface,
                   ),
                 ),
               ),

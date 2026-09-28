@@ -79,7 +79,7 @@ class _SearchChatsDialogState extends State<_SearchChatsDialog> {
         side: BorderSide(color: skin.border),
       ),
       child: ConstrainedBox(
-        constraints: const BoxConstraints(maxWidth: 560, maxHeight: 520),
+        constraints: const BoxConstraints(maxWidth: 500, maxHeight: 400),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -138,7 +138,7 @@ class _SearchChatsDialogState extends State<_SearchChatsDialog> {
     color: Colors.transparent,
     child: InkWell(
       onTap: () => _pick(item.id),
-      hoverColor: skin.navItemActive,
+      hoverColor: skin.text.withValues(alpha: 0.06),
       child: Padding(
         padding: const EdgeInsets.symmetric(
           horizontal: AppSpacing.sm,

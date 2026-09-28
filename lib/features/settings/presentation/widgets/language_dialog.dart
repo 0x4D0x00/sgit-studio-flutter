@@ -115,9 +115,7 @@ class _LanguageCardState extends State<_LanguageCard> {
     final theme = Theme.of(context);
 
     Color bgColor;
-    if (widget.selected) {
-      bgColor = theme.colorScheme.primary.withValues(alpha: 0.12);
-    } else if (_hovering) {
+    if (widget.selected || _hovering) {
       bgColor = skin.text.withValues(alpha: 0.06);
     } else {
       bgColor = Colors.transparent;
