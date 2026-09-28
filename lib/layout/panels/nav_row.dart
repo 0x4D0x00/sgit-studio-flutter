@@ -83,29 +83,22 @@ class _NavRowState
 
     // 菜单开着时这一行保持高亮，否则菜单飘在外面、行是灰的，看着不像一对。
     // 停在某个子页里时也算 —— 那一行是子页的归属。
-    // ⚠️ 历史对话项（isChatItem）例外：它们的选中态**不显示高亮**，只有
-    // 悬停时才显示灰底（菜单开着也不保持灰底）
+    // 历史对话项（isChatItem）选中时也保持灰底常驻
     final highlighted =
-        !isChatItem &&
-        (selected ||
+        selected ||
             menuOpen ||
-            entry.menuHasChecked);
-    // 智能体行和历史对话项：悬停都出灰底（不再用蓝底）
+            entry.menuHasChecked;
+    // 所有行统一灰底 —— 点击选中和鼠标悬停用同一个颜色
     final hoverBg = skin.text.withValues(
       alpha: 0.06,
     );
-    // 智能体行悬停或菜单开着时也用灰底；选中态（进入子页）才用蓝底
+    // 历史对话项：选中、悬停、菜单开着都出灰底常驻；其余行悬停或高亮时出底色
     final showBackground = isChatItem
-        ? (_hovering ||
+        ? (selected ||
+              _hovering ||
               menuOpen)
         : (highlighted ||
               _hovering);
-    final backgroundColor =
-        (isChatItem ||
-            _hovering ||
-            menuOpen)
-        ? hoverBg
-        : skin.navItemActive;
     final fg = highlighted
         ? skin.text
         : skin.textSecondary;
@@ -272,7 +265,7 @@ class _NavRowState
             ),
         child: Material(
           color: showBackground
-              ? backgroundColor
+              ? hoverBg
               : Colors.transparent,
           borderRadius: BorderRadius.circular(
             WorkspaceMetrics.navItemRadius,

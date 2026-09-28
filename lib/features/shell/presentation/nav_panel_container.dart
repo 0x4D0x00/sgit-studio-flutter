@@ -106,12 +106,20 @@ class NavPanelContainer
     // 排序和分组状态
     final sortGroupState = ref.watch(historySortGroupControllerProvider);
 
+    // 当前接在哪条历史会话上（新对话/还没存过时为 null）。用来点亮左栏对应的
+    // 历史条目 —— 打开历史会话走的是 `context.go(home)`，路由本身分不出
+    // 是哪一条，`activeNavId` 在这条路径上恒为 null，必须另外比对 thread id。
+    final currentThreadId =
+        ref.watch(chatControllerProvider.select((s) => s.currentThreadId));
+    final effectiveActiveId = activeNavId ??
+        (currentThreadId == null ? null : '$_threadPrefix$currentThreadId');
+
     return NavPanel(
       brandMark: BrandAssets.image(
         BrandAssets.loginMark,
       ),
       brandName: BrandConfig.instance.name,
-      activeId: activeNavId,
+      activeId: effectiveActiveId,
       // 导航行：新对话、输出物、智能体
       header: [
         NavEntry(

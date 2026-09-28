@@ -322,7 +322,7 @@ class ChatController extends Notifier<ChatSessionState> {
   /// 失败 → ThreadOpenFailed，工作台的故障条显示原文
   /// ```
   Future<void> openThreadById(String threadId) async {
-    beginOpenThread();
+    beginOpenThread(threadId);
     final gen = _openGeneration; // beginOpenThread 刚 +1，记下这次的代次
     try {
       final replay = await ref.read(threadRepositoryProvider).open(threadId);
@@ -445,7 +445,11 @@ class ChatController extends Notifier<ChatSessionState> {
   /// 调用方 `unawaited(openThreadById(id))` 之后紧接着 `context.go` 时，
   /// 工作台已经是"正在载入"的干净状态，不会闪一下上一条会话的残留内容。
   /// 换句话说调用方**不需要**自己先调一次。
-  void beginOpenThread() {
+  ///
+  /// [threadId] 立刻写进 [ChatSessionState.currentThreadId]，让左栏历史列表
+  /// 在内容真正载入完成之前就先亮起来 —— 载入是异步的，用户点完到内容回来
+  /// 之间那段空档如果不亮，看着就像"没点中"。
+  void beginOpenThread(String threadId) {
     _openGeneration++;
     if (state.busy) interrupt();
     for (final i in _items) {
@@ -460,6 +464,7 @@ class ChatController extends Notifier<ChatSessionState> {
     state = ChatSessionState(
       capabilities: state.capabilities,
       openingThread: true,
+      currentThreadId: threadId,
     );
   }
 
@@ -486,7 +491,10 @@ class ChatController extends Notifier<ChatSessionState> {
     // ⚠️ **必须保留 capabilities**。能力属于连接、不属于会话 —— 清掉的话
     // 打开历史后第一次发送就因 caps==null 被拒，还会顺带触发重连
     // （`newChat()` 那段注释记的是同一个坑）。
-    state = ChatSessionState(capabilities: state.capabilities);
+    state = ChatSessionState(
+      capabilities: state.capabilities,
+      currentThreadId: threadId,
+    );
 
     // 让后续发言接在这条 thread 上。Rust 侧 `thread/resume` 已经把它装进了
     // 活动的 thread_manager，所以 turn/start 打得中。

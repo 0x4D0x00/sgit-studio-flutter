@@ -36,6 +36,7 @@ class ChatSessionState {
     this.fault,
     this.progress,
     this.notice,
+    this.currentThreadId,
   });
 
   /// 是否有 turn 在跑（决定发送键变停止键）。
@@ -72,6 +73,11 @@ class ChatSessionState {
   /// 一次性轻提示（动作被拒的原因）。
   final ChatNotice? notice;
 
+  /// 当前接在哪条历史会话上；新对话（还没存过）时为 null。
+  /// 只用来给左栏历史列表点亮"当前打开的是哪一条"——不影响任何内核交互，
+  /// 那部分仍由 [ChatController] 内部的 `_client.setThread` 管。
+  final String? currentThreadId;
+
   ChatSessionState copyWith({
     bool? busy,
     bool? connecting,
@@ -83,6 +89,7 @@ class ChatSessionState {
     ChatFault? fault,
     KernelConnectProgress? progress,
     ChatNotice? notice,
+    String? currentThreadId,
     bool clearProgress = false,
     bool clearNotice = false,
   }) =>
@@ -101,6 +108,7 @@ class ChatSessionState {
         // notice 是一次性的：**默认清掉**，只有显式传才留。粘住的提示比没提示更糟
         // （用户会以为新动作也失败了）。
         notice: clearNotice ? null : notice,
+        currentThreadId: currentThreadId ?? this.currentThreadId,
       );
 }
 
