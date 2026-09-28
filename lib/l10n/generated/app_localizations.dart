@@ -728,6 +728,54 @@ abstract class AppLocalizations {
   /// **'内容可能不完整'**
   String get chatTextTruncated;
 
+  /// No description provided for @chatCopy.
+  ///
+  /// In zh, this message translates to:
+  /// **'复制'**
+  String get chatCopy;
+
+  /// No description provided for @chatCopied.
+  ///
+  /// In zh, this message translates to:
+  /// **'已复制'**
+  String get chatCopied;
+
+  /// No description provided for @chatEdit.
+  ///
+  /// In zh, this message translates to:
+  /// **'编辑'**
+  String get chatEdit;
+
+  /// No description provided for @chatEditRegenerateHint.
+  ///
+  /// In zh, this message translates to:
+  /// **'保存后将丢弃此消息之后的内容，并用编辑后的内容重新开始本次会话'**
+  String get chatEditRegenerateHint;
+
+  /// No description provided for @chatRetry.
+  ///
+  /// In zh, this message translates to:
+  /// **'重新生成'**
+  String get chatRetry;
+
+  /// No description provided for @chatReadAloud.
+  ///
+  /// In zh, this message translates to:
+  /// **'朗读'**
+  String get chatReadAloud;
+
+  /// No description provided for @chatThumbUp.
+  ///
+  /// In zh, this message translates to:
+  /// **'赞'**
+  String get chatThumbUp;
+
+  /// No description provided for @chatThumbDown.
+  ///
+  /// In zh, this message translates to:
+  /// **'踩'**
+  String get chatThumbDown;
+
   /// No description provided for @chatApprovalTitle.
   ///
   /// In zh, this message translates to:

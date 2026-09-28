@@ -13,10 +13,17 @@ import 'package:flutter/foundation.dart';
 /// 所以：条目由控制器独占持有并原地追加，UI 通过 [revision] 这个
 /// `ValueListenable` 订阅**单条**变化 —— 一个 delta 只重建一个气泡，不重建列表。
 sealed class ChatItem {
-  ChatItem({required this.id});
+  ChatItem({required this.id, DateTime? createdAt})
+      : createdAt = createdAt ?? DateTime.now();
 
   /// 与内核的 `item_id` 对齐。
   final int id;
+
+  /// 展示用的创建时间。**没有服务端字段可用** —— 内核协议只给 thread 级
+  /// createdAt/updatedAt，没有单条消息的时间戳。所以这里落的是本地
+  /// "条目被造出来那一刻"：用户发消息时是发送时刻，assistant 回答是
+  /// 开始流式输出的时刻，历史回放时是回放发生的时刻（非真实发送时刻）。
+  final DateTime createdAt;
 
   /// 版本号。每次内容变化 +1，UI 用 `ValueListenableBuilder` 订阅它。
   final ValueNotifier<int> revision = ValueNotifier<int>(0);

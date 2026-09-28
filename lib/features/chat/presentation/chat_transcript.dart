@@ -3,6 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:sgit_studio_flutter/core/contracts/kernel_client.dart';
 import 'package:sgit_studio_flutter/domain/models/chat/chat_item.dart';
+import 'package:sgit_studio_flutter/features/chat/application/composer_settings_controller.dart';
+import 'package:sgit_studio_flutter/features/chat/application/model_list_controller.dart';
 import 'package:sgit_studio_flutter/l10n/generated/app_localizations.dart';
 import 'package:sgit_studio_flutter/layout/metrics/workspace_metrics.dart';
 import 'package:sgit_studio_flutter/services/chat/chat_controller.dart';
@@ -31,6 +33,16 @@ class ChatTranscript extends ConsumerWidget {
       valueListenable: ctrl.itemsRevision,
       builder: (context, _, _) {
         final items = ctrl.items;
+        // 最后一组回答的末尾气泡（当前/最近这轮的 assistant 文本）—— 从后往前
+        // 找第一条 assistant TextItem，工具行对它常驻显示。
+        int? lastAssistantId;
+        for (var i = items.length - 1; i >= 0; i--) {
+          final it = items[i];
+          if (it is TextItem && it.role == ChatRole.assistant) {
+            lastAssistantId = it.id;
+            break;
+          }
+        }
         return ListView.builder(
           padding: const EdgeInsets.symmetric(
               horizontal: WorkspaceMetrics.contentPaddingInline,
@@ -39,7 +51,8 @@ class ChatTranscript extends ConsumerWidget {
           // 条目身份稳定，给 key 让 Flutter 复用 Element，避免整表重建。
           itemBuilder: (context, i) => KeyedSubtree(
             key: ValueKey<int>(items[i].id),
-            child: _card(context, ctrl, l10n, items[i]),
+            child: _card(context, ref, ctrl, l10n, items[i],
+                isLastAnswer: items[i].id == lastAssistantId),
           ),
         );
       },
@@ -47,11 +60,25 @@ class ChatTranscript extends ConsumerWidget {
   }
 
   /// 一条 → 一张卡。用 sealed class 的 switch，新增条目类型时编译器会在这里拦住。
-  Widget _card(BuildContext context, ChatController ctrl,
-          AppLocalizations l10n, ChatItem item) =>
+  Widget _card(BuildContext context, WidgetRef ref, ChatController ctrl,
+          AppLocalizations l10n, ChatItem item,
+          {required bool isLastAnswer}) =>
       switch (item) {
-        final TextItem t =>
-          TextBubble(item: t, truncatedHint: l10n.chatTextTruncated),
+        final TextItem t => TextBubble(
+            item: t,
+            truncatedHint: l10n.chatTextTruncated,
+            isLastAnswer: isLastAnswer,
+            onEditSave: t.role == ChatRole.user
+                ? (text) => ctrl.editAndResend(t.id, text,
+                    model: ref
+                        .read(modelListProvider)
+                        .effective(ref
+                            .read(composerSettingsProvider)
+                            .settings
+                            .selectedModel)
+                        ?.id)
+                : null,
+          ),
         final ToolItem t => ToolCard(
             item: t,
             runningLabel: l10n.chatToolRunning,

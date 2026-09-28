@@ -209,6 +209,52 @@ class ChatController extends Notifier<ChatSessionState> {
     return true;
   }
 
+  /// 气泡内联编辑保存：丢弃这条用户消息**之后**的所有本地条目，把编辑后的文本
+  /// 当作新一轮重新发出。
+  ///
+  /// ⚠️ **这只是本地视图的截断**，不是内核层面的"回滚 thread"——协议里没有
+  /// 这个操作（[KernelOp] 只有 send/interrupt/steer/approve/ping，没有
+  /// truncate/fork）。所以内核那边的 thread 历史仍然完整保留着编辑前的原文
+  /// 和它当时的回答，新一轮只是照常 append 上去；界面上只是不再显示那些
+  /// 被丢弃的条目。
+  ///
+  /// 校验顺序**必须**在截断之前：先确认这次重发不会被拒（同 [send] 的检查），
+  /// 再动手删旧条目 —— 反过来的话，一旦被拒，用户的原消息和回答已经被删掉，
+  /// 却什么都没发出去，没有任何办法找回来。
+  bool editAndResend(int itemId, String text, {String? model}) {
+    final trimmed = text.trim();
+    if (trimmed.isEmpty) return false;
+    if (state.busy) {
+      state = state.copyWith(notice: ChatNotice.busy);
+      return false;
+    }
+    if (model == null || model.isEmpty) {
+      state = state.copyWith(notice: ChatNotice.noModel);
+      return false;
+    }
+    final caps = state.capabilities;
+    if (caps == null || !caps.supports(KernelOp.send)) {
+      if (state.fault == null) {
+        state = state.copyWith(fault: const KernelNotConnected());
+      }
+      if (!state.connecting) unawaited(connect());
+      return false;
+    }
+
+    final index = _items.indexWhere((i) => i.id == itemId);
+    if (index == -1) return false;
+
+    final removed = _items.sublist(index);
+    _items.removeRange(index, _items.length);
+    for (final i in removed) {
+      _byId.remove(i.id);
+      i.dispose();
+    }
+    if (removed.contains(_streaming)) _streaming = null;
+
+    return send(trimmed, model: model);
+  }
+
   /// busy 看门狗。
   ///
   /// [send] 是**乐观**置 busy 的（turnStarted 还没到）。如果内核那边挂了、

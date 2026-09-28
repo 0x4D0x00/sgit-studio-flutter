@@ -341,6 +341,31 @@ class AppLocalizationsEn extends AppLocalizations {
   String get chatTextTruncated => 'Content may be incomplete';
 
   @override
+  String get chatCopy => 'Copy';
+
+  @override
+  String get chatCopied => 'Copied';
+
+  @override
+  String get chatEdit => 'Edit';
+
+  @override
+  String get chatEditRegenerateHint =>
+      'Saving discards everything after this message and restarts the conversation from your edit';
+
+  @override
+  String get chatRetry => 'Retry';
+
+  @override
+  String get chatReadAloud => 'Read aloud';
+
+  @override
+  String get chatThumbUp => 'Good response';
+
+  @override
+  String get chatThumbDown => 'Bad response';
+
+  @override
   String get chatApprovalTitle => 'Needs your confirmation';
 
   @override

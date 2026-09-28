@@ -334,6 +334,30 @@ class AppLocalizationsZh extends AppLocalizations {
   String get chatTextTruncated => '内容可能不完整';
 
   @override
+  String get chatCopy => '复制';
+
+  @override
+  String get chatCopied => '已复制';
+
+  @override
+  String get chatEdit => '编辑';
+
+  @override
+  String get chatEditRegenerateHint => '保存后将丢弃此消息之后的内容，并用编辑后的内容重新开始本次会话';
+
+  @override
+  String get chatRetry => '重新生成';
+
+  @override
+  String get chatReadAloud => '朗读';
+
+  @override
+  String get chatThumbUp => '赞';
+
+  @override
+  String get chatThumbDown => '踩';
+
+  @override
   String get chatApprovalTitle => '需要你确认';
 
   @override
