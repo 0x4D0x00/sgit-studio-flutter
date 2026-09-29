@@ -7,6 +7,10 @@ import 'package:sgit_studio_flutter/design/tokens/app_spacing.dart';
 import 'package:sgit_studio_flutter/features/settings/presentation/pages/settings_page.dart';
 import 'package:sgit_studio_flutter/features/settings/presentation/pages/account_page.dart';
 import 'package:sgit_studio_flutter/features/settings/presentation/pages/privacy_page.dart';
+import 'package:sgit_studio_flutter/features/settings/presentation/pages/billing_page.dart';
+import 'package:sgit_studio_flutter/features/settings/presentation/pages/memory_page.dart';
+import 'package:sgit_studio_flutter/features/settings/presentation/pages/reflect_page.dart';
+import 'package:sgit_studio_flutter/features/settings/presentation/pages/time_focus_page.dart';
 import 'package:sgit_studio_flutter/features/settings/presentation/pages/settings_placeholder_page.dart';
 import 'package:sgit_studio_flutter/features/settings/presentation/pages/skills_settings_page.dart';
 import 'package:sgit_studio_flutter/features/settings/presentation/pages/connectors_settings_page.dart';
@@ -132,17 +136,21 @@ class _SettingsDialogState extends State<_SettingsDialog> {
         return const AccountPage();
       case _SettingsTab.privacy:
         return const PrivacyPage();
+      case _SettingsTab.billing:
+        return const BillingPage();
+      case _SettingsTab.memory:
+        return const MemoryPage();
+      case _SettingsTab.reflect:
+        return const ReflectPage();
+      case _SettingsTab.timeFocus:
+        return const TimeFocusPage();
       case _SettingsTab.skills:
         return const SkillsSettingsPage();
       case _SettingsTab.connectors:
         return const ConnectorsSettingsPage();
       case _SettingsTab.plugins:
         return const PluginsSettingsPage();
-      case _SettingsTab.billing:
       case _SettingsTab.capabilities:
-      case _SettingsTab.memory:
-      case _SettingsTab.reflect:
-      case _SettingsTab.timeFocus:
       case _SettingsTab.claudeCode:
         return const SettingsPlaceholderPage();
     }

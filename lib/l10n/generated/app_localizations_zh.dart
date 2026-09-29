@@ -701,6 +701,111 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settingsComingSoonDesc => '此功能正在开发中';
 
   @override
+  String get billingFreePlan => '免费版';
+
+  @override
+  String get billingTryClaude => '试用 Claude';
+
+  @override
+  String get billingUpgradePlan => '升级方案';
+
+  @override
+  String get billingFeatureChatPlatforms => '在网页、iOS、Android 及桌面端进行对话';
+
+  @override
+  String get billingFeatureGenerateCode => '生成代码并可视化数据';
+
+  @override
+  String get billingFeatureWriteEdit => '编写、编辑和创作内容';
+
+  @override
+  String get billingFeatureSearchWeb => '支持网页搜索能力';
+
+  @override
+  String get billingFeatureMemory => '跨对话的记忆能力';
+
+  @override
+  String get billingFeatureCreateFiles => '创建文件并执行代码';
+
+  @override
+  String get billingFeatureDesktopExtensions => '通过桌面扩展解锁 Claude 的更多能力';
+
+  @override
+  String get billingFeatureConnectWorkspace => '连接 Slack 和 Google Workspace 服务';
+
+  @override
+  String get billingFeatureConnectors => '通过远程 MCP 连接器接入任意上下文或工具';
+
+  @override
+  String get billingFeatureExtendedThinking => '为复杂任务提供扩展思考';
+
+  @override
+  String get memoryTitle => '记忆';
+
+  @override
+  String get memoryGenerateFromChats => '从对话中生成记忆';
+
+  @override
+  String memoryGenerateFromChatsDesc(Object learnMore) {
+    return '允许 Claude 根据您的对话生成记忆。$learnMore';
+  }
+
+  @override
+  String get memoryGenerateFromChatsLearnMore => '了解更多。';
+
+  @override
+  String get reflectTitle => '反思';
+
+  @override
+  String get reflectDesc => '基于您在 Claude 对话中的内容。';
+
+  @override
+  String get reflectEnableMemoryHintPrefix => '要使用此反思功能，您需要先在';
+
+  @override
+  String get reflectMemorySettingsLink => '记忆设置';
+
+  @override
+  String get reflectEnableMemoryHintSuffix => '中启用记忆。';
+
+  @override
+  String get timeFocusTitle => '时间和专注';
+
+  @override
+  String get timeFocusBreakReminders => '休息提醒';
+
+  @override
+  String get timeFocusBreakRemindersDesc =>
+      '在使用 Claude 时提醒您休息一下。您可以随时暂停提醒或调整时间。';
+
+  @override
+  String get timeFocusQuietHours => '静默时段';
+
+  @override
+  String get timeFocusQuietHoursDesc => '为 Claude 设置时间限制。您可以随时取消或调整。';
+
+  @override
+  String get commonSunday => '日';
+
+  @override
+  String get commonMonday => '一';
+
+  @override
+  String get commonTuesday => '二';
+
+  @override
+  String get commonWednesday => '三';
+
+  @override
+  String get commonThursday => '四';
+
+  @override
+  String get commonFriday => '五';
+
+  @override
+  String get commonSaturday => '六';
+
+  @override
   String get accountAvatar => '头像';
 
   @override

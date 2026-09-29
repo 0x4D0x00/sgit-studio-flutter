@@ -714,6 +714,118 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settingsComingSoonDesc => 'This feature is under development';
 
   @override
+  String get billingFreePlan => 'Free plan';
+
+  @override
+  String get billingTryClaude => 'Try Claude';
+
+  @override
+  String get billingUpgradePlan => 'Upgrade plan';
+
+  @override
+  String get billingFeatureChatPlatforms =>
+      'Chat on web, iOS, Android, and on your desktop';
+
+  @override
+  String get billingFeatureGenerateCode => 'Generate code and visualize data';
+
+  @override
+  String get billingFeatureWriteEdit => 'Write, edit, and create content';
+
+  @override
+  String get billingFeatureSearchWeb => 'Ability to search the web';
+
+  @override
+  String get billingFeatureMemory => 'Memory across conversations';
+
+  @override
+  String get billingFeatureCreateFiles => 'Create files and execute code';
+
+  @override
+  String get billingFeatureDesktopExtensions =>
+      'Unlock more from Claude with desktop extensions';
+
+  @override
+  String get billingFeatureConnectWorkspace =>
+      'Connect Slack and Google Workspace services';
+
+  @override
+  String get billingFeatureConnectors =>
+      'Integrate any context or tool through connectors with remote MCP';
+
+  @override
+  String get billingFeatureExtendedThinking =>
+      'Extended thinking for complex work';
+
+  @override
+  String get memoryTitle => 'Memory';
+
+  @override
+  String get memoryGenerateFromChats => 'Generate memory from chats';
+
+  @override
+  String memoryGenerateFromChatsDesc(Object learnMore) {
+    return 'Allow Claude to generate memory from your chats. $learnMore';
+  }
+
+  @override
+  String get memoryGenerateFromChatsLearnMore => 'Learn more.';
+
+  @override
+  String get reflectTitle => 'Reflect';
+
+  @override
+  String get reflectDesc => 'Based on your conversations in Claude chat.';
+
+  @override
+  String get reflectEnableMemoryHintPrefix =>
+      'For this reflection to work, you\'ll need to enable memory in ';
+
+  @override
+  String get reflectMemorySettingsLink => 'memory settings';
+
+  @override
+  String get reflectEnableMemoryHintSuffix => '.';
+
+  @override
+  String get timeFocusTitle => 'Time and focus';
+
+  @override
+  String get timeFocusBreakReminders => 'Break reminders';
+
+  @override
+  String get timeFocusBreakRemindersDesc =>
+      'Get a nudge to take a break from Claude. You can snooze or adjust anytime.';
+
+  @override
+  String get timeFocusQuietHours => 'Quiet hours';
+
+  @override
+  String get timeFocusQuietHoursDesc =>
+      'Set time limits for Claude. You can dismiss or adjust anytime.';
+
+  @override
+  String get commonSunday => 'S';
+
+  @override
+  String get commonMonday => 'M';
+
+  @override
+  String get commonTuesday => 'T';
+
+  @override
+  String get commonWednesday => 'W';
+
+  @override
+  String get commonThursday => 'T';
+
+  @override
+  String get commonFriday => 'F';
+
+  @override
+  String get commonSaturday => 'S';
+
+  @override
   String get accountAvatar => 'Avatar';
 
   @override

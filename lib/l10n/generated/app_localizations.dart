@@ -1424,6 +1424,210 @@ abstract class AppLocalizations {
   /// **'此功能正在开发中'**
   String get settingsComingSoonDesc;
 
+  /// No description provided for @billingFreePlan.
+  ///
+  /// In zh, this message translates to:
+  /// **'免费版'**
+  String get billingFreePlan;
+
+  /// No description provided for @billingTryClaude.
+  ///
+  /// In zh, this message translates to:
+  /// **'试用 Claude'**
+  String get billingTryClaude;
+
+  /// No description provided for @billingUpgradePlan.
+  ///
+  /// In zh, this message translates to:
+  /// **'升级方案'**
+  String get billingUpgradePlan;
+
+  /// No description provided for @billingFeatureChatPlatforms.
+  ///
+  /// In zh, this message translates to:
+  /// **'在网页、iOS、Android 及桌面端进行对话'**
+  String get billingFeatureChatPlatforms;
+
+  /// No description provided for @billingFeatureGenerateCode.
+  ///
+  /// In zh, this message translates to:
+  /// **'生成代码并可视化数据'**
+  String get billingFeatureGenerateCode;
+
+  /// No description provided for @billingFeatureWriteEdit.
+  ///
+  /// In zh, this message translates to:
+  /// **'编写、编辑和创作内容'**
+  String get billingFeatureWriteEdit;
+
+  /// No description provided for @billingFeatureSearchWeb.
+  ///
+  /// In zh, this message translates to:
+  /// **'支持网页搜索能力'**
+  String get billingFeatureSearchWeb;
+
+  /// No description provided for @billingFeatureMemory.
+  ///
+  /// In zh, this message translates to:
+  /// **'跨对话的记忆能力'**
+  String get billingFeatureMemory;
+
+  /// No description provided for @billingFeatureCreateFiles.
+  ///
+  /// In zh, this message translates to:
+  /// **'创建文件并执行代码'**
+  String get billingFeatureCreateFiles;
+
+  /// No description provided for @billingFeatureDesktopExtensions.
+  ///
+  /// In zh, this message translates to:
+  /// **'通过桌面扩展解锁 Claude 的更多能力'**
+  String get billingFeatureDesktopExtensions;
+
+  /// No description provided for @billingFeatureConnectWorkspace.
+  ///
+  /// In zh, this message translates to:
+  /// **'连接 Slack 和 Google Workspace 服务'**
+  String get billingFeatureConnectWorkspace;
+
+  /// No description provided for @billingFeatureConnectors.
+  ///
+  /// In zh, this message translates to:
+  /// **'通过远程 MCP 连接器接入任意上下文或工具'**
+  String get billingFeatureConnectors;
+
+  /// No description provided for @billingFeatureExtendedThinking.
+  ///
+  /// In zh, this message translates to:
+  /// **'为复杂任务提供扩展思考'**
+  String get billingFeatureExtendedThinking;
+
+  /// No description provided for @memoryTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'记忆'**
+  String get memoryTitle;
+
+  /// No description provided for @memoryGenerateFromChats.
+  ///
+  /// In zh, this message translates to:
+  /// **'从对话中生成记忆'**
+  String get memoryGenerateFromChats;
+
+  /// No description provided for @memoryGenerateFromChatsDesc.
+  ///
+  /// In zh, this message translates to:
+  /// **'允许 Claude 根据您的对话生成记忆。{learnMore}'**
+  String memoryGenerateFromChatsDesc(Object learnMore);
+
+  /// No description provided for @memoryGenerateFromChatsLearnMore.
+  ///
+  /// In zh, this message translates to:
+  /// **'了解更多。'**
+  String get memoryGenerateFromChatsLearnMore;
+
+  /// No description provided for @reflectTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'反思'**
+  String get reflectTitle;
+
+  /// No description provided for @reflectDesc.
+  ///
+  /// In zh, this message translates to:
+  /// **'基于您在 Claude 对话中的内容。'**
+  String get reflectDesc;
+
+  /// No description provided for @reflectEnableMemoryHintPrefix.
+  ///
+  /// In zh, this message translates to:
+  /// **'要使用此反思功能，您需要先在'**
+  String get reflectEnableMemoryHintPrefix;
+
+  /// No description provided for @reflectMemorySettingsLink.
+  ///
+  /// In zh, this message translates to:
+  /// **'记忆设置'**
+  String get reflectMemorySettingsLink;
+
+  /// No description provided for @reflectEnableMemoryHintSuffix.
+  ///
+  /// In zh, this message translates to:
+  /// **'中启用记忆。'**
+  String get reflectEnableMemoryHintSuffix;
+
+  /// No description provided for @timeFocusTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'时间和专注'**
+  String get timeFocusTitle;
+
+  /// No description provided for @timeFocusBreakReminders.
+  ///
+  /// In zh, this message translates to:
+  /// **'休息提醒'**
+  String get timeFocusBreakReminders;
+
+  /// No description provided for @timeFocusBreakRemindersDesc.
+  ///
+  /// In zh, this message translates to:
+  /// **'在使用 Claude 时提醒您休息一下。您可以随时暂停提醒或调整时间。'**
+  String get timeFocusBreakRemindersDesc;
+
+  /// No description provided for @timeFocusQuietHours.
+  ///
+  /// In zh, this message translates to:
+  /// **'静默时段'**
+  String get timeFocusQuietHours;
+
+  /// No description provided for @timeFocusQuietHoursDesc.
+  ///
+  /// In zh, this message translates to:
+  /// **'为 Claude 设置时间限制。您可以随时取消或调整。'**
+  String get timeFocusQuietHoursDesc;
+
+  /// No description provided for @commonSunday.
+  ///
+  /// In zh, this message translates to:
+  /// **'日'**
+  String get commonSunday;
+
+  /// No description provided for @commonMonday.
+  ///
+  /// In zh, this message translates to:
+  /// **'一'**
+  String get commonMonday;
+
+  /// No description provided for @commonTuesday.
+  ///
+  /// In zh, this message translates to:
+  /// **'二'**
+  String get commonTuesday;
+
+  /// No description provided for @commonWednesday.
+  ///
+  /// In zh, this message translates to:
+  /// **'三'**
+  String get commonWednesday;
+
+  /// No description provided for @commonThursday.
+  ///
+  /// In zh, this message translates to:
+  /// **'四'**
+  String get commonThursday;
+
+  /// No description provided for @commonFriday.
+  ///
+  /// In zh, this message translates to:
+  /// **'五'**
+  String get commonFriday;
+
+  /// No description provided for @commonSaturday.
+  ///
+  /// In zh, this message translates to:
+  /// **'六'**
+  String get commonSaturday;
+
   /// No description provided for @accountAvatar.
   ///
   /// In zh, this message translates to:
