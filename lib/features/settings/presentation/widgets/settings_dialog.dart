@@ -141,7 +141,9 @@ class _SettingsDialogState extends State<_SettingsDialog> {
       case _SettingsTab.memory:
         return const MemoryPage();
       case _SettingsTab.reflect:
-        return const ReflectPage();
+        return ReflectPage(
+          onOpenMemorySettings: () => setState(() => _selectedTab = _SettingsTab.memory),
+        );
       case _SettingsTab.timeFocus:
         return const TimeFocusPage();
       case _SettingsTab.skills:
