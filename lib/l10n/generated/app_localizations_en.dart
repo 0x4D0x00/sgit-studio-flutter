@@ -805,6 +805,19 @@ class AppLocalizationsEn extends AppLocalizations {
       'Set time limits for Claude. You can dismiss or adjust anytime.';
 
   @override
+  String get commonDashPlaceholder => '-';
+
+  @override
+  String commonHoursValue(int n) {
+    return '$n hr';
+  }
+
+  @override
+  String commonMinutesValue(int n) {
+    return '$n min';
+  }
+
+  @override
   String get commonSunday => 'S';
 
   @override
@@ -824,6 +837,12 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get commonSaturday => 'S';
+
+  @override
+  String get timeFocusQuietHoursTo => 'to';
+
+  @override
+  String get timeFocusQuietHoursNextDay => 'next day';
 
   @override
   String get accountAvatar => 'Avatar';

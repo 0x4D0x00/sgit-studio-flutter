@@ -785,6 +785,19 @@ class AppLocalizationsZh extends AppLocalizations {
   String get timeFocusQuietHoursDesc => '为 Claude 设置时间限制。您可以随时取消或调整。';
 
   @override
+  String get commonDashPlaceholder => '-';
+
+  @override
+  String commonHoursValue(int n) {
+    return '$n 小时';
+  }
+
+  @override
+  String commonMinutesValue(int n) {
+    return '$n 分钟';
+  }
+
+  @override
   String get commonSunday => '日';
 
   @override
@@ -804,6 +817,12 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get commonSaturday => '六';
+
+  @override
+  String get timeFocusQuietHoursTo => '至';
+
+  @override
+  String get timeFocusQuietHoursNextDay => '次日';
 
   @override
   String get accountAvatar => '头像';

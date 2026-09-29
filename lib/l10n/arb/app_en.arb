@@ -355,6 +355,23 @@
   "timeFocusBreakRemindersDesc": "Get a nudge to take a break from Claude. You can snooze or adjust anytime.",
   "timeFocusQuietHours": "Quiet hours",
   "timeFocusQuietHoursDesc": "Set time limits for Claude. You can dismiss or adjust anytime.",
+  "commonDashPlaceholder": "-",
+  "commonHoursValue": "{n} hr",
+  "@commonHoursValue": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "commonMinutesValue": "{n} min",
+  "@commonMinutesValue": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
   "commonSunday": "S",
   "commonMonday": "M",
   "commonTuesday": "T",
@@ -362,6 +379,8 @@
   "commonThursday": "T",
   "commonFriday": "F",
   "commonSaturday": "S",
+  "timeFocusQuietHoursTo": "to",
+  "timeFocusQuietHoursNextDay": "next day",
   "accountAvatar": "Avatar",
   "accountUsername": "Username",
   "accountPassword": "Password",

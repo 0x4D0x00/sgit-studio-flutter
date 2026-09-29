@@ -1586,6 +1586,24 @@ abstract class AppLocalizations {
   /// **'为 Claude 设置时间限制。您可以随时取消或调整。'**
   String get timeFocusQuietHoursDesc;
 
+  /// No description provided for @commonDashPlaceholder.
+  ///
+  /// In zh, this message translates to:
+  /// **'-'**
+  String get commonDashPlaceholder;
+
+  /// No description provided for @commonHoursValue.
+  ///
+  /// In zh, this message translates to:
+  /// **'{n} 小时'**
+  String commonHoursValue(int n);
+
+  /// No description provided for @commonMinutesValue.
+  ///
+  /// In zh, this message translates to:
+  /// **'{n} 分钟'**
+  String commonMinutesValue(int n);
+
   /// No description provided for @commonSunday.
   ///
   /// In zh, this message translates to:
@@ -1627,6 +1645,18 @@ abstract class AppLocalizations {
   /// In zh, this message translates to:
   /// **'六'**
   String get commonSaturday;
+
+  /// No description provided for @timeFocusQuietHoursTo.
+  ///
+  /// In zh, this message translates to:
+  /// **'至'**
+  String get timeFocusQuietHoursTo;
+
+  /// No description provided for @timeFocusQuietHoursNextDay.
+  ///
+  /// In zh, this message translates to:
+  /// **'次日'**
+  String get timeFocusQuietHoursNextDay;
 
   /// No description provided for @accountAvatar.
   ///

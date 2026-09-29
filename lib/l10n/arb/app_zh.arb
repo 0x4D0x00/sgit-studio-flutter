@@ -357,6 +357,23 @@
   "timeFocusBreakRemindersDesc": "在使用 Claude 时提醒您休息一下。您可以随时暂停提醒或调整时间。",
   "timeFocusQuietHours": "静默时段",
   "timeFocusQuietHoursDesc": "为 Claude 设置时间限制。您可以随时取消或调整。",
+  "commonDashPlaceholder": "-",
+  "commonHoursValue": "{n} 小时",
+  "@commonHoursValue": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "commonMinutesValue": "{n} 分钟",
+  "@commonMinutesValue": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
   "commonSunday": "日",
   "commonMonday": "一",
   "commonTuesday": "二",
@@ -364,6 +381,8 @@
   "commonThursday": "四",
   "commonFriday": "五",
   "commonSaturday": "六",
+  "timeFocusQuietHoursTo": "至",
+  "timeFocusQuietHoursNextDay": "次日",
   "accountAvatar": "头像",
   "accountUsername": "用户名",
   "accountPassword": "密码",
