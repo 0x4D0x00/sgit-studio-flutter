@@ -1,9 +1,12 @@
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 import 'package:sgit_studio_flutter/design/extensions/app_skin.dart';
 import 'package:sgit_studio_flutter/design/tokens/app_spacing.dart';
+import 'package:sgit_studio_flutter/features/customize/application/customize_page_controller.dart';
 import 'package:sgit_studio_flutter/features/settings/presentation/pages/settings_page.dart';
 import 'package:sgit_studio_flutter/features/settings/presentation/pages/account_page.dart';
 import 'package:sgit_studio_flutter/features/settings/presentation/pages/privacy_page.dart';
@@ -16,6 +19,7 @@ import 'package:sgit_studio_flutter/features/settings/presentation/pages/skills_
 import 'package:sgit_studio_flutter/features/settings/presentation/pages/connectors_settings_page.dart';
 import 'package:sgit_studio_flutter/features/settings/presentation/pages/plugins_settings_page.dart';
 import 'package:sgit_studio_flutter/l10n/generated/app_localizations.dart';
+import 'package:sgit_studio_flutter/router/route_names.dart';
 
 enum _SettingsTab {
   general,
@@ -40,14 +44,14 @@ Future<void> showSettingsDialog(BuildContext context) {
   );
 }
 
-class _SettingsDialog extends StatefulWidget {
+class _SettingsDialog extends ConsumerStatefulWidget {
   const _SettingsDialog();
 
   @override
-  State<_SettingsDialog> createState() => _SettingsDialogState();
+  ConsumerState<_SettingsDialog> createState() => _SettingsDialogState();
 }
 
-class _SettingsDialogState extends State<_SettingsDialog> {
+class _SettingsDialogState extends ConsumerState<_SettingsDialog> {
   _SettingsTab _selectedTab = _SettingsTab.general;
   final _searchController = TextEditingController();
   final _searchFocusNode = FocusNode();
@@ -126,6 +130,35 @@ class _SettingsDialogState extends State<_SettingsDialog> {
         ),
       ),
     );
+  }
+
+  /// 技能/连接器/插件项被点：如果中栏当前正显示 Customize 页面，直接切换
+  /// 那边的标签并关掉本弹窗；否则按老样子在弹窗内自己渲染对应内容。
+  void _onCustomizeItemTap(_SettingsTab tab) {
+    final customizeTab = switch (tab) {
+      _SettingsTab.skills => CustomizeTab.skills,
+      _SettingsTab.connectors => CustomizeTab.connectors,
+      _SettingsTab.plugins => CustomizeTab.plugins,
+      _ => null,
+    };
+    if (customizeTab == null) return;
+
+    // 直接问路由当前在哪一页，靠 CustomizePage 的 mount/unmount 去维护
+    // 额外的标记时机不可靠。
+    // 用 `GoRouter.of(context).routerDelegate.currentConfiguration` 而不是
+    // `GoRouterState.of(context)`：本弹窗是 `showDialog` 开出来的独立路由，
+    // 它的 `ModalRoute` 不是 go_router 的 Page，`GoRouterState.of` 在这里
+    // 找不到关联状态会直接抛异常。
+    final currentPath =
+        GoRouter.of(context).routerDelegate.currentConfiguration.uri.path;
+    final isCustomizeActive = currentPath == RouteNames.customize;
+    if (isCustomizeActive) {
+      ref.read(customizeTabControllerProvider.notifier).setTab(customizeTab);
+      Navigator.of(context).pop();
+      return;
+    }
+
+    setState(() => _selectedTab = tab);
   }
 
   Widget _buildCurrentPage() {
@@ -256,7 +289,7 @@ class _SettingsDialogState extends State<_SettingsDialog> {
                         label: item.label,
                         skin: skin,
                         selected: _selectedTab == item.tab,
-                        onTap: () => setState(() => _selectedTab = item.tab),
+                        onTap: () => _onCustomizeItemTap(item.tab),
                       )),
                 ],
               ),

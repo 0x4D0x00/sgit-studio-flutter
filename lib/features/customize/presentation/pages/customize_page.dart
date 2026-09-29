@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:sgit_studio_flutter/design/extensions/app_skin.dart';
 import 'package:sgit_studio_flutter/design/tokens/app_spacing.dart';
 import 'package:sgit_studio_flutter/l10n/generated/app_localizations.dart';
 
 import 'package:sgit_studio_flutter/ui/components/confirm.dart';
 
+import '../../application/customize_page_controller.dart';
 import '../widgets/customize_models.dart';
 import '../widgets/customize_sample_data.dart';
 import '../widgets/customize_section_header.dart';
@@ -17,16 +19,16 @@ import '../widgets/yours_list_item.dart';
 import '../widgets/yours_connector_table.dart';
 
 /// Customize 页面 - Skills, Connectors, Plugins 等自定义内容
-class CustomizePage extends StatefulWidget {
+class CustomizePage extends ConsumerStatefulWidget {
   const CustomizePage({super.key});
 
   @override
-  State<CustomizePage> createState() => _CustomizePageState();
+  ConsumerState<CustomizePage> createState() => _CustomizePageState();
 }
 
-class _CustomizePageState extends State<CustomizePage> {
-  // 默认选中 Skills (0) + Discover (4)
-  int _selectedTabIndex = 0;
+class _CustomizePageState extends ConsumerState<CustomizePage> {
+  // 当前标签（Skills/Connectors/Plugins）放在 provider 里，而不是本地
+  // State —— 设置弹窗要能在用户已经停在 Customize 页面时直接切换这个标签。
   int _selectedViewIndex = 4; // Discover
 
   final _searchController = TextEditingController();
@@ -141,12 +143,15 @@ class _CustomizePageState extends State<CustomizePage> {
 
   List<PillTab> _buildTabs() {
     final labels = ['Skills', 'Connectors', 'Plugins'];
+    final tabs = CustomizeTab.values;
+    final selectedTab = ref.watch(customizeTabControllerProvider);
+    final tabController = ref.read(customizeTabControllerProvider.notifier);
     return [
       for (var i = 0; i < labels.length; i++)
         PillTab(
           label: labels[i],
-          selected: _selectedTabIndex == i,
-          onTap: () => setState(() => _selectedTabIndex = i),
+          selected: selectedTab == tabs[i],
+          onTap: () => tabController.setTab(tabs[i]),
         ),
       PillTab(
         label: 'Yours',
@@ -165,9 +170,9 @@ class _CustomizePageState extends State<CustomizePage> {
   Widget _buildContent(BuildContext context, AppSkin skin, AppLocalizations l10n) {
     // 判断是 Yours 还是 Discover 视图
     final isYoursView = _selectedViewIndex == 3;
+    final selectedTab = ref.watch(customizeTabControllerProvider);
 
-    // Skills (0), Connectors (1), Plugins (2)
-    if (_selectedTabIndex == 1) {
+    if (selectedTab == CustomizeTab.connectors) {
       // Connectors
       if (isYoursView) {
         return _buildConnectorsYoursContent(context, skin, l10n);
