@@ -103,7 +103,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
               const SizedBox(width: AppSpacing.sm),
               TextButton.icon(
                 onPressed: tc.resetPrimary,
-                icon: const Icon(Icons.refresh_rounded, size: 16),
+                icon: const Icon(Icons.refresh_rounded, size: 12),
                 label: Text(l10n.settingsResetDefault),
                 style: TextButton.styleFrom(padding: EdgeInsets.zero),
               ),
@@ -123,7 +123,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
               const SizedBox(width: AppSpacing.sm),
               TextButton.icon(
                 onPressed: tc.resetSecondary,
-                icon: const Icon(Icons.refresh_rounded, size: 16),
+                icon: const Icon(Icons.refresh_rounded, size: 14),
                 label: Text(l10n.settingsResetDefault),
                 style: TextButton.styleFrom(padding: EdgeInsets.zero),
               ),
@@ -291,8 +291,8 @@ class _ThemeModeButton extends StatelessWidget {
       onTap: onTap,
       borderRadius: BorderRadius.circular(AppRadius.sm),
       child: Container(
-        width: 44,
-        height: 44,
+        width: 32,
+        height: 32,
         decoration: BoxDecoration(
           color: selected ? skin.text.withValues(alpha: 0.06) : Colors.transparent,
           borderRadius: BorderRadius.circular(AppRadius.sm),

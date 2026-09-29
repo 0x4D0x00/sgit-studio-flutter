@@ -151,8 +151,8 @@ class _AccountPageState extends ConsumerState<AccountPage> {
         SettingsSectionRow(
           title: l10n.accountAvatar,
           trailing: SizedBox(
-            width: 76,
-            height: 76,
+            width: 66,
+            height: 66,
             child: Stack(
               clipBehavior: Clip.none,
               children: [
@@ -174,7 +174,7 @@ class _AccountPageState extends ConsumerState<AccountPage> {
                           child: profile.avatarBytes == null
                               ? Icon(
                                   Icons.person_rounded,
-                                  size: 36,
+                                  size: 32,
                                   color: theme.colorScheme.onPrimaryContainer,
                                 )
                               : null,
