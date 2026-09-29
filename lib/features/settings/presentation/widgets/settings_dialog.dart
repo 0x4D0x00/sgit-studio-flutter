@@ -8,6 +8,9 @@ import 'package:sgit_studio_flutter/features/settings/presentation/pages/setting
 import 'package:sgit_studio_flutter/features/settings/presentation/pages/account_page.dart';
 import 'package:sgit_studio_flutter/features/settings/presentation/pages/privacy_page.dart';
 import 'package:sgit_studio_flutter/features/settings/presentation/pages/settings_placeholder_page.dart';
+import 'package:sgit_studio_flutter/features/settings/presentation/pages/skills_settings_page.dart';
+import 'package:sgit_studio_flutter/features/settings/presentation/pages/connectors_settings_page.dart';
+import 'package:sgit_studio_flutter/features/settings/presentation/pages/plugins_settings_page.dart';
 import 'package:sgit_studio_flutter/l10n/generated/app_localizations.dart';
 
 enum _SettingsTab {
@@ -78,28 +81,41 @@ class _SettingsDialogState extends State<_SettingsDialog> {
       child: SizedBox(
         width: width,
         height: height,
-        child: Stack(
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                _sidebar(skin, l10n),
-                VerticalDivider(width: 1, thickness: 1, color: skin.borderSecondary),
-                Expanded(
-                  child: Padding(
-                    padding: const EdgeInsets.all(AppSpacing.sm),
-                    child: _buildCurrentPage(),
+            _sidebar(skin, l10n),
+            VerticalDivider(width: 1, thickness: 1, color: skin.borderSecondary),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  SizedBox(
+                    height: 48,
+                    child: Align(
+                      alignment: Alignment.centerRight,
+                      child: Padding(
+                        padding: const EdgeInsets.only(right: AppSpacing.xs),
+                        child: IconButton(
+                          icon: Icon(Icons.close, color: skin.textSecondary),
+                          tooltip: l10n.commonClose,
+                          onPressed: () => Navigator.of(context).pop(),
+                        ),
+                      ),
+                    ),
                   ),
-                ),
-              ],
-            ),
-            Positioned(
-              top: AppSpacing.sm,
-              right: AppSpacing.sm,
-              child: IconButton(
-                icon: Icon(Icons.close, color: skin.textSecondary),
-                tooltip: l10n.commonClose,
-                onPressed: () => Navigator.of(context).pop(),
+                  Expanded(
+                    child: Padding(
+                      padding: const EdgeInsets.fromLTRB(
+                        AppSpacing.sm,
+                        0,
+                        AppSpacing.sm,
+                        AppSpacing.sm,
+                      ),
+                      child: _buildCurrentPage(),
+                    ),
+                  ),
+                ],
               ),
             ),
           ],
@@ -116,15 +132,18 @@ class _SettingsDialogState extends State<_SettingsDialog> {
         return const AccountPage();
       case _SettingsTab.privacy:
         return const PrivacyPage();
+      case _SettingsTab.skills:
+        return const SkillsSettingsPage();
+      case _SettingsTab.connectors:
+        return const ConnectorsSettingsPage();
+      case _SettingsTab.plugins:
+        return const PluginsSettingsPage();
       case _SettingsTab.billing:
       case _SettingsTab.capabilities:
       case _SettingsTab.memory:
       case _SettingsTab.reflect:
       case _SettingsTab.timeFocus:
       case _SettingsTab.claudeCode:
-      case _SettingsTab.skills:
-      case _SettingsTab.connectors:
-      case _SettingsTab.plugins:
         return const SettingsPlaceholderPage();
     }
   }

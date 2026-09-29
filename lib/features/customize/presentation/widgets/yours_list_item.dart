@@ -16,6 +16,7 @@ class YoursListItem extends StatefulWidget {
     required this.skin,
     required this.onTap,
     required this.onRemove,
+    this.tags = const ['Data'],
   });
 
   final IconData icon;
@@ -25,6 +26,9 @@ class YoursListItem extends StatefulWidget {
   final String timeAgo;
   final AppSkin skin;
   final VoidCallback onTap;
+
+  /// 标题旁的小 chip，例如截图里 Plugins 的 "Data" + "+2"。
+  final List<String> tags;
 
   /// 「···」菜单里的 Remove 项。
   final VoidCallback onRemove;
@@ -92,24 +96,26 @@ class _YoursListItemState extends State<YoursListItem> {
                             color: widget.skin.text,
                           ),
                         ),
-                        const SizedBox(width: AppSpacing.xxs),
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 6,
-                            vertical: 2,
-                          ),
-                          decoration: BoxDecoration(
-                            color: widget.skin.textSecondary.withValues(alpha: 0.1),
-                            borderRadius: BorderRadius.circular(AppRadius.sm),
-                          ),
-                          child: Text(
-                            'Data',
-                            style: TextStyle(
-                              fontSize: 11,
-                              color: widget.skin.textSecondary,
+                        for (final tag in widget.tags) ...[
+                          const SizedBox(width: AppSpacing.xxs),
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 6,
+                              vertical: 2,
+                            ),
+                            decoration: BoxDecoration(
+                              color: widget.skin.textSecondary.withValues(alpha: 0.1),
+                              borderRadius: BorderRadius.circular(AppRadius.sm),
+                            ),
+                            child: Text(
+                              tag,
+                              style: TextStyle(
+                                fontSize: 11,
+                                color: widget.skin.textSecondary,
+                              ),
                             ),
                           ),
-                        ),
+                        ],
                       ],
                     ),
                     const SizedBox(height: 2),
