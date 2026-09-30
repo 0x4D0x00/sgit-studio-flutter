@@ -36,9 +36,9 @@ class WorkspaceMetrics {
   static const double resizerHitWidth = 6;
 
   /// 左栏内部。
-  static const double navPanelPaddingBlock = 16;
+  static const double navPanelPaddingBlock = 10;
   static const double navPanelPaddingInline = 24;
-  static const double navItemHeight = 36;
+  static const double navItemHeight = 30;
   static const double navItemRadius = 8;
   static const double navItemPaddingInline = 16;
   static const double navItemGap = 8;
@@ -48,7 +48,7 @@ class WorkspaceMetrics {
   static const double brandMarkWidth = 39;
   static const double brandMarkHeight = 47;
   static const double brandGap = 10;
-  static const double brandFontSize = 22;
+  static const double brandFontSize = 20;
 
   /// 顶栏（仅左栏折叠时出现，只放展开按钮）。
   static const double headerHeight = 44;

@@ -123,13 +123,12 @@ class _NavRowState
               width: 6,
               height: 6,
               margin: const EdgeInsets.only(
-                right: 14,
+                right: 12,
               ),
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: fg.withValues(
-                  alpha: 0.6,
-                ),
+                border: Border.all(
+                  color: fg.withValues(alpha: 0.4)),
               ),
             )
           else

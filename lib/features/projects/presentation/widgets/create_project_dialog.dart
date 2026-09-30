@@ -62,7 +62,7 @@ class _CreateProjectDialogState extends State<_CreateProjectDialog> {
         borderRadius: BorderRadius.circular(AppRadius.lg),
       ),
       child: ConstrainedBox(
-        constraints: const BoxConstraints(maxWidth: 600),
+        constraints: const BoxConstraints(maxWidth: 500),
         child: Padding(
           padding: const EdgeInsets.all(AppSpacing.xl),
           child: Form(
@@ -76,7 +76,7 @@ class _CreateProjectDialogState extends State<_CreateProjectDialog> {
                     Text(
                       l10n.projectsCreateDialogTitle,
                       style: TextStyle(
-                        fontSize: 24,
+                        fontSize: 20,
                         fontWeight: FontWeight.w600,
                         color: skin.text,
                       ),
