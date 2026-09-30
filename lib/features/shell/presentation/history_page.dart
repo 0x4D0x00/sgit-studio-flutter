@@ -289,10 +289,12 @@ class _HistoryPageState extends ConsumerState<HistoryPage> {
     if (!ok) return;
     // ⚠️ 删的是**会话**。原先走 `resourceListProvider(scenes).removeMany`，
     // 删掉的是场景定义本身 —— 数据损失级的错接。
-    await ref.read(threadListProvider.notifier).removeMany([
+    final threadIds = [
       for (final id in ids)
         if (id.startsWith(_threadPrefix)) id.substring(_threadPrefix.length),
-    ]);
+    ];
+    await ref.read(threadListProvider.notifier).removeMany(threadIds);
+    _resetIfCurrentDeleted(threadIds);
     if (!mounted) return;
     setState(() {
       _selecting = false;
@@ -377,6 +379,15 @@ class _HistoryPageState extends ConsumerState<HistoryPage> {
 
     // ⚠️ **这里就是"删历史条目删掉场景定义"的修复点。**
     await ref.read(threadListProvider.notifier).remove(threadId);
+    _resetIfCurrentDeleted([threadId]);
+  }
+
+  /// 删的正是当前打开的会话：工作台不能还挂着它，回到干净的新对话。
+  void _resetIfCurrentDeleted(Iterable<String> deletedIds) {
+    final current = ref.read(chatControllerProvider).currentThreadId;
+    if (current != null && deletedIds.contains(current)) {
+      ref.read(chatControllerProvider.notifier).newChat();
+    }
   }
 }
 
