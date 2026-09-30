@@ -20,7 +20,7 @@ class WorkspaceMetrics {
   /// 左栏（在圆角卡外面）。
   static const double navDefaultWidth = 280;
   static const double navMinWidth = 240;
-  static const double navMaxWidth = 330;
+  static const double navMaxWidth = 300;
 
   /// 右栏（在圆角卡里面）。
   static const double outputDefaultWidth = 280;
@@ -59,7 +59,7 @@ class WorkspaceMetrics {
 
   /// 中栏空态。
   static const double centerPaddingTop = 44;
-  static const double contentMaxWidth = 960;
+  static const double contentMaxWidth = 800;
   static const double contentPaddingInline = 16;
   static const double inputAreaWidth = 768;
   static const double inputAreaRadius = 24;

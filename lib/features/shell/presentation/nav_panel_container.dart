@@ -7,6 +7,7 @@ import 'package:go_router/go_router.dart';
 import 'package:sgit_studio_flutter/features/auth/application/auth_controller.dart';
 import 'package:sgit_studio_flutter/domain/models/chat/thread_summary.dart';
 import 'package:sgit_studio_flutter/features/chat/application/thread_list_controller.dart';
+import 'package:sgit_studio_flutter/features/chat/presentation/thread_actions.dart';
 import 'package:sgit_studio_flutter/features/projects/application/projects_controller.dart';
 import 'package:sgit_studio_flutter/features/projects/presentation/widgets/create_project_dialog.dart';
 import 'package:sgit_studio_flutter/features/studio/studio_feature.dart';
@@ -21,7 +22,6 @@ import 'package:sgit_studio_flutter/services/chat/chat_controller.dart';
 import 'package:sgit_studio_flutter/services/brand/brand_assets.dart';
 import 'package:sgit_studio_flutter/services/brand/brand_config.dart';
 import 'package:sgit_studio_flutter/services/layout/layout_controller.dart';
-import 'package:sgit_studio_flutter/ui/components/confirm.dart';
 import 'package:sgit_studio_flutter/ui/components/dialogs/search_chats_dialog.dart';
 import 'package:sgit_studio_flutter/ui/components/menu/app_menu.dart';
 import 'package:sgit_studio_flutter/features/shell/application/history_sort_group_controller.dart';
@@ -462,11 +462,7 @@ class NavPanelContainer
         // sgcode 没有置顶能力（React studio 的「收藏」存在 gateway 自己的
         // per-cid KV 里，客户端这条路还没接）。**不拿别的字段假装** ——
         // 那会变成一个看着能用、实际不保存的功能。
-        onTap: () => _notWired(
-          context,
-          l10n,
-          'pin',
-        ),
+        onTap: () => _notWired(context,l10n,'pin'),
       ),
       AppMenuAction(
         icon: Icons.edit_outlined,
@@ -497,86 +493,28 @@ class NavPanelContainer
   }
 
   /// 改标题。走 sgcode 的 `thread/name/set`（controller 内部乐观更新 + 失败回滚）。
-  Future<void>
-  _onRenameChat(
+  Future<void> _onRenameChat(
     BuildContext context,
     WidgetRef ref,
     AppLocalizations l10n,
     String threadId,
     String current,
-  ) async {
-    final controller = TextEditingController(
-      text: current,
-    );
-    final name = await showDialog<String>(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: Text(
-          l10n.navChatRename,
-        ),
-        content: TextField(
-          controller: controller,
-          autofocus: true,
-          decoration: InputDecoration(
-            hintText: l10n.chatRenameHint,
-          ),
-          onSubmitted: (v) => Navigator.of(ctx).pop(v),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(ctx).pop(),
-            child: Text(
-              l10n.commonCancel,
-            ),
-          ),
-          FilledButton(
-            onPressed: () => Navigator.of(ctx).pop(controller.text),
-            child: Text(
-              l10n.commonConfirm,
-            ),
-          ),
-        ],
-      ),
-    );
-    controller.dispose();
-    // null = 取消。空串是"用户真的清空了"，交给 controller 回落到 preview，
-    // 与"没点确认"是两回事，不能合并判断。
-    if (name == null) return;
-    await ref
-        .read(
-          threadListProvider.notifier,
-        )
-        .rename(
-          threadId,
-          name.trim(),
-        );
-  }
+  ) =>
+      renameThreadWithDialog(context, ref, threadId, current);
 
-  Future<void>
-  _onDeleteChat(
+  Future<void> _onDeleteChat(
     BuildContext context,
     WidgetRef ref,
     AppLocalizations l10n,
     String threadId,
     String label,
   ) async {
-    // 删除不可逆，走全站统一的危险确认框（同 resource_list_page 的做法）。
-    final ok = await confirmDanger(
-      context,
-      title: l10n.studioRemoveConfirm(
-        label,
-      ),
-      confirmText: l10n.commonDelete,
-    );
-    if (!ok) return;
-    // ⚠️ **这里就是"删历史条目删掉场景定义"的修复点。**
-    // 原先调的是 `resourceListProvider(StudioPageSpecs.scenes).remove(id)` ——
-    // 传进去的是 thread id，删的却是场景资源：数据损失级的错接。
-    await ref
-        .read(
-          threadListProvider.notifier,
-        )
-        .remove(threadId,);
+    final deleted = await deleteThreadWithConfirm(context, ref, threadId, label);
+    // 删的正是当前打开的会话：中栏不能还挂着它，回到干净的新对话。
+    if (deleted &&
+        ref.read(chatControllerProvider).currentThreadId == threadId) {
+      ref.read(chatControllerProvider.notifier).newChat();
+    }
   }
 
   void _notWired(

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'package:sgit_studio_flutter/features/chat/presentation/thread_title_bar.dart';
 import 'package:sgit_studio_flutter/features/shell/presentation/nav_panel_container.dart';
 import 'package:sgit_studio_flutter/l10n/generated/app_localizations.dart';
 import 'package:sgit_studio_flutter/layout/panels/artifact_output_panel.dart';
@@ -56,6 +57,7 @@ class AppShellContainer extends ConsumerWidget {
       onOutputWidthChanged: ctrl.setOutputWidth,
       nav: NavPanelContainer(activeNavId: activeNavId),
       output: outputPanel,
+      headerTitle: activeNavId == null ? const ThreadTitleBar() : null,
       child: child,
     );
   }

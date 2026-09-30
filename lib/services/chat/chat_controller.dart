@@ -547,6 +547,24 @@ class ChatController extends Notifier<ChatSessionState> {
     _client.setThread(threadId);
   }
 
+  /// 刷新会话列表；若这是一段新对话（还不知道 thread id），认领列表里最新的一条。
+  ///
+  /// turnStarted 帧不一定带 thread_id，这是兜底：新对话第一轮跑完后，
+  /// 刚被更新的那条就是它。只在 `currentThreadId == null` 时才认领，
+  /// 不会覆盖已知的会话。
+  Future<void> _reloadThreadsAndAdoptNew() async {
+    await ref.read(threadListProvider.notifier).reload();
+    if (state.currentThreadId != null) return;
+    final items = ref.read(threadListProvider).items;
+    if (items.isEmpty) return;
+    var newest = items.first;
+    for (final t in items) {
+      final a = t.updatedAt, b = newest.updatedAt;
+      if (a != null && (b == null || a.isAfter(b))) newest = t;
+    }
+    state = state.copyWith(currentThreadId: newest.id);
+  }
+
   /// 停止当前 turn。
   void interrupt() {
     final id = state.turnId;
@@ -684,9 +702,14 @@ class ChatController extends Notifier<ChatSessionState> {
       case KernelFrameKind.turnStarted:
         // 真开跑了，撤看门狗。
         _stallTimer?.cancel();
+        final startedJson = KernelFrameMapper.json(f);
         state = state.copyWith(
           busy: true,
-          turnId: KernelFrameMapper.str(KernelFrameMapper.json(f), 'turn_id'),
+          turnId: KernelFrameMapper.str(startedJson, 'turn_id'),
+          // 新对话的 thread 是内核在首个 turn 上建的，客户端事先不知道 id。
+          // 帧里带了就记下，中栏标题栏靠它认出"当前是哪条会话"。
+          currentThreadId: state.currentThreadId ??
+              KernelFrameMapper.str(startedJson, 'thread_id'),
         );
         return false;
 
@@ -709,7 +732,7 @@ class ChatController extends Notifier<ChatSessionState> {
         ref.read(sessionSyncProvider).onTurnCompleted();
         // 列表里那条的 updatedAt 变了，顺手刷新 —— 否则"刚聊完的会话"在左栏
         // 仍排在旧位置，看着像没记上。
-        unawaited(ref.read(threadListProvider.notifier).reload());
+        unawaited(_reloadThreadsAndAdoptNew());
         return false;
 
       // ⚠️ 用量是**独立帧**，turn 跑动期间就在更新 —— 不能当作 turn 结束的信号。

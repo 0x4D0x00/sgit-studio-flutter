@@ -32,6 +32,7 @@ class AppShell extends StatelessWidget {
     required this.nav,
     required this.output,
     required this.child,
+    this.headerTitle,
     required this.navExpanded,
     required this.navWidth,
     required this.outputExpanded,
@@ -45,6 +46,9 @@ class AppShell extends StatelessWidget {
   final Widget nav;
   final Widget output;
   final Widget child;
+
+  /// 顶栏左侧（展开按钮右边）的标题槽，如会话标题。null 则留空。
+  final Widget? headerTitle;
 
   final bool navExpanded;
   final double navWidth;
@@ -113,7 +117,24 @@ class AppShell extends StatelessWidget {
                               child: Column(
                                 children: [
                                   _header(context, skin, narrow),
-                                  Expanded(child: child),
+                                  // 中栏内容统一限宽居中（会话 / projects / artifacts 等）。
+                                  Expanded(
+                                    child: LayoutBuilder(
+                                      builder: (context, c) => Align(
+                                        alignment: Alignment.topCenter,
+                                        child: SizedBox(
+                                          width: c.maxWidth <
+                                                  WorkspaceMetrics
+                                                      .contentMaxWidth
+                                              ? c.maxWidth
+                                              : WorkspaceMetrics
+                                                  .contentMaxWidth,
+                                          height: c.maxHeight,
+                                          child: child,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
                                 ],
                               ),
                             ),
@@ -170,7 +191,12 @@ class AppShell extends StatelessWidget {
                     ? Scaffold.of(context).openDrawer()
                     : onToggleNav(),
               ),
-            const Spacer(),
+            Expanded(
+              child: Align(
+                alignment: Alignment.centerLeft,
+                child: headerTitle ?? const SizedBox.shrink(),
+              ),
+            ),
             // TODO(P2): 输出物开关按钮 —— 暂时注释，等产物功能就绪后再恢复。
             // if (!narrow)
             //   IconButton(
