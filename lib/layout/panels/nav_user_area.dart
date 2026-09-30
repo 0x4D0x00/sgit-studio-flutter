@@ -6,7 +6,8 @@ import 'package:sgit_studio_flutter/ui/components/menu/app_menu.dart';
 
 import 'dart:typed_data';
 
-/// 左侧导航栏底部用户区域：左侧头像+名字（点击显示菜单），右侧搜索 + 收起按钮。
+/// 左侧导航栏底部用户区域：左侧头像+名字（点击显示菜单），右侧搜索按钮。
+/// 收起按钮在品牌行左侧（见 `NavPanel._brand`）。
 ///
 /// ⚠️ **纯展示组件**：数据与回调全部由外部注入。
 class NavUserArea extends StatelessWidget {
@@ -15,10 +16,8 @@ class NavUserArea extends StatelessWidget {
     required this.userName,
     required this.userMenu,
     required this.searchTooltip,
-    required this.collapseTooltip,
     this.avatarBytes,
     this.onSearch,
-    this.onCollapse,
   });
 
   final String userName;
@@ -28,12 +27,7 @@ class NavUserArea extends StatelessWidget {
   /// 用户区右下角搜索按钮的 tooltip。
   final String searchTooltip;
 
-  /// 搜索右边那颗收起按钮的 tooltip。收起左栏的入口**只有这一处**
-  /// （中栏顶栏只负责展开），所以它得说清楚自己是干什么的。
-  final String collapseTooltip;
-
   final VoidCallback? onSearch;
-  final VoidCallback? onCollapse;
 
   @override
   Widget build(BuildContext context) {
@@ -81,17 +75,6 @@ class NavUserArea extends StatelessWidget {
                     const BoxConstraints(minWidth: 32, minHeight: 32),
               ),
 
-            // 收起侧边栏按钮
-            if (onCollapse != null)
-              IconButton(
-                icon: Icon(Icons.menu_open_sharp,
-                    size: 20, color: skin.textSecondary),
-                onPressed: onCollapse,
-                tooltip: collapseTooltip,
-                padding: EdgeInsets.zero,
-                constraints:
-                    const BoxConstraints(minWidth: 32, minHeight: 32),
-              ),
           ],
         ),
       ),

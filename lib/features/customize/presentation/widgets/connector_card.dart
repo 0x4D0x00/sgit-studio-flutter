@@ -104,15 +104,22 @@ class _ConnectorCardState extends State<ConnectorCard> {
                         ],
                       ),
                       const SizedBox(height: AppSpacing.xxs),
-                      Text(
-                        widget.connector.description,
-                        style: TextStyle(
-                          fontSize: 13,
-                          color: widget.skin.textSecondary,
-                          height: 1.4,
+                      // 描述区域至少预留两行高度，保证单行/双行描述的卡片等高。
+                      ConstrainedBox(
+                        constraints: BoxConstraints(
+                          minHeight:
+                              MediaQuery.textScalerOf(context).scale(13) * 1.4 * 2,
                         ),
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
+                        child: Text(
+                          widget.connector.description,
+                          style: TextStyle(
+                            fontSize: 13,
+                            color: widget.skin.textSecondary,
+                            height: 1.4,
+                          ),
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                        ),
                       ),
                     ],
                   ),

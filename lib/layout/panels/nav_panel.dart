@@ -53,7 +53,7 @@ class NavPanel extends StatefulWidget {
   /// 用户区右下角搜索按钮的 tooltip。
   final String searchTooltip;
 
-  /// 搜索右边那颗收起按钮的 tooltip。收起左栏的入口**只有这一处**
+  /// 品牌行左侧收起按钮的 tooltip。收起左栏的入口**只有这一处**
   /// （中栏顶栏只负责展开），所以它得说清楚自己是干什么的。
   final String collapseTooltip;
 
@@ -142,9 +142,7 @@ class _NavPanelState extends State<NavPanel> {
             avatarBytes: widget.avatarBytes,
             userMenu: widget.userMenu,
             searchTooltip: widget.searchTooltip,
-            collapseTooltip: widget.collapseTooltip,
             onSearch: widget.onSearch,
-            onCollapse: widget.onCollapse,
           ),
         ],
       ),
@@ -163,19 +161,43 @@ class _NavPanelState extends State<NavPanel> {
         isChatItem: isChatItem,
       );
 
-  /// 品牌行：字标。
+  /// 品牌行：左侧收起按钮 + 字标。
   Widget _brand(AppSkin skin) => Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
-        child: Text(
-          widget.brandName,
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
-          style: TextStyle(
-            fontSize: WorkspaceMetrics.brandFontSize,
-            fontWeight: FontWeight.w700,
-            height: 1,
-            color: skin.text,
-          ),
+        padding: EdgeInsets.only(
+          left: widget.onCollapse != null ? 12 : 24,
+          right: 24,
+          top: 8,
+          bottom: 8,
+        ),
+        child: Row(
+          children: [
+            // 收起侧边栏按钮（收起左栏的唯一入口）
+            if (widget.onCollapse != null) ...[
+              IconButton(
+                icon: Icon(Icons.menu_open_sharp,
+                    size: 20, color: skin.textSecondary),
+                onPressed: widget.onCollapse,
+                tooltip: widget.collapseTooltip,
+                padding: EdgeInsets.zero,
+                constraints:
+                    const BoxConstraints(minWidth: 32, minHeight: 32),
+              ),
+              const SizedBox(width: 4),
+            ],
+            Expanded(
+              child: Text(
+                widget.brandName,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                  fontSize: WorkspaceMetrics.brandFontSize,
+                  fontWeight: FontWeight.w700,
+                  height: 1,
+                  color: skin.text,
+                ),
+              ),
+            ),
+          ],
         ),
       );
 
