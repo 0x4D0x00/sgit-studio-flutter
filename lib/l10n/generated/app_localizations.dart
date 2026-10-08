@@ -122,6 +122,12 @@ abstract class AppLocalizations {
   /// **'新建对话'**
   String get navNewChat;
 
+  /// No description provided for @navNew.
+  ///
+  /// In zh, this message translates to:
+  /// **'新建'**
+  String get navNew;
+
   /// No description provided for @navProjects.
   ///
   /// In zh, this message translates to:

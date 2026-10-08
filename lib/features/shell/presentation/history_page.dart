@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:intl/intl.dart';
 
 import 'package:sgit_studio_flutter/design/extensions/app_skin.dart';
 import 'package:sgit_studio_flutter/design/tokens/app_spacing.dart';
@@ -60,6 +61,7 @@ class _HistoryPageState extends ConsumerState<HistoryPage> {
           // `thread_ops::display_title` 算好了，这边不再自己来一套 ——
           // 两边各算各的必然漂。
           label: t.title,
+          updatedAt: t.updatedAt ?? t.createdAt,
         ),
     ];
     final filtered = _searchQuery.isEmpty
@@ -156,6 +158,11 @@ class _HistoryPageState extends ConsumerState<HistoryPage> {
             OutlinedButton(
               onPressed: _toggleSelecting,
               child: Text(l10n.navSelect),
+            ),
+            const SizedBox(width: AppSpacing.xs),
+            FilledButton(
+              onPressed: _newChat,
+              child: Text(l10n.navNew),
             ),
             const SizedBox(width: AppSpacing.xs),
             IconButton(
@@ -275,6 +282,13 @@ class _HistoryPageState extends ConsumerState<HistoryPage> {
     unawaited(
       ref.read(chatControllerProvider.notifier).openThreadById(threadId),
     );
+    context.go(RouteNames.home);
+  }
+
+  /// 「新建」：等同点左栏「新建对话」—— 清空当前会话并回工作台，
+  /// 此时没有 thread，左栏高亮落在「新建对话」行上。
+  void _newChat() {
+    ref.read(chatControllerProvider.notifier).newChat();
     context.go(RouteNames.home);
   }
 
@@ -422,6 +436,7 @@ class _HistoryRowState extends State<_HistoryRow> {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     final showMenu = !widget.selecting && (_hovering || _menuOpen);
+    final date = _formatDate(context, widget.item.updatedAt);
 
     return MouseRegion(
       onEnter: (_) => setState(() => _hovering = true),
@@ -455,6 +470,14 @@ class _HistoryRowState extends State<_HistoryRow> {
                     style: TextStyle(fontSize: 14, color: widget.skin.text),
                   ),
                 ),
+                if (!widget.selecting && !showMenu && date != null)
+                  Text(
+                    date,
+                    style: TextStyle(
+                      fontSize: 13,
+                      color: widget.skin.textTertiary,
+                    ),
+                  ),
                 if (showMenu)
                   AppMenuAnchor(
                     entries: [
@@ -501,10 +524,25 @@ class _HistoryRowState extends State<_HistoryRow> {
   }
 }
 
+/// 列表项末尾的最后会话日期：今年内「Sep 28 / 9月28日」，跨年带年份。
+String? _formatDate(BuildContext context, DateTime? t) {
+  if (t == null) return null;
+  final locale = Localizations.localeOf(context).toString();
+  final fmt = t.year == DateTime.now().year
+      ? DateFormat.MMMd(locale)
+      : DateFormat.yMMMd(locale);
+  return fmt.format(t);
+}
+
 @immutable
 class _HistoryItem {
-  const _HistoryItem({required this.id, required this.label});
+  const _HistoryItem({
+    required this.id,
+    required this.label,
+    required this.updatedAt,
+  });
 
   final String id;
   final String label;
+  final DateTime? updatedAt;
 }

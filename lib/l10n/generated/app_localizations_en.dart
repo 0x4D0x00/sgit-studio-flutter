@@ -21,6 +21,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get navNewChat => 'New chat';
 
   @override
+  String get navNew => 'New';
+
+  @override
   String get navProjects => 'Projects';
 
   @override

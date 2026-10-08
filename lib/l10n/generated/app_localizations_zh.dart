@@ -21,6 +21,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get navNewChat => '新建对话';
 
   @override
+  String get navNew => '新建';
+
+  @override
   String get navProjects => 'Projects';
 
   @override

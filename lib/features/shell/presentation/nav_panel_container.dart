@@ -112,7 +112,7 @@ class NavPanelContainer
     final currentThreadId =
         ref.watch(chatControllerProvider.select((s) => s.currentThreadId));
     final effectiveActiveId = activeNavId ??
-        (currentThreadId == null ? null : '$_threadPrefix$currentThreadId');
+        (currentThreadId == null ? _idNewChat : '$_threadPrefix$currentThreadId');
 
     return NavPanel(
       brandMark: BrandAssets.image(
