@@ -190,7 +190,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get chatAddMenu => 'More options';
 
   @override
-  String get chatAttachFiles => 'Attachments';
+  String get chatAttachFiles => 'Add files/images';
 
   @override
   String get chatWebSearch => 'Web search';
@@ -602,6 +602,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get settingsLanguageEn => 'English';
+
+  @override
+  String get settingsLanguageSearch => 'Search languages';
 
   @override
   String get settingsResetDefault => 'Reset to default';

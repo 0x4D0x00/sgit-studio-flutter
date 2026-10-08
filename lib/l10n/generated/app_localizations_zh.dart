@@ -190,7 +190,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get chatAddMenu => '更多选项';
 
   @override
-  String get chatAttachFiles => '附件';
+  String get chatAttachFiles => '添加文件/图片';
 
   @override
   String get chatWebSearch => '联网搜索';
@@ -590,6 +590,9 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get settingsLanguageEn => 'English';
+
+  @override
+  String get settingsLanguageSearch => '搜索语言';
 
   @override
   String get settingsResetDefault => '恢复默认';

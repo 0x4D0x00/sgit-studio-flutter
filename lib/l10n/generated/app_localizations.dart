@@ -455,7 +455,7 @@ abstract class AppLocalizations {
   /// No description provided for @chatAttachFiles.
   ///
   /// In zh, this message translates to:
-  /// **'附件'**
+  /// **'添加文件/图片'**
   String get chatAttachFiles;
 
   /// No description provided for @chatWebSearch.
@@ -1207,6 +1207,12 @@ abstract class AppLocalizations {
   /// In zh, this message translates to:
   /// **'English'**
   String get settingsLanguageEn;
+
+  /// No description provided for @settingsLanguageSearch.
+  ///
+  /// In zh, this message translates to:
+  /// **'搜索语言'**
+  String get settingsLanguageSearch;
 
   /// No description provided for @settingsResetDefault.
   ///

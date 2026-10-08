@@ -422,21 +422,10 @@ class _ChatComposerState extends ConsumerState<ChatComposer> {
       align: AppMenuAlign.above,
       semanticLabel: l10n.chatAddMenu,
       entries: [
-        AppMenuSubmenu(
+        AppMenuAction(
           icon: Icons.attach_file,
           label: l10n.chatAttachFiles,
-          entries: [
-            AppMenuAction(
-              icon: Icons.insert_drive_file_outlined,
-              label: l10n.chatPickFile,
-              onTap: () => _pick(FileType.any),
-            ),
-            AppMenuAction(
-              icon: Icons.image_outlined,
-              label: l10n.chatPickImage,
-              onTap: () => _pick(FileType.image),
-            ),
-          ],
+          onTap: () => _pick(FileType.any),
         ),
         const AppMenuDivider(),
         AppMenuSwitch(
