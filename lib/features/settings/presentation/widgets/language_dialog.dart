@@ -22,20 +22,32 @@ class _LanguageOption {
   final String label;
 }
 
-class _LanguageDialog extends ConsumerWidget {
+class _LanguageDialog extends ConsumerStatefulWidget {
   const _LanguageDialog();
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<_LanguageDialog> createState() => _LanguageDialogState();
+}
+
+class _LanguageDialogState extends ConsumerState<_LanguageDialog> {
+  String _query = '';
+
+  @override
+  Widget build(BuildContext context) {
     final skin = AppSkin.of(context);
     final l10n = AppLocalizations.of(context);
     final locale = ref.watch(localeControllerProvider);
 
+    final q = _query.trim().toLowerCase();
     final options = [
       _LanguageOption(null, l10n.settingsThemeSystem),
       _LanguageOption(const Locale('zh'), l10n.settingsLanguageZh),
       _LanguageOption(const Locale('en'), l10n.settingsLanguageEn),
-    ];
+    ].where((o) {
+      if (q.isEmpty) return true;
+      final code = o.locale?.languageCode ?? '';
+      return o.label.toLowerCase().contains(q) || code.contains(q);
+    }).toList();
 
     return Dialog(
       backgroundColor: skin.containerBg,
@@ -44,7 +56,7 @@ class _LanguageDialog extends ConsumerWidget {
         side: BorderSide(color: skin.border),
       ),
       child: ConstrainedBox(
-        constraints: const BoxConstraints(maxWidth: 600),
+        constraints: const BoxConstraints(maxWidth: 500),
         child: Padding(
           padding: const EdgeInsets.all(AppSpacing.md),
           child: Column(
@@ -71,6 +83,26 @@ class _LanguageDialog extends ConsumerWidget {
                 ],
               ),
               Divider(height: 1, thickness: 1, color: skin.borderSecondary),
+              const SizedBox(height: AppSpacing.sm),
+              TextField(
+                autofocus: true,
+                onChanged: (v) => setState(() => _query = v),
+                style: TextStyle(fontSize: 14, color: skin.text),
+                decoration: InputDecoration(
+                  isDense: true,
+                  hintText: l10n.settingsLanguageSearch,
+                  hintStyle: TextStyle(color: skin.textTertiary),
+                  prefixIcon: Icon(Icons.search, size: 18, color: skin.textSecondary),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(AppRadius.md),
+                    borderSide: BorderSide(color: skin.border),
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(AppRadius.md),
+                    borderSide: BorderSide(color: skin.border),
+                  ),
+                ),
+              ),
               const SizedBox(height: AppSpacing.sm),
               Wrap(
                 spacing: AppSpacing.sm,
@@ -131,7 +163,7 @@ class _LanguageCardState extends State<_LanguageCard> {
         splashColor: Colors.transparent,
         highlightColor: Colors.transparent,
         child: Container(
-          width: 180,
+          width: 140,
           padding: const EdgeInsets.symmetric(
             horizontal: AppSpacing.md,
             vertical: AppSpacing.sm,
