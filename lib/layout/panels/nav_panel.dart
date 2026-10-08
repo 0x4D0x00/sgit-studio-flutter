@@ -75,6 +75,9 @@ class _NavPanelState extends State<NavPanel> {
   /// 当前弹着菜单的导航行 id（智能体行）。用来让那一行在菜单开着时保持高亮。
   String? _openMenuId;
 
+  /// 鼠标当前停留的分组下标（驱动标题行的悬停显示）。
+  int? _hoveredSection;
+
   @override
   Widget build(BuildContext context) {
     final skin = AppSkin.of(context);
@@ -104,31 +107,9 @@ class _NavPanelState extends State<NavPanel> {
             child: ListView(
               padding: EdgeInsets.zero,
               children: [
-                for (final s in widget.sections)
-                  if (!s.isEmpty) ...[
-                    // 组标题行（带操作按钮）
-                    if (s.title != null)
-                      NavSectionHeader(
-                        section: s,
-                        collapsed: s.isCollapsed ?? _chatsCollapsed,
-                        onToggleCollapse: s.onToggleCollapse ??
-                            (s.collapsible
-                                ? () => setState(() => _chatsCollapsed = !_chatsCollapsed)
-                                : null),
-                        onAddProject: widget.onAddProject,
-                      ),
-
-                    // 空组走占位提示
-                    if (s.entries.isEmpty && s.emptyHint != null)
-                      NavSectionEmptyHint(section: s)
-                    else if (s.entries.isNotEmpty &&
-                            (!_chatsCollapsed || !s.collapsible || s.onToggleCollapse != null))
-                      // 显示条目（未折叠 或 不可折叠 或 有自定义折叠回调）
-                      for (final e in s.entries)
-                        _row(e, isChatItem: s.collapsible),
-
-                    const SizedBox(height: 8),
-                  ],
+                for (var i = 0; i < widget.sections.length; i++)
+                  if (!widget.sections[i].isEmpty)
+                    _sectionBlock(widget.sections[i], i),
               ],
             ),
           ),
@@ -144,6 +125,46 @@ class _NavPanelState extends State<NavPanel> {
             searchTooltip: widget.searchTooltip,
             onSearch: widget.onSearch,
           ),
+        ],
+      ),
+    );
+  }
+
+  /// 一个分组（标题 + 条目）。鼠标停在整块区域上时，标题行才露出折叠箭头等控件。
+  Widget _sectionBlock(NavSection s, int index) {
+    return MouseRegion(
+      onEnter: (_) => setState(() => _hoveredSection = index),
+      onExit: (_) => setState(() {
+        if (_hoveredSection == index) _hoveredSection = null;
+      }),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          ...[
+                    // 组标题行（带操作按钮）
+                    if (s.title != null)
+                      NavSectionHeader(
+                        section: s,
+                        collapsed: s.isCollapsed ?? _chatsCollapsed,
+                        onToggleCollapse: s.onToggleCollapse ??
+                            (s.collapsible
+                                ? () => setState(() => _chatsCollapsed = !_chatsCollapsed)
+                                : null),
+                        onAddProject: widget.onAddProject,
+                        hovered: _hoveredSection == index,
+                      ),
+
+                    // 空组走占位提示
+                    if (s.entries.isEmpty && s.emptyHint != null)
+                      NavSectionEmptyHint(section: s)
+                    else if (s.entries.isNotEmpty &&
+                            (!_chatsCollapsed || !s.collapsible || s.onToggleCollapse != null))
+                      // 显示条目（未折叠 或 不可折叠 或 有自定义折叠回调）
+                      for (final e in s.entries)
+                        _row(e, isChatItem: s.collapsible),
+
+                    const SizedBox(height: 8),
+          ],
         ],
       ),
     );

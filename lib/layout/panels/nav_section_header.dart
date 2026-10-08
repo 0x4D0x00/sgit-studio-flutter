@@ -15,12 +15,17 @@ class NavSectionHeader extends StatelessWidget {
     required this.collapsed,
     this.onToggleCollapse,
     this.onAddProject,
+    this.hovered = false,
   });
 
   final NavSection section;
   final bool collapsed;
   final VoidCallback? onToggleCollapse;
   final VoidCallback? onAddProject;
+
+  /// 鼠标是否停在整个分组（标题 + 条目）上。折叠箭头、查看全部只在悬停时显示
+  /// （Opacity 保留占位，标题行宽度不跳动）。
+  final bool hovered;
 
   @override
   Widget build(BuildContext context) {
@@ -41,10 +46,13 @@ class NavSectionHeader extends StatelessWidget {
                   children: [
                     _title(skin),
                     const SizedBox(width: 4),
-                    Icon(
-                      collapsed ? Icons.chevron_right : Icons.expand_more,
-                      size: 16,
-                      color: skin.textSecondary,
+                    Opacity(
+                      opacity: hovered ? 1 : 0,
+                      child: Icon(
+                        collapsed ? Icons.chevron_right : Icons.expand_more,
+                        size: 16,
+                        color: skin.textSecondary,
+                      ),
                     ),
                   ],
                 ),
@@ -55,17 +63,20 @@ class NavSectionHeader extends StatelessWidget {
           const Spacer(),
           // 「查看全部」箭头 —— 画在操作按钮**前面**，两者是独立热区。
           if (section.viewAllTooltip != null && section.onViewAll != null)
-            InkWell(
-              onTap: section.onViewAll,
-              borderRadius: BorderRadius.circular(4),
-              child: Tooltip(
-                message: section.viewAllTooltip!,
-                child: Padding(
-                  padding: const EdgeInsets.all(4),
-                  child: Icon(
-                    Icons.north_east,
-                    size: 15,
-                    color: skin.textSecondary,
+            Opacity(
+              opacity: hovered ? 1 : 0,
+              child: InkWell(
+                onTap: section.onViewAll,
+                borderRadius: BorderRadius.circular(4),
+                child: Tooltip(
+                  message: section.viewAllTooltip!,
+                  child: Padding(
+                    padding: const EdgeInsets.all(4),
+                    child: Icon(
+                      Icons.north_east,
+                      size: 15,
+                      color: skin.textSecondary,
+                    ),
                   ),
                 ),
               ),
@@ -89,12 +100,15 @@ class NavSectionHeader extends StatelessWidget {
             AppMenuAnchor(
               entries: section.menu,
               minWidth: 180,
-              child: Padding(
-                padding: const EdgeInsets.all(4),
-                child: Icon(
-                  section.actionIcon ?? Icons.tune,
-                  size: 16,
-                  color: skin.textSecondary,
+              child: Tooltip(
+                message: section.actionTooltip ?? '',
+                child: Padding(
+                  padding: const EdgeInsets.all(4),
+                  child: Icon(
+                    section.actionIcon ?? Icons.tune,
+                    size: 16,
+                    color: skin.textSecondary,
+                  ),
                 ),
               ),
             ),
