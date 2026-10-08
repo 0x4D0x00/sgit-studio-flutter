@@ -475,8 +475,15 @@ _action(
             AppMenuMetrics.itemPadStart -
             AppMenuMetrics.itemPadEnd -
             (e.icon ==null? 0: 28) -
-            (e.shortcut !=null ||e.trailingValue !=null ||
-            e.checked
+            (e.shortcut !=null
+                ? 60
+                : e.trailingValue !=null
+                ? // trailingValue 是任意长度的文案（如「上下文 131072」），
+                  // 固定 60 会让 label + trailing 超出 maxWidth 被右侧裁掉。
+                  // 按字符数粗估（中文 ≈ 13px/字）并加上间距。
+                  e.trailingValue!.length * 13.0 +
+                      AppMenuMetrics.trailingGap
+                : e.checked
                 ? 60: 0);
 
   return MenuItemButton(
