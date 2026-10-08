@@ -149,10 +149,11 @@ class _NavRowState
               style: TextStyle(
                 fontSize: 14,
                 fontWeight:
-                    highlighted &&
-                        !isChatItem
-                    ? FontWeight.w600
-                    : FontWeight.w400,
+                    // highlighted &&
+                    //     !isChatItem
+                    // ? FontWeight.w600
+                    // : FontWeight.w400,
+                    FontWeight.w400,
                 color: fg,
               ),
             ),

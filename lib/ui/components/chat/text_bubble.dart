@@ -58,7 +58,7 @@ class _TextBubbleState extends ConsumerState<TextBubble> {
 
   void _saveEdit() {
     final text = _editCtl!.text.trim();
-    if (text.isEmpty) return;
+    if (text.isEmpty || text == widget.item.text.trim()) return;
     widget.onEditSave?.call(text);
     _editCtl!.dispose();
     setState(() => _editCtl = null);
@@ -248,7 +248,10 @@ class _TextBubbleState extends ConsumerState<TextBubble> {
                 ValueListenableBuilder<TextEditingValue>(
                   valueListenable: _editCtl!,
                   builder: (context, value, _) {
-                    final enabled = value.text.trim().isNotEmpty;
+                    // 内容为空或与原文一致（没改动）时保存不可点。
+                    final trimmed = value.text.trim();
+                    final enabled =
+                        trimmed.isNotEmpty && trimmed != widget.item.text.trim();
                     return TextButton(
                       onPressed: enabled ? _saveEdit : null,
                       style: TextButton.styleFrom(
