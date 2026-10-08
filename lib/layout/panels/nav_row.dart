@@ -111,7 +111,7 @@ class _NavRowState
                 isChatItem
             ? 24
             : WorkspaceMetrics.navItemPaddingInline,
-        right: (entry.hasTrailingMenu || entry.hasTrailingAdd)
+        right: (entry.hasTrailingMenu || entry.hasTrailingAdd || entry.hasMenu)
             ? 0
             : WorkspaceMetrics.navItemPaddingInline,
       ),
@@ -160,10 +160,16 @@ class _NavRowState
           ),
           // 有子菜单就给个「往右还有」的提示，否则用户不知道这行能悬停。
           if (entry.hasMenu)
-            Icon(
-              Icons.chevron_right,
-              size: 16,
-              color: fg,
+            // 与 Projects 行的「+」热区同宽同居中（32 宽、图标 18），右边缘对齐
+            SizedBox(
+              width: 32,
+              child: Center(
+                child: Icon(
+                  Icons.chevron_right,
+                  size: 18,
+                  color: fg,
+                ),
+              ),
             ),
         ],
       ),
@@ -198,13 +204,16 @@ class _NavRowState
                               color: fg,
                             ),
                           )
-                        : InkWell(
-                            onTap: entry.onTrailingAdd,
-                            borderRadius: BorderRadius.circular(4),
-                            child: Icon(
-                              Icons.add,
-                              size: 18,
-                              color: fg,
+                        : Tooltip(
+                            message: entry.trailingAddTooltip ?? '',
+                            child: InkWell(
+                              onTap: entry.onTrailingAdd,
+                              borderRadius: BorderRadius.circular(4),
+                              child: Icon(
+                                Icons.add,
+                                size: 18,
+                                color: fg,
+                              ),
                             ),
                           ),
                   )

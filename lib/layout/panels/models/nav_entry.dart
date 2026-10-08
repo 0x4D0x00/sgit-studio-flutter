@@ -16,6 +16,7 @@ class NavEntry {
     this.menu = const [],
     this.trailingMenu = const [],
     this.onTrailingAdd,
+    this.trailingAddTooltip,
     this.isSpecialAction = false,
   });
 
@@ -47,6 +48,9 @@ class NavEntry {
   /// 与 [trailingMenu] 类似，但直接触发回调而非弹出菜单。
   /// 这一行**仍然**可点选中，按钮只是独立的第二个热区。
   final VoidCallback? onTrailingAdd;
+
+  /// [onTrailingAdd] 按钮的 tooltip。
+  final String? trailingAddTooltip;
 
   /// 这一行是不是「菜单把手」而非可导航项。
   bool get hasMenu => menu.isNotEmpty;
@@ -96,6 +100,7 @@ class NavSection {
     this.emptyHint,
     this.emptyHintIcon,
     this.viewAllTooltip,
+    this.actionTooltip,
     this.onViewAll,
   });
 
@@ -117,6 +122,9 @@ class NavSection {
   /// 为空则不渲染这颗按钮。
   final String? viewAllTooltip;
   final VoidCallback? onViewAll;
+
+  /// [action] 按钮的 tooltip。
+  final String? actionTooltip;
 
   /// 标题后是否带展开/收起箭头。
   final bool collapsible;

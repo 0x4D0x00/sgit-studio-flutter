@@ -137,6 +137,7 @@ class NavPanelContainer
           icon: Icons.folder_outlined,
           label: l10n.navProjects,
           onTrailingAdd: () => _onCreateProject(context, ref, l10n),
+          trailingAddTooltip: l10n.projectsCreate,
         ),
         NavEntry(
           id: idCustomize,
@@ -574,6 +575,7 @@ class NavPanelContainer
           viewAllTooltip: l10n.navViewAll,
           onViewAll: () => _onViewAllHistory(context),
           action: NavSectionAction.menu,
+          actionTooltip: l10n.chatSortBy,
           menu: [
             AppMenuSubmenu(
               label: l10n.chatGroupBy,
@@ -654,6 +656,7 @@ class NavPanelContainer
         collapsible: false,
         viewAllTooltip: l10n.navViewAll,
         onViewAll: () => _onViewAllHistory(context),
+        actionTooltip: l10n.chatSortBy,
         action: NavSectionAction.menu,
         menu: [
           AppMenuSubmenu(
@@ -722,6 +725,7 @@ class NavPanelContainer
           viewAllTooltip: isFirstGroup ? l10n.navViewAll : null,
           onViewAll: isFirstGroup ? () => _onViewAllHistory(context) : null,
           action: isFirstGroup ? NavSectionAction.menu : NavSectionAction.none,
+          actionTooltip: isFirstGroup ? l10n.chatSortBy : null,
           menu: isFirstGroup ? [
             AppMenuSubmenu(
               label: l10n.chatGroupBy,
