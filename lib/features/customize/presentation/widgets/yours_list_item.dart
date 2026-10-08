@@ -187,7 +187,7 @@ class _YoursListItemState extends State<YoursListItem> {
                     borderRadius: BorderRadius.circular(AppRadius.sm),
                   ),
                   child: Icon(
-                    Icons.more_horiz,
+                    Icons.more_vert,
                     size: 20,
                     color: widget.skin.textSecondary,
                   ),

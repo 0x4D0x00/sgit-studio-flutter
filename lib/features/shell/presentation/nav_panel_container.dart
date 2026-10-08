@@ -444,7 +444,7 @@ class NavPanelContainer
     );
   }
 
-  /// 历史对话项行尾「⋯」菜单。Rename / Delete 都真落地（`thread/name/set`、
+  /// 历史对话项行尾「⁝」菜单。Rename / Delete 都真落地（`thread/name/set`、
   /// `thread/delete`）；Pin 没有对应内核能力，见下方注释。
   List<
     AppMenuEntry
@@ -460,9 +460,8 @@ class NavPanelContainer
         icon: Icons.push_pin_outlined,
         label: l10n.navChatPin,
         shortcut: 'P',
-        // sgcode 没有置顶能力（React studio 的「收藏」存在 gateway 自己的
-        // per-cid KV 里，客户端这条路还没接）。**不拿别的字段假装** ——
-        // 那会变成一个看着能用、实际不保存的功能。
+        // TODO:sgcode 没有置顶能力（React studio 的「收藏」存在 gateway 自己的
+        // per-cid KV 里，客户端这条路还没接）
         onTap: () => _notWired(context,l10n,'pin'),
       ),
       AppMenuAction(

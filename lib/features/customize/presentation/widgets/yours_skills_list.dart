@@ -199,7 +199,7 @@ class _YourSkillItemRowState extends State<_YourSkillItemRow> {
               ),
               const SizedBox(width: AppSpacing.sm),
               IconButton(
-                icon: Icon(Icons.more_horiz, color: widget.skin.textSecondary),
+                icon: Icon(Icons.more_vert, color: widget.skin.textSecondary),
                 onPressed: widget.onMenuTap,
                 padding: EdgeInsets.zero,
                 constraints: const BoxConstraints(minWidth: 32, minHeight: 32),

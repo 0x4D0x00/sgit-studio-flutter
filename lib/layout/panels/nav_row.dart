@@ -14,7 +14,7 @@ import 'package:sgit_studio_flutter/ui/components/menu/app_menu.dart';
 /// 手势会互相吃掉，菜单钉不住。
 ///
 /// 带 [NavEntry.trailingMenu] 的行（历史对话项）不一样：整行仍要能点选中，
-/// 「⋯」只是悬停才露出的第二个热区 —— 所以两者是 `Row` 里的**兄弟节点**，
+/// 「⁝」只是悬停才露出的第二个热区 —— 所以两者是 `Row` 里的**兄弟节点**，
 /// 不是嵌套，才不会重演上面那句注释里的手势互吃。
 class NavRow
     extends
@@ -63,7 +63,7 @@ class _NavRowState
         State<
           NavRow
         > {
-  /// 鼠标是否停在这一行上。只用来决定「⋯」按钮露不露出，不影响选中态。
+  /// 鼠标是否停在这一行上。只用来决定「⁝」按钮露不露出，不影响选中态。
   bool _hovering = false;
 
   @override
@@ -180,7 +180,7 @@ class _NavRowState
       child: core,
     );
 
-    // 「⋯」/「+」热区：跟点行选中是**兄弟**，不是父子 —— 否则两层手势会互相吃掉
+    // 「⁝」/「+」热区：跟点行选中是**兄弟**，不是父子 —— 否则两层手势会互相吃掉
     final hasTrailingArea = entry.hasTrailingMenu || entry.hasTrailingAdd;
     final trailingButton = !hasTrailingArea
         ? null
@@ -199,7 +199,7 @@ class _NavRowState
                             semanticLabel: entry.label,
                             onOpenChanged: onMenuOpenChanged,
                             child: Icon(
-                              Icons.more_horiz,
+                              Icons.more_vert,
                               size: 18,
                               color: fg,
                             ),
@@ -231,7 +231,7 @@ class _NavRowState
       ),
       _ when hasTrailingArea => Row(
         children: [
-          // 「⋯」/「+」跟点行选中必须是兄弟节点、不能嵌套 —— 否则点击它们
+          // 「⁝」/「+」跟点行选中必须是兄弟节点、不能嵌套 —— 否则点击它们
           // 或菜单项时，点击会一并冒泡到这个 InkWell 触发 onSelect
           Expanded(
             child: InkWell(

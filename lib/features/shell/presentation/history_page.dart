@@ -510,7 +510,7 @@ class _HistoryRowState extends State<_HistoryRow> {
                     align: AppMenuAlign.underEnd,
                     onOpenChanged: (open) => setState(() => _menuOpen = open),
                     child: Icon(
-                      Icons.more_horiz,
+                      Icons.more_vert,
                       size: 18,
                       color: widget.skin.textSecondary,
                     ),

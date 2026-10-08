@@ -467,7 +467,7 @@ class _ProjectCardState extends State<ProjectCard> {
                             borderRadius: BorderRadius.circular(AppRadius.sm),
                           ),
                           child: Icon(
-                            Icons.more_horiz,
+                            Icons.more_vert,
                             size: 18,
                             color: skin.textSecondary,
                           ),
