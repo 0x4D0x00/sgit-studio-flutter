@@ -80,6 +80,7 @@ class _ConnectorCardState extends State<ConnectorCard> {
                 const SizedBox(width: AppSpacing.sm),
                 Expanded(
                   child: Column(
+                    mainAxisSize: MainAxisSize.min,
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Row(

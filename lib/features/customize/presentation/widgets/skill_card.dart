@@ -78,8 +78,11 @@ class _SkillCardState extends State<SkillCard> {
                 const SizedBox(width: AppSpacing.sm),
                 Expanded(
                   child: Column(
+                    // 与 [ConnectorCard] 一致：外层高度由内容决定，卡片等高由下面描述的 minHeight 保证
+                    mainAxisSize: MainAxisSize.min,
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
+                      // 标题固定单行 + 省略号
                       Text(
                         widget.skill.title,
                         style: TextStyle(
@@ -87,17 +90,26 @@ class _SkillCardState extends State<SkillCard> {
                           fontWeight: FontWeight.w600,
                           color: widget.skin.text,
                         ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
                       ),
                       const SizedBox(height: AppSpacing.xxs),
-                      Text(
-                        widget.skill.description,
-                        style: TextStyle(
-                          fontSize: 13,
-                          color: widget.skin.textSecondary,
-                          height: 1.4,
+                      // 描述区域至少预留两行高度，保证单行/双行描述的卡片等高。
+                      ConstrainedBox(
+                        constraints: BoxConstraints(
+                          minHeight:
+                              MediaQuery.textScalerOf(context).scale(13) * 1.4 * 2,
                         ),
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
+                        child: Text(
+                          widget.skill.description,
+                          style: TextStyle(
+                            fontSize: 13,
+                            color: widget.skin.textSecondary,
+                            height: 1.4,
+                          ),
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                        ),
                       ),
                       const SizedBox(height: AppSpacing.xs),
                       Row(

@@ -70,7 +70,7 @@ class _SkillsSettingsPageState extends State<SkillsSettingsPage> {
     return Column(
       children: [
         Padding(
-          padding: const EdgeInsets.only(bottom: AppSpacing.md, right: AppSpacing.xxl),
+          padding: const EdgeInsets.only(bottom: AppSpacing.md),
           child: CustomizeToolbar(
             tabs: PillTabBar(
               tabs: [
