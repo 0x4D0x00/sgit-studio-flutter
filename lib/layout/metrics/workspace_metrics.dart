@@ -59,8 +59,25 @@ class WorkspaceMetrics {
 
   /// 中栏空态。
   static const double centerPaddingTop = 44;
-  static const double contentMaxWidth = 800;
   static const double contentPaddingInline = 16;
+
+  /// 中栏内容列宽三档（设置页「转录宽度」）。
+  ///
+  /// 空态 / 转录 / 输入列共用同一档 —— 三者宽度必须一致，否则宽档下输入框
+  /// 比正文窄，看着像设置没生效。档位与文案见 `services/layout` 的 `TranscriptWidth`。
+  ///
+  /// [transcriptMediumWidth] 取 800 是**等于历史值**（原先的 `contentMaxWidth`）：
+  /// 新增这档设置不该改变任何人的现有界面，默认档必须与改之前逐像素相同。
+  /// [transcriptWideWidth] 的 960 是 studio 内容列的原始出处
+  /// （`features/WideScreenContainer/index.tsx:42-53` 的 `min(960, 100%)`），
+  /// 之前被中栏统一限宽压到了 800。Narrow 640 是往回收一档。
+  static const double transcriptNarrowWidth = 640;
+  static const double transcriptMediumWidth = 800;
+  static const double transcriptWideWidth = 960;
+
+  /// 输入区外壳的**默认**宽度。三档生效时由
+  /// `TranscriptWidth.composerWidth` 算出实际值，这个常量只剩「单独摆一个输入框」（测试、无外壳场景）时用。
+  /// = [transcriptMediumWidth] - 2 × [contentPaddingInline]，两者本来就该相等。
   static const double inputAreaWidth = 768;
   static const double inputAreaRadius = 24;
   static const double heroAvatarSize = 96;

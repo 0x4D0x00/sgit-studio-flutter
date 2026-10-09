@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
+import 'package:sgit_studio_flutter/core/storage/local_storage.dart';
 import 'package:sgit_studio_flutter/design/themes/app_theme.dart';
 import 'package:sgit_studio_flutter/design/tokens/app_colors.dart';
 import 'package:sgit_studio_flutter/data/transport/kernel/kernel_client_mock.dart';
@@ -23,6 +25,14 @@ import 'fakes/fake_settings_repository.dart';
 /// drain、背压丢帧这些真正容易错的地方一个都没被验证过。这里走的是完整链路，
 /// 换成真通道时只换 `KernelClient` 的实现类，本测试的断言应当全部继续成立。
 void main() {
+  // 输入框的宽度上限取自「转录宽度」这个横切偏好，它读 LocalStorage
+  // （生产在 bootstrap 里 await 过）。同 layout_test.dart。
+  setUpAll(() async {
+    TestWidgetsFlutterBinding.ensureInitialized();
+    SharedPreferences.setMockInitialValues({});
+    await LocalStorage.init();
+  });
+
   /// 逐帧推进。
   ///
   /// ⚠️ 不能用 `pump(Duration(...))` 一步跳 300ms：那样是**先画帧、再走 timer**，

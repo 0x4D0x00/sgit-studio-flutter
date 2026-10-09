@@ -12,9 +12,9 @@ import 'package:sgit_studio_flutter/features/chat/application/composer_settings_
 import 'package:sgit_studio_flutter/features/chat/application/model_list_controller.dart';
 import 'package:sgit_studio_flutter/features/chat/presentation/model_selector.dart';
 import 'package:sgit_studio_flutter/l10n/generated/app_localizations.dart';
-import 'package:sgit_studio_flutter/layout/metrics/workspace_metrics.dart';
 import 'package:sgit_studio_flutter/router/route_names.dart';
 import 'package:sgit_studio_flutter/services/chat/chat_controller.dart';
+import 'package:sgit_studio_flutter/services/layout/transcript_width.dart';
 import 'package:sgit_studio_flutter/ui/components/chat/composer/composer_action_icon.dart';
 import 'package:sgit_studio_flutter/ui/components/chat/composer/composer_attachment_chip.dart';
 import 'package:sgit_studio_flutter/ui/components/chat/composer/composer_control_bar.dart';
@@ -166,8 +166,11 @@ class _ChatComposerState extends ConsumerState<ChatComposer> {
 
     return Center(
       child: ConstrainedBox(
-        constraints:
-            const BoxConstraints(maxWidth: WorkspaceMetrics.inputAreaWidth),
+        // 宽度跟着设置页的「转录宽度」档走，与正文列同源 —— 外壳那层的 `Center`
+        // 只负责居中，宽度上限在这里。写死 768 的话，宽档下输入框会比正文窄
+        // 一截，窄档下又会比正文宽出去。
+        constraints: BoxConstraints(
+            maxWidth: ref.watch(transcriptWidthProvider).composerWidth),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [

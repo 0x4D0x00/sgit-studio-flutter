@@ -21,6 +21,7 @@ class LocalStorage {
   static const _kPrimary = 'theme_primary';
   static const _kSecondary = 'theme_secondary';
   static const _kFontScale = 'theme_font_scale';
+  static const _kTranscriptWidth = 'layout_transcript_width';
   static const _kTransparentMode = 'theme_transparent_mode';
   static const _kLocale = 'locale';
   static const _kUsername = 'user_profile_username';
@@ -42,6 +43,12 @@ class LocalStorage {
 
   double? get fontScale => _prefs.getDouble(_kFontScale);
   Future<void> setFontScale(double v) => _prefs.setDouble(_kFontScale, v);
+
+  /// 中栏转录宽度档位（`narrow` / `medium` / `wide`）。null = 未设置过，
+  /// 由 `TranscriptWidth.parse` 落到默认的 medium。
+  String? get transcriptWidth => _prefs.getString(_kTranscriptWidth);
+  Future<void> setTranscriptWidth(String v) =>
+      _prefs.setString(_kTranscriptWidth, v);
 
   bool? get transparentMode => _prefs.getBool(_kTransparentMode);
   Future<void> setTransparentMode(bool v) => _prefs.setBool(_kTransparentMode, v);

@@ -226,21 +226,19 @@ class _EmptyState extends StatelessWidget {
         bottom: WorkspaceMetrics.framePadding * 2,
       ),
       child: Center(
-        child: ConstrainedBox(
-          constraints: const BoxConstraints(
-              maxWidth: WorkspaceMetrics.contentMaxWidth),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const WorkspaceHero(),
-              const SizedBox(height: 24),
-              WorkspaceSkillChips(accent: skin.accentChip),
-              const SizedBox(height: AppSpacing.lg),
-              const AssistantSwitcherContainer(),
-              const SizedBox(height: AppSpacing.lg),
-              composer,
-            ],
-          ),
+        // 宽度上限**不在这里**：外壳按设置页的「转录宽度」档统一限宽，
+        // 这里的左右 padding 与输入框的宽度自减是同一套算法，三者自然对齐。
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const WorkspaceHero(),
+            const SizedBox(height: 24),
+            WorkspaceSkillChips(accent: skin.accentChip),
+            const SizedBox(height: AppSpacing.lg),
+            const AssistantSwitcherContainer(),
+            const SizedBox(height: AppSpacing.lg),
+            composer,
+          ],
         ),
       ),
     );

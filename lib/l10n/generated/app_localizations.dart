@@ -1310,6 +1310,36 @@ abstract class AppLocalizations {
   /// **'聊天字体'**
   String get settingsChatFont;
 
+  /// No description provided for @settingsTranscriptWidth.
+  ///
+  /// In zh, this message translates to:
+  /// **'转录宽度'**
+  String get settingsTranscriptWidth;
+
+  /// No description provided for @settingsTranscriptWidthDesc.
+  ///
+  /// In zh, this message translates to:
+  /// **'转录与输入列的最大宽度。'**
+  String get settingsTranscriptWidthDesc;
+
+  /// No description provided for @settingsTranscriptNarrow.
+  ///
+  /// In zh, this message translates to:
+  /// **'窄'**
+  String get settingsTranscriptNarrow;
+
+  /// No description provided for @settingsTranscriptMedium.
+  ///
+  /// In zh, this message translates to:
+  /// **'中'**
+  String get settingsTranscriptMedium;
+
+  /// No description provided for @settingsTranscriptWide.
+  ///
+  /// In zh, this message translates to:
+  /// **'宽'**
+  String get settingsTranscriptWide;
+
   /// No description provided for @settingsMotion.
   ///
   /// In zh, this message translates to:

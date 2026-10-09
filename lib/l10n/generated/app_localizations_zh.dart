@@ -643,6 +643,21 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settingsChatFont => '聊天字体';
 
   @override
+  String get settingsTranscriptWidth => '转录宽度';
+
+  @override
+  String get settingsTranscriptWidthDesc => '转录与输入列的最大宽度。';
+
+  @override
+  String get settingsTranscriptNarrow => '窄';
+
+  @override
+  String get settingsTranscriptMedium => '中';
+
+  @override
+  String get settingsTranscriptWide => '宽';
+
+  @override
   String get settingsMotion => '动效';
 
   @override

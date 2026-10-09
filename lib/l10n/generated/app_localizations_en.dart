@@ -655,6 +655,22 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settingsChatFont => 'Chat font';
 
   @override
+  String get settingsTranscriptWidth => 'Transcript width';
+
+  @override
+  String get settingsTranscriptWidthDesc =>
+      'Maximum width of the transcript and composer columns.';
+
+  @override
+  String get settingsTranscriptNarrow => 'Narrow';
+
+  @override
+  String get settingsTranscriptMedium => 'Medium';
+
+  @override
+  String get settingsTranscriptWide => 'Wide';
+
+  @override
   String get settingsMotion => 'Motion';
 
   @override

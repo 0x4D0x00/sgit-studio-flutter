@@ -5,6 +5,7 @@ import 'package:sgit_studio_flutter/l10n/generated/app_localizations.dart';
 import 'package:sgit_studio_flutter/design/extensions/app_skin.dart';
 import 'package:sgit_studio_flutter/design/tokens/app_colors.dart';
 import 'package:sgit_studio_flutter/design/tokens/app_spacing.dart';
+import 'package:sgit_studio_flutter/services/layout/transcript_width.dart';
 import 'package:sgit_studio_flutter/services/theme/theme_controller.dart';
 import 'package:sgit_studio_flutter/ui/components/menu/app_menu.dart';
 import 'package:sgit_studio_flutter/features/settings/presentation/widgets/settings_section.dart';
@@ -18,7 +19,6 @@ class SettingsPage extends ConsumerStatefulWidget {
 }
 
 class _SettingsPageState extends ConsumerState<SettingsPage> {
-  // Local UI-only state for new settings (not persisted)
   String _chatFont = 'Anthropic Serif';
   String _motionMode = 'System';
   String _voiceLanguage = 'English';
@@ -42,7 +42,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
         SettingsSectionHeader(l10n.settingsAppearance),
         const SizedBox(height: AppSpacing.sm),
 
-        // Theme mode
+        // 主题
         SettingsSectionRow(
           title: l10n.settingsTheme,
           trailing: Align(
@@ -77,7 +77,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
         ),
         const SettingsSectionDivider(),
 
-        // Chat font dropdown
+        // 聊天字体
         SettingsSectionRow(
           title: l10n.settingsChatFont,
           trailing: _DropdownRow(
@@ -92,7 +92,25 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
         ),
         const SettingsSectionDivider(),
 
-        // Primary color
+        // 转录宽度 —— 中栏正文与输入列的宽度档。
+        //
+        // ⚠️ 这一行**不走本页的 `setState`**（与上面几行不同）：它是全 app 的
+        // 布局状态，外壳、转录、输入框三处都要读。拿 `ref.watch` 一个 provider，
+        // 改档后三处同帧生效，不需要退出设置页才看到变化。
+        SettingsSectionRowWithDesc(
+          title: l10n.settingsTranscriptWidth,
+          description: l10n.settingsTranscriptWidthDesc,
+          trailing: _SegmentedToggle<TranscriptWidth>(
+            options: TranscriptWidth.values,
+            selected: ref.watch(transcriptWidthProvider),
+            labelOf: _transcriptWidthLabel(l10n),
+            onChanged:
+                ref.read(transcriptWidthProvider.notifier).set,
+          ),
+        ),
+        const SettingsSectionDivider(),
+
+        // 主题色
         SettingsSectionRow(
           title: l10n.settingsPrimaryColor,
           trailing: Row(
@@ -112,7 +130,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
         ),
         const SettingsSectionDivider(),
 
-        // Secondary color
+        // 次主题色
         SettingsSectionRow(
           title: l10n.settingsSecondaryColor,
           trailing: Row(
@@ -132,7 +150,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
         ),
         const SettingsSectionDivider(),
 
-        // Font scale
+        // 字体缩放
         SettingsSectionRow(
           title: l10n.settingsFontScale,
           trailing: Expanded(
@@ -158,23 +176,24 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
 
         const SizedBox(height: AppSpacing.md),
 
-        // ============ Motion Section ============
+        // ============ Motion Section ============动效
         SettingsSectionHeader(l10n.settingsMotion),
         const SizedBox(height: AppSpacing.sm),
 
         SettingsSectionRowWithDesc(
           title: l10n.settingsMotion,
           description: l10n.settingsMotionDesc,
-          trailing: _SegmentedToggle(
+          trailing: _SegmentedToggle<String>(
             options: [l10n.settingsMotionSystem, l10n.settingsMotionReduced],
             selected: _motionMode,
+            labelOf: (v) => v,
             onChanged: (v) => setState(() => _motionMode = v),
           ),
         ),
 
         const SizedBox(height: AppSpacing.md),
 
-        // ============ Voice Section ============
+        // ============ Voice Section ============语音
         SettingsSectionHeader(l10n.settingsVoice),
         const SizedBox(height: AppSpacing.sm),
 
@@ -221,7 +240,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
 
         const SizedBox(height: AppSpacing.md),
 
-        // ============ Notifications Section ============
+        // ============ Notifications Section ============通知
         SettingsSectionHeader(l10n.settingsNotifications),
         const SizedBox(height: AppSpacing.sm),
 
@@ -236,6 +255,17 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
       ],
     );
   }
+
+  /// 档位 → 显示名。文案与 enum 的对应写在**一处**（switch 表达式，加档时
+  /// 编译器会在这里逼你补一行），而不是在枚举上挂 `label` ——
+  /// `services/` 不该认识 `AppLocalizations`。
+  static String Function(TranscriptWidth) _transcriptWidthLabel(
+          AppLocalizations l10n) =>
+      (w) => switch (w) {
+            TranscriptWidth.narrow => l10n.settingsTranscriptNarrow,
+            TranscriptWidth.medium => l10n.settingsTranscriptMedium,
+            TranscriptWidth.wide => l10n.settingsTranscriptWide,
+          };
 
   Widget _dots(List<Color> colors, Color selected, void Function(Color) onTap) => Wrap(
         spacing: AppSpacing.sm,
@@ -364,16 +394,21 @@ class _DropdownRow extends StatelessWidget {
   }
 }
 
-class _SegmentedToggle extends StatelessWidget {
+/// 分段单选。**按值取标签**（[labelOf]）而不是直接把值当文案 ——
+/// 值可能是 enum（`TranscriptWidth.wide` 要显示成「宽」/「Wide」），
+/// 也可能是已经是本地化过的字符串（动效那行的「系统」「减少」）。
+class _SegmentedToggle<T> extends StatelessWidget {
   const _SegmentedToggle({
     required this.options,
     required this.selected,
+    required this.labelOf,
     required this.onChanged,
   });
 
-  final List<String> options;
-  final String selected;
-  final ValueChanged<String> onChanged;
+  final List<T> options;
+  final T selected;
+  final String Function(T) labelOf;
+  final ValueChanged<T> onChanged;
 
   @override
   Widget build(BuildContext context) {
@@ -403,7 +438,7 @@ class _SegmentedToggle extends StatelessWidget {
                   borderRadius: BorderRadius.circular(AppRadius.sm),
                 ),
                 child: Text(
-                  option,
+                  labelOf(option),
                   style: TextStyle(
                     fontSize: 14,
                     fontWeight: selected == option ? FontWeight.w500 : FontWeight.normal,

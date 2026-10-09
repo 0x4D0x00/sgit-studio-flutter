@@ -37,6 +37,7 @@ class AppShell extends StatelessWidget {
     required this.navWidth,
     required this.outputExpanded,
     required this.outputWidth,
+    required this.contentMaxWidth,
     required this.onToggleNav,
     required this.onToggleOutput,
     required this.onNavWidthChanged,
@@ -54,6 +55,12 @@ class AppShell extends StatelessWidget {
   final double navWidth;
   final bool outputExpanded;
   final double outputWidth;
+
+  /// 中栏内容列的宽度上限（设置页「转录宽度」三档之一）。
+  ///
+  /// 由容器从 `transcriptWidthProvider` 取值注入 —— 本组件是纯展示组件，
+  /// 不 import 状态库。窗口比这个值窄时**以窗口为准**（下方取 `min`）。
+  final double contentMaxWidth;
 
   final VoidCallback onToggleNav;
   final VoidCallback onToggleOutput;
@@ -118,17 +125,16 @@ class AppShell extends StatelessWidget {
                                 children: [
                                   _header(context, skin, narrow),
                                   // 中栏内容统一限宽居中（会话 / projects / artifacts 等）。
+                                  // 宽度取「设置档位」与「可用空间」的较小值 ——
+                                  // 用户选了宽档但窗口只有 900 时不能溢出。
                                   Expanded(
                                     child: LayoutBuilder(
                                       builder: (context, c) => Align(
                                         alignment: Alignment.topCenter,
                                         child: SizedBox(
-                                          width: c.maxWidth <
-                                                  WorkspaceMetrics
-                                                      .contentMaxWidth
+                                          width: c.maxWidth < contentMaxWidth
                                               ? c.maxWidth
-                                              : WorkspaceMetrics
-                                                  .contentMaxWidth,
+                                              : contentMaxWidth,
                                           height: c.maxHeight,
                                           child: child,
                                         ),

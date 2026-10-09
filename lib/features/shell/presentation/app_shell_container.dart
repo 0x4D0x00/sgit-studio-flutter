@@ -8,6 +8,7 @@ import 'package:sgit_studio_flutter/layout/panels/artifact_output_panel.dart';
 import 'package:sgit_studio_flutter/layout/panels/output_panel.dart';
 import 'package:sgit_studio_flutter/layout/shell/app_shell.dart';
 import 'package:sgit_studio_flutter/services/layout/layout_controller.dart';
+import 'package:sgit_studio_flutter/services/layout/transcript_width.dart';
 
 /// 外壳容器 —— 把布局状态与回调喂给纯组件 `AppShell`。
 ///
@@ -30,6 +31,9 @@ class AppShellContainer extends ConsumerWidget {
     final l10n = AppLocalizations.of(context);
     final layout = ref.watch(layoutControllerProvider);
     final ctrl = ref.read(layoutControllerProvider.notifier);
+    // 中栏宽度档位。布局是 5 个横切状态之一，这一层是它在外壳上的唯一订阅点。
+    final contentMaxWidth =
+        ref.watch(transcriptWidthProvider).contentMaxWidth;
 
     // 根据是否有活跃产物选择右侧面板内容
     final outputPanel = layout.activeArtifact != null
@@ -51,6 +55,7 @@ class AppShellContainer extends ConsumerWidget {
       navWidth: layout.navWidth,
       outputExpanded: layout.outputExpanded,
       outputWidth: layout.outputWidth,
+      contentMaxWidth: contentMaxWidth,
       onToggleNav: ctrl.toggleNav,
       onToggleOutput: ctrl.toggleOutput,
       onNavWidthChanged: ctrl.setNavWidth,
