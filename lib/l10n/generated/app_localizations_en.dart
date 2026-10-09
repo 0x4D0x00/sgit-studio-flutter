@@ -778,6 +778,51 @@ class AppLocalizationsEn extends AppLocalizations {
   String get memoryGenerateFromChatsLearnMore => 'Learn more.';
 
   @override
+  String get memoryLearnMore => 'Learn more.';
+
+  @override
+  String get memorySensitiveTopics => 'Include sensitive topics in memory';
+
+  @override
+  String memorySensitiveTopicsDesc(Object learnMore) {
+    return 'Allow Claude to save details about sensitive topics like health conditions or religious beliefs to memory. $learnMore';
+  }
+
+  @override
+  String get memoryImportFromOtherAi => 'Import memory from other AI providers';
+
+  @override
+  String memoryImportFromOtherAiDesc(Object learnMore) {
+    return 'Bring relevant context and data from another AI provider to Claude. We\'ll provide a prompt you can use to fetch the memory from your other account. $learnMore';
+  }
+
+  @override
+  String get memoryStartImport => 'Start import';
+
+  @override
+  String get memoryNoFiles => 'No files yet';
+
+  @override
+  String get memoryInputHint => 'My dog\'s name is Beans';
+
+  @override
+  String get memoryDisableTitle => 'Turn off memory';
+
+  @override
+  String get memoryPauseMemory => 'Pause memory';
+
+  @override
+  String get memoryPauseMemoryDesc =>
+      'Claude keeps its existing memory, including sensitive topics, but won\'t use memory or make new memories.';
+
+  @override
+  String get memoryResetMemory => 'Reset memory';
+
+  @override
+  String get memoryResetMemoryDesc =>
+      'This will permanently delete all memories, including project memories, and turn off saving sensitive topics. This can\'t be undone.';
+
+  @override
   String get reflectTitle => 'Reflect';
 
   @override

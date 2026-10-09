@@ -760,6 +760,50 @@ class AppLocalizationsZh extends AppLocalizations {
   String get memoryGenerateFromChatsLearnMore => '了解更多。';
 
   @override
+  String get memoryLearnMore => '了解更多。';
+
+  @override
+  String get memorySensitiveTopics => '在记忆中包含敏感话题';
+
+  @override
+  String memorySensitiveTopicsDesc(Object learnMore) {
+    return '允许 Claude 将健康状况或宗教信仰等敏感话题的详情保存到记忆中。$learnMore';
+  }
+
+  @override
+  String get memoryImportFromOtherAi => '从其他 AI 服务商导入记忆';
+
+  @override
+  String memoryImportFromOtherAiDesc(Object learnMore) {
+    return '将其他 AI 服务商的相关上下文与数据带入 Claude。我们会提供一段提示词，供您从其他账号获取记忆。$learnMore';
+  }
+
+  @override
+  String get memoryStartImport => '开始导入';
+
+  @override
+  String get memoryNoFiles => '暂无文件';
+
+  @override
+  String get memoryInputHint => '例如：把清单控制在五项以内';
+
+  @override
+  String get memoryDisableTitle => '关闭记忆';
+
+  @override
+  String get memoryPauseMemory => '暂停记忆';
+
+  @override
+  String get memoryPauseMemoryDesc =>
+      'Claude 会保留现有记忆（包括敏感话题），但不会使用记忆，也不会生成新记忆。';
+
+  @override
+  String get memoryResetMemory => '重置记忆';
+
+  @override
+  String get memoryResetMemoryDesc => '这将永久删除所有记忆（含项目记忆），并关闭敏感话题的保存。此操作无法撤销。';
+
+  @override
   String get reflectTitle => '反思';
 
   @override

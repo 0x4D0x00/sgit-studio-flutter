@@ -628,7 +628,6 @@ class ArtifactListRow extends StatefulWidget {
 
 class _ArtifactListRowState extends State<ArtifactListRow> {
   bool _hovering = false;
-  bool _menuOpen = false;
 
   List<AppMenuEntry> _menuEntries(AppLocalizations l10n) => [
         AppMenuAction(
@@ -643,7 +642,6 @@ class _ArtifactListRowState extends State<ArtifactListRow> {
     final skin = AppSkin.of(context);
     final l10n = AppLocalizations.of(context);
     final artifact = widget.artifact;
-    final showMenuButton = _hovering || _menuOpen;
 
     final locale = Localizations.localeOf(context);
     final fmt = DateFormat.MMMd(locale.toString());
@@ -706,25 +704,22 @@ class _ArtifactListRowState extends State<ArtifactListRow> {
                 ),
               ),
               const SizedBox(width: AppSpacing.sm),
-              // 三点菜单
+              // 三点菜单。列表视图里常驻显示
               SizedBox(
                 width: 28,
                 height: 28,
-                child: showMenuButton
-                    ? AppMenuAnchor(
-                        trigger: AppMenuTrigger.tap,
-                        align: AppMenuAlign.underEnd,
-                        minWidth: 160,
-                        semanticLabel: l10n.artifactsMoreActions,
-                        onOpenChanged: (open) => setState(() => _menuOpen = open),
-                        entries: _menuEntries(l10n),
-                        child: Icon(
-                          Icons.more_vert,
-                          size: 18,
-                          color: skin.textSecondary,
-                        ),
-                      )
-                    : const SizedBox.shrink(),
+                child: AppMenuAnchor(
+                  trigger: AppMenuTrigger.tap,
+                  align: AppMenuAlign.underEnd,
+                  minWidth: 160,
+                  semanticLabel: l10n.artifactsMoreActions,
+                  entries: _menuEntries(l10n),
+                  child: Icon(
+                    Icons.more_vert,
+                    size: 18,
+                    color: skin.textSecondary,
+                  ),
+                ),
               ),
             ],
           ),

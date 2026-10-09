@@ -1538,6 +1538,84 @@ abstract class AppLocalizations {
   /// **'了解更多。'**
   String get memoryGenerateFromChatsLearnMore;
 
+  /// No description provided for @memoryLearnMore.
+  ///
+  /// In zh, this message translates to:
+  /// **'了解更多。'**
+  String get memoryLearnMore;
+
+  /// No description provided for @memorySensitiveTopics.
+  ///
+  /// In zh, this message translates to:
+  /// **'在记忆中包含敏感话题'**
+  String get memorySensitiveTopics;
+
+  /// No description provided for @memorySensitiveTopicsDesc.
+  ///
+  /// In zh, this message translates to:
+  /// **'允许 Claude 将健康状况或宗教信仰等敏感话题的详情保存到记忆中。{learnMore}'**
+  String memorySensitiveTopicsDesc(Object learnMore);
+
+  /// No description provided for @memoryImportFromOtherAi.
+  ///
+  /// In zh, this message translates to:
+  /// **'从其他 AI 服务商导入记忆'**
+  String get memoryImportFromOtherAi;
+
+  /// No description provided for @memoryImportFromOtherAiDesc.
+  ///
+  /// In zh, this message translates to:
+  /// **'将其他 AI 服务商的相关上下文与数据带入 Claude。我们会提供一段提示词，供您从其他账号获取记忆。{learnMore}'**
+  String memoryImportFromOtherAiDesc(Object learnMore);
+
+  /// No description provided for @memoryStartImport.
+  ///
+  /// In zh, this message translates to:
+  /// **'开始导入'**
+  String get memoryStartImport;
+
+  /// No description provided for @memoryNoFiles.
+  ///
+  /// In zh, this message translates to:
+  /// **'暂无文件'**
+  String get memoryNoFiles;
+
+  /// No description provided for @memoryInputHint.
+  ///
+  /// In zh, this message translates to:
+  /// **'例如：把清单控制在五项以内'**
+  String get memoryInputHint;
+
+  /// No description provided for @memoryDisableTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'关闭记忆'**
+  String get memoryDisableTitle;
+
+  /// No description provided for @memoryPauseMemory.
+  ///
+  /// In zh, this message translates to:
+  /// **'暂停记忆'**
+  String get memoryPauseMemory;
+
+  /// No description provided for @memoryPauseMemoryDesc.
+  ///
+  /// In zh, this message translates to:
+  /// **'Claude 会保留现有记忆（包括敏感话题），但不会使用记忆，也不会生成新记忆。'**
+  String get memoryPauseMemoryDesc;
+
+  /// No description provided for @memoryResetMemory.
+  ///
+  /// In zh, this message translates to:
+  /// **'重置记忆'**
+  String get memoryResetMemory;
+
+  /// No description provided for @memoryResetMemoryDesc.
+  ///
+  /// In zh, this message translates to:
+  /// **'这将永久删除所有记忆（含项目记忆），并关闭敏感话题的保存。此操作无法撤销。'**
+  String get memoryResetMemoryDesc;
+
   /// No description provided for @reflectTitle.
   ///
   /// In zh, this message translates to:

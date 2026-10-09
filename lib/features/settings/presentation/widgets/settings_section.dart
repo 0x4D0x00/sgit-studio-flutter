@@ -2,10 +2,8 @@ import 'package:flutter/material.dart';
 
 import 'package:sgit_studio_flutter/design/tokens/app_spacing.dart';
 
-/// Section title used to group related settings rows.
-///
-/// Shared across the settings dialog's General / Account / Privacy pages so
-/// they present a consistent internal structure.
+/// 用于分组相关设置行的部分标题。
+/// 在设置对话框的“常规 / 账户 / 隐私”页面中共享，以便它们呈现一致的内部结构。
 class SettingsSectionHeader extends StatelessWidget {
   const SettingsSectionHeader(this.title, {super.key});
 
@@ -21,7 +19,7 @@ class SettingsSectionHeader extends StatelessWidget {
   }
 }
 
-/// Divider between settings rows, using the shared muted outline color.
+/// 用于分组相关设置行的分隔线。
 class SettingsSectionDivider extends StatelessWidget {
   const SettingsSectionDivider({super.key});
 
@@ -32,7 +30,7 @@ class SettingsSectionDivider extends StatelessWidget {
   }
 }
 
-/// A single settings row: title on the left, an arbitrary control on the right.
+/// 用于分组相关设置行的单行。
 class SettingsSectionRow extends StatelessWidget {
   const SettingsSectionRow({
     super.key,
@@ -67,17 +65,26 @@ class SettingsSectionRow extends StatelessWidget {
   }
 }
 
-/// A settings row with a secondary description under the title.
+/// 设置行的扩展版本，带有说明文字。 
+/// 说明文字二选一：直接给 [description] 字符串，或给 [descriptionWidget]
+/// 自己拼一段富文本（例如句子里嵌一个可点的「了解更多」）。
+/// 后者是给 [description] 不够用的场合留的口子 —— 链接要在句中的位置随语言
+/// 而变，纯字符串拼不出来。
 class SettingsSectionRowWithDesc extends StatelessWidget {
   const SettingsSectionRowWithDesc({
     super.key,
     required this.title,
-    required this.description,
+    this.description,
+    this.descriptionWidget,
     required this.trailing,
-  });
+  }) : assert(
+          (description == null) != (descriptionWidget == null),
+          'description 与 descriptionWidget 必须且只能给一个',
+        );
 
   final String title;
-  final String description;
+  final String? description;
+  final Widget? descriptionWidget;
   final Widget trailing;
 
   @override
@@ -95,12 +102,13 @@ class SettingsSectionRowWithDesc extends StatelessWidget {
               children: [
                 Text(title, style: theme.textTheme.bodyLarge),
                 const SizedBox(height: AppSpacing.xxs),
-                Text(
-                  description,
-                  style: theme.textTheme.bodySmall?.copyWith(
-                    color: theme.colorScheme.onSurfaceVariant,
-                  ),
-                ),
+                descriptionWidget ??
+                    Text(
+                      description!,
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: theme.colorScheme.onSurfaceVariant,
+                      ),
+                    ),
               ],
             ),
           ),
