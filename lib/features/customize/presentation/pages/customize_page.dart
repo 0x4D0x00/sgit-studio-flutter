@@ -10,6 +10,7 @@ import '../../application/customize_page_controller.dart';
 import '../widgets/customize_models.dart';
 import '../widgets/customize_sample_data.dart';
 import '../widgets/customize_section_header.dart';
+import '../widgets/customize_show_all_view.dart';
 import '../widgets/customize_toolbar.dart';
 import '../widgets/pill_tab_bar.dart';
 import '../widgets/skill_card.dart';
@@ -34,6 +35,12 @@ class _CustomizePageState extends ConsumerState<CustomizePage> {
   final _searchController = TextEditingController();
   String _query = '';
 
+  // 「Show all」进入的全量列表：'New skills' / 'New plugins' / 'All connectors'，
+  // null 表示停在 Discover。三个 Tab 共用，切 Tab 时由 _buildTabs 清掉。
+  String? _showAllTitle;
+  final _showAllSearchController = TextEditingController();
+  String _showAllQuery = '';
+
   // Skills + Yours 列表的数据。用 State 字段而不是局部变量，
   // 这样点「···」→ Remove 才能真的从列表里删掉一项。
   late final List<Map<String, Object>> _yoursSkills = buildYoursSkills();
@@ -53,6 +60,7 @@ class _CustomizePageState extends ConsumerState<CustomizePage> {
   @override
   void dispose() {
     _searchController.dispose();
+    _showAllSearchController.dispose();
     super.dispose();
   }
 
@@ -62,6 +70,30 @@ class _CustomizePageState extends ConsumerState<CustomizePage> {
     return items
         .where((item) => titleOf(item).toLowerCase().contains(q))
         .toList(growable: false);
+  }
+
+  /// 全量列表自己的搜索词过滤。不做搜索时直接返回原列表。
+  List<T> _filterShowAll<T>(List<T> items, String Function(T) titleOf) {
+    if (_showAllQuery.isEmpty) return items;
+    final q = _showAllQuery.toLowerCase();
+    return items
+        .where((item) => titleOf(item).toLowerCase().contains(q))
+        .toList(growable: false);
+  }
+
+  /// 从全量列表退回 Discover，顺带清掉自己的搜索词。
+  void _exitShowAll() {
+    _showAllTitle = null;
+    _showAllQuery = '';
+    _showAllSearchController.clear();
+  }
+
+  void _openShowAll(String title) {
+    setState(() {
+      _showAllTitle = title;
+      _showAllQuery = '';
+      _showAllSearchController.clear();
+    });
   }
 
   void _notWired(BuildContext context, AppLocalizations l10n, String what) {
@@ -92,6 +124,10 @@ class _CustomizePageState extends ConsumerState<CustomizePage> {
 
   Widget _buildHeader(BuildContext context, AppSkin skin) {
     final l10n = AppLocalizations.of(context);
+
+    // 全量列表自带头部（返回箭头 + 分类 chip + 大标题 + 工具条），
+    // 这时不画 "Customize" 标题和标签行，否则两套搜索框会叠在一起。
+    if (_showAllTitle != null) return const SizedBox.shrink();
 
     return Container(
       decoration: BoxDecoration(
@@ -151,18 +187,27 @@ class _CustomizePageState extends ConsumerState<CustomizePage> {
         PillTab(
           label: labels[i],
           selected: selectedTab == tabs[i],
-          onTap: () => tabController.setTab(tabs[i]),
+          onTap: () {
+            tabController.setTab(tabs[i]);
+            setState(_exitShowAll);
+          },
         ),
       PillTab(
         label: 'Yours',
         selected: _selectedViewIndex == 3,
-        onTap: () => setState(() => _selectedViewIndex = 3),
+        onTap: () => setState(() {
+          _selectedViewIndex = 3;
+          _exitShowAll();
+        }),
         dividerBefore: true,
       ),
       PillTab(
         label: 'Discover',
         selected: _selectedViewIndex == 4,
-        onTap: () => setState(() => _selectedViewIndex = 4),
+        onTap: () => setState(() {
+          _selectedViewIndex = 4;
+          _exitShowAll();
+        }),
       ),
     ];
   }
@@ -191,6 +236,29 @@ class _CustomizePageState extends ConsumerState<CustomizePage> {
 
   // Skills/Plugins + Discover 页面：显示 "For you" + "New" 区域
   Widget _buildSkillsDiscoverContent(BuildContext context, AppSkin skin, AppLocalizations l10n) {
+    final isPlugins = ref.watch(customizeTabControllerProvider) == CustomizeTab.plugins;
+    // 全量列表：Skills 用 buildAllNewSkills，Plugins 用 buildAllNewPlugins。
+    if (_showAllTitle != null) {
+      final source = isPlugins ? buildAllNewPlugins() : buildAllNewSkills();
+      final filtered = _filterShowAll(source, (s) => s.title);
+      return CustomizeShowAllView.skills(
+        title: _showAllTitle!,
+        tabLabel: isPlugins ? 'Plugins' : 'Skills',
+        skin: skin,
+        l10n: l10n,
+        searchController: _showAllSearchController,
+        query: _showAllQuery,
+        searchHint: isPlugins ? 'Search plugins...' : 'Search skills...',
+        onQueryChanged: (v) => setState(() => _showAllQuery = v),
+        onBack: () => setState(_exitShowAll),
+        onTune: () => _notWired(context, l10n, 'category'),
+        onSort: () => _notWired(context, l10n, 'sort'),
+        onToolbarAdd: () => _notWired(context, l10n, l10n.commonAdd),
+        onAdd: (skill) => _notWired(context, l10n, skill.title),
+        skillItems: filtered,
+      );
+    }
+
     return ListView(
       padding: const EdgeInsets.all(AppSpacing.md),
       children: [
@@ -201,7 +269,7 @@ class _CustomizePageState extends ConsumerState<CustomizePage> {
         CustomizeSectionHeader(
           'New',
           showSeeAll: true,
-          onSeeAll: () => _notWired(context, l10n, 'See all'),
+          onSeeAll: () => _openShowAll(isPlugins ? 'New plugins' : 'New skills'),
         ),
         const SizedBox(height: AppSpacing.md),
         _buildNewSkillsRow(context, skin, l10n),
@@ -272,6 +340,25 @@ class _CustomizePageState extends ConsumerState<CustomizePage> {
 
   // Connectors + Discover 页面：显示带轮播图的页面
   Widget _buildConnectorsDiscoverContent(BuildContext context, AppSkin skin, AppLocalizations l10n) {
+    if (_showAllTitle != null) {
+      final filtered = _filterShowAll(buildAllConnectors(), (c) => c.title);
+      return CustomizeShowAllView.connectors(
+        title: _showAllTitle!,
+        tabLabel: 'Connectors',
+        skin: skin,
+        l10n: l10n,
+        searchController: _showAllSearchController,
+        query: _showAllQuery,
+        searchHint: 'Search connectors...',
+        onQueryChanged: (v) => setState(() => _showAllQuery = v),
+        onBack: () => setState(_exitShowAll),
+        onTune: () => _notWired(context, l10n, 'category'),
+        onSort: () => _notWired(context, l10n, 'sort'),
+        onToolbarAdd: () => _notWired(context, l10n, l10n.commonAdd),
+        connectorItems: filtered,
+      );
+    }
+
     final connectors = buildConnectors();
     final filtered = _filterBy(connectors, (c) => c.title);
 
@@ -286,8 +373,7 @@ class _CustomizePageState extends ConsumerState<CustomizePage> {
         CustomizeSectionHeader(
           'Top connectors',
           showSeeAll: true,
-          seeAllLabel: 'Show all',
-          onSeeAll: () => _notWired(context, l10n, 'Show all'),
+          onSeeAll: () => _openShowAll('All connectors'),
         ),
         const SizedBox(height: AppSpacing.md),
         _buildConnectorsWrap(context, filtered, skin, l10n),

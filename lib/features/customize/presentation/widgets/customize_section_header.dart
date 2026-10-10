@@ -2,12 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:sgit_studio_flutter/design/extensions/app_skin.dart';
 import 'package:sgit_studio_flutter/design/tokens/app_spacing.dart';
 
-/// 分区标题行：标题 + 可选的「See all/Show all」按钮。
+/// 分区标题行：标题 + 可选的「Show all」按钮。
 class CustomizeSectionHeader extends StatelessWidget {
   const CustomizeSectionHeader(
     this.title, {
     super.key,
-    this.seeAllLabel = 'See all',
+    this.seeAllLabel = 'Show all',
     this.showSeeAll = false,
     this.onSeeAll,
   });
@@ -37,7 +37,7 @@ class CustomizeSectionHeader extends StatelessWidget {
             onPressed: onSeeAll,
             style: TextButton.styleFrom(
               foregroundColor: skin.text,
-              padding: EdgeInsets.zero,
+              padding: EdgeInsets.all(AppSpacing.xs),
             ),
             child: Row(
               mainAxisSize: MainAxisSize.min,

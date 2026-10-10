@@ -122,6 +122,17 @@ class _ConnectorCardState extends State<ConnectorCard> {
                           overflow: TextOverflow.ellipsis,
                         ),
                       ),
+                      const SizedBox(height: AppSpacing.xs),
+                      Text(
+                        'by ${widget.connector.source}',
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: widget.skin.textSecondary
+                              .withValues(alpha: 0.7),
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
                     ],
                   ),
                 ),

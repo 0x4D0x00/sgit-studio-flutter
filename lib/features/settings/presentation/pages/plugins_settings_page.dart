@@ -8,6 +8,7 @@ import 'package:sgit_studio_flutter/ui/components/confirm.dart';
 import 'package:sgit_studio_flutter/features/customize/presentation/widgets/customize_models.dart';
 import 'package:sgit_studio_flutter/features/customize/presentation/widgets/customize_sample_data.dart';
 import 'package:sgit_studio_flutter/features/customize/presentation/widgets/customize_section_header.dart';
+import 'package:sgit_studio_flutter/features/customize/presentation/widgets/customize_show_all_view.dart';
 import 'package:sgit_studio_flutter/features/customize/presentation/widgets/customize_toolbar.dart';
 import 'package:sgit_studio_flutter/features/customize/presentation/widgets/pill_tab_bar.dart';
 import 'package:sgit_studio_flutter/features/customize/presentation/widgets/skill_card.dart';
@@ -29,9 +30,15 @@ class _PluginsSettingsPageState extends State<PluginsSettingsPage> {
 
   late final List<Map<String, Object>> _yoursPlugins = buildYoursPlugins();
 
+  /// 「Show all」全量列表是否打开，以及它自己的搜索词。
+  bool _showAll = false;
+  final _showAllSearchController = TextEditingController();
+  String _showAllQuery = '';
+
   @override
   void dispose() {
     _searchController.dispose();
+    _showAllSearchController.dispose();
     super.dispose();
   }
 
@@ -39,6 +46,18 @@ class _PluginsSettingsPageState extends State<PluginsSettingsPage> {
     if (_query.isEmpty) return items;
     final q = _query.toLowerCase();
     return items.where((item) => titleOf(item).toLowerCase().contains(q)).toList(growable: false);
+  }
+
+  List<T> _filterShowAll<T>(List<T> items, String Function(T) titleOf) {
+    if (_showAllQuery.isEmpty) return items;
+    final q = _showAllQuery.toLowerCase();
+    return items.where((item) => titleOf(item).toLowerCase().contains(q)).toList(growable: false);
+  }
+
+  void _exitShowAll() {
+    _showAll = false;
+    _showAllQuery = '';
+    _showAllSearchController.clear();
   }
 
   void _notWired(BuildContext context, AppLocalizations l10n, String what) {
@@ -69,32 +88,34 @@ class _PluginsSettingsPageState extends State<PluginsSettingsPage> {
 
     return Column(
       children: [
-        Padding(
-          padding: const EdgeInsets.only(bottom: AppSpacing.md),
-          child: CustomizeToolbar(
-            tabs: PillTabBar(
-              tabs: [
-                PillTab(
-                  label: 'Yours',
-                  selected: _isYoursView,
-                  onTap: () => setState(() => _isYoursView = true),
-                ),
-                PillTab(
-                  label: 'Discover',
-                  selected: !_isYoursView,
-                  onTap: () => setState(() => _isYoursView = false),
-                ),
-              ],
+        // 全量列表自带头部和搜索框，这里就不再画一遍工具条。
+        if (!_showAll)
+          Padding(
+            padding: const EdgeInsets.only(bottom: AppSpacing.md),
+            child: CustomizeToolbar(
+              tabs: PillTabBar(
+                tabs: [
+                  PillTab(
+                    label: 'Yours',
+                    selected: _isYoursView,
+                    onTap: () => setState(() => _isYoursView = true),
+                  ),
+                  PillTab(
+                    label: 'Discover',
+                    selected: !_isYoursView,
+                    onTap: () => setState(() => _isYoursView = false),
+                  ),
+                ],
+              ),
+              searchController: _searchController,
+              query: _query,
+              searchHint: 'Search skills and plugins...',
+              onQueryChanged: (v) => setState(() => _query = v),
+              onTune: () => _notWired(context, l10n, 'category'),
+              onSort: () => _notWired(context, l10n, 'sort'),
+              onAdd: () => _notWired(context, l10n, l10n.commonAdd),
             ),
-            searchController: _searchController,
-            query: _query,
-            searchHint: 'Search skills and plugins...',
-            onQueryChanged: (v) => setState(() => _query = v),
-            onTune: () => _notWired(context, l10n, 'category'),
-            onSort: () => _notWired(context, l10n, 'sort'),
-            onAdd: () => _notWired(context, l10n, l10n.commonAdd),
           ),
-        ),
         Expanded(
           child: _isYoursView
               ? _buildYoursContent(context, skin, l10n)
@@ -154,6 +175,22 @@ class _PluginsSettingsPageState extends State<PluginsSettingsPage> {
   }
 
   Widget _buildDiscoverContent(BuildContext context, AppSkin skin, AppLocalizations l10n) {
+    if (_showAll) {
+      return CustomizeShowAllView.skills(
+        title: 'New plugins',
+        tabLabel: 'Plugins',
+        skin: skin,
+        l10n: l10n,
+        searchController: _showAllSearchController,
+        query: _showAllQuery,
+        searchHint: 'Search plugins...',
+        onQueryChanged: (v) => setState(() => _showAllQuery = v),
+        onBack: () => setState(_exitShowAll),
+        onAdd: (skill) => _notWired(context, l10n, skill.title),
+        skillItems: _filterShowAll(buildAllNewPlugins(), (s) => s.title),
+      );
+    }
+
     return ListView(
       children: [
         const CustomizeSectionHeader('For you'),
@@ -163,7 +200,7 @@ class _PluginsSettingsPageState extends State<PluginsSettingsPage> {
         CustomizeSectionHeader(
           'New plugins',
           showSeeAll: true,
-          onSeeAll: () => _notWired(context, l10n, 'Show all'),
+          onSeeAll: () => setState(() => _showAll = true),
         ),
         const SizedBox(height: AppSpacing.md),
         _buildWrap(context, _filterBy(buildNewPlugins(), (s) => s.title), skin, l10n),

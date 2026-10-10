@@ -7,12 +7,17 @@ class SkillItem {
   final String source;
   final String installs;
 
+  /// 标题旁的小 chip，例如全量列表里的 "Legal" + "+2"。
+  /// 卡片（Discover）不展示，只有行列表用。
+  final List<String> tags;
+
   SkillItem({
     required this.icon,
     required this.title,
     required this.description,
     required this.source,
     required this.installs,
+    this.tags = const [],
   });
 }
 
@@ -22,11 +27,15 @@ class ConnectorItem {
   final String title;
   final String description;
 
+  /// 卡片底部 "by Google" 里的作者方。Discover 的紧凑卡片不展示。
+  final String source;
+
   ConnectorItem({
     required this.icon,
     required this.color,
     required this.title,
     required this.description,
+    required this.source,
   });
 }
 

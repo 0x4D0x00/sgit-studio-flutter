@@ -4,6 +4,7 @@ import 'package:sgit_studio_flutter/design/tokens/app_spacing.dart';
 import 'package:sgit_studio_flutter/l10n/generated/app_localizations.dart';
 
 import 'customize_models.dart';
+import 'customize_tag_chip.dart';
 
 class SkillCard extends StatefulWidget {
   const SkillCard({
@@ -83,15 +84,25 @@ class _SkillCardState extends State<SkillCard> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       // 标题固定单行 + 省略号
-                      Text(
-                        widget.skill.title,
-                        style: TextStyle(
-                          fontSize: 15,
-                          fontWeight: FontWeight.w600,
-                          color: widget.skin.text,
-                        ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
+                      Row(
+                        children: [
+                          Flexible(
+                            child: Text(
+                              widget.skill.title,
+                              style: TextStyle(
+                                fontSize: 15,
+                                fontWeight: FontWeight.w600,
+                                color: widget.skin.text,
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                          for (final tag in widget.skill.tags) ...[
+                            const SizedBox(width: AppSpacing.xxs),
+                            CustomizeTagChip(label: tag, skin: widget.skin),
+                          ],
+                        ],
                       ),
                       const SizedBox(height: AppSpacing.xxs),
                       // 描述区域至少预留两行高度，保证单行/双行描述的卡片等高。

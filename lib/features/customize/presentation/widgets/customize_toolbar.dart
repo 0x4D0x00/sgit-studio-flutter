@@ -11,7 +11,7 @@ import 'package:sgit_studio_flutter/l10n/generated/app_localizations.dart';
 class CustomizeToolbar extends StatefulWidget {
   const CustomizeToolbar({
     super.key,
-    required this.tabs,
+    this.tabs,
     required this.searchController,
     required this.query,
     required this.onQueryChanged,
@@ -21,7 +21,9 @@ class CustomizeToolbar extends StatefulWidget {
     this.searchHint,
   });
 
-  final Widget tabs;
+  /// 左侧标签行。全量列表页（All connectors / New skills）自己画标题，
+  /// 传 null 就只留右侧的搜索 + 操作。
+  final Widget? tabs;
   final TextEditingController searchController;
   final String query;
   final ValueChanged<String> onQueryChanged;
@@ -57,7 +59,10 @@ class _CustomizeToolbarState extends State<CustomizeToolbar> {
           children: [
             Row(
               children: [
-                Expanded(child: widget.tabs),
+                if (widget.tabs != null)
+                  Expanded(child: widget.tabs!)
+                else
+                  const Spacer(),
                 _buildActionsRow(
                   context,
                   skin,
