@@ -39,12 +39,12 @@ class ArtifactChip extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             Icon(Icons.code, size: 14, color: skin.textSecondary),
-            const SizedBox(width: 4),
+            const SizedBox(width: AppSpacing.xxs),
             Text(
               artifact.title,
               style: TextStyle(fontSize: 12, color: skin.text),
             ),
-            const SizedBox(width: 4),
+            const SizedBox(width: AppSpacing.xxs),
             Icon(Icons.arrow_forward, size: 12, color: skin.textTertiary),
           ],
         ),

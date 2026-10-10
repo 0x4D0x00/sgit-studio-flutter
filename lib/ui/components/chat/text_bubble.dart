@@ -161,48 +161,49 @@ class _TextBubbleState extends ConsumerState<TextBubble> {
         ),
       );
 
-  /// 助手回复：**无气泡框**，头像 + 通栏文字。
+  /// 助手回复：**无气泡框**，纯文字铺满转录列宽。
   ///
   /// ⚠️ 这里刻意用 `Padding` 而不是 `Container(color: Colors.transparent)` ——
   /// 后者仍会插一个 `DecoratedBox` 绘制层，每帧白画一遍。
   ///
   /// 也**不套 `ConstrainedBox`**：让它吃满外壳给的转录列宽，设置页的
   /// 「转录宽度」三档才对回复真正生效。
+  ///
+  /// 品牌头像只在整段对话最后一组回答的末尾（工具行下方）出现一次 
   Widget _assistantReply(
     AppSkin skin,
     TextItem item,
     bool showActions,
     List<CodeArtifact> artifacts,
   ) =>
-      Row(
+      Column(
+        // 头像与正文都从列首起排，所以这里是 start 而不是 stretch。
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          SizedBox(
-            width: ChatBubbleMetrics.avatarSize,
-            height: ChatBubbleMetrics.avatarSize,
-            child: ClipOval(
-              child: Image(
-                image: widget.assistantAvatar,
-                fit: BoxFit.contain,
-              ),
-            ),
+          Padding(
+            padding: const EdgeInsets.symmetric(
+                vertical: ChatBubbleMetrics.assistantPaddingBlock),
+            child: _body(skin, item, artifacts),
           ),
-          const SizedBox(width: ChatBubbleMetrics.avatarGap),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Padding(
-                  padding: const EdgeInsets.symmetric(
-                      vertical: ChatBubbleMetrics.assistantPaddingBlock),
-                  child: _body(skin, item, artifacts),
-                ),
-                _actionsSlot(context, item,
-                    isUser: false, showActions: showActions),
-              ],
-            ),
-          ),
+          _actionsSlot(context, item,
+              isUser: false, showActions: showActions),
+          if (widget.isLastAnswer) ...[
+            const SizedBox(height: ChatBubbleMetrics.avatarGap),
+            _avatar(),
+          ],
         ],
+      );
+
+  /// 末尾的品牌头像。只由最后一组回答的末尾气泡摆出，压在工具行下方。
+  Widget _avatar() => SizedBox(
+        width: ChatBubbleMetrics.avatarSize,
+        height: ChatBubbleMetrics.avatarSize,
+        child: ClipOval(
+          child: Image(
+            image: widget.assistantAvatar,
+            fit: BoxFit.contain,
+          ),
+        ),
       );
 
   /// 正文：文本 + 截断提示 + 代码块芯片。两种形态共用，所以不放进各自的分支。
