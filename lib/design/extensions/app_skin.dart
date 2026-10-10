@@ -29,6 +29,7 @@ class AppSkin extends ThemeExtension<AppSkin> {
     required this.textSecondary,
     required this.textTertiary,
     required this.navItemActive,
+    required this.bubbleUserBg,
     required this.accentChip,
     required this.glassBg,
     required this.glassBorder,
@@ -60,6 +61,10 @@ class AppSkin extends ThemeExtension<AppSkin> {
 
   /// 导航选中态底色。
   final Color navItemActive;
+
+  /// 用户消息气泡底色（中性灰，不带品牌色）。
+  /// 助手回复没有气泡（纯文字），所以这里只有用户那一档。
+  final Color bubbleUserBg;
 
   /// 技能标签等强调色。
   final Color accentChip;
@@ -101,6 +106,7 @@ class AppSkin extends ThemeExtension<AppSkin> {
     textSecondary: AppColors.textSecondaryLight,
     textTertiary: AppColors.textTertiaryLight,
     navItemActive: AppColors.navItemActive,
+    bubbleUserBg: AppColors.bubbleUserBgLight,
     accentChip: AppColors.skillChip,
     glassBg: Color(0x99EFF4FA), // #EFF4FA @60%
     glassBorder: Color(0x4DFFFFFF), // 白 @30%
@@ -126,6 +132,7 @@ class AppSkin extends ThemeExtension<AppSkin> {
     textSecondary: AppColors.textSecondaryDark,
     textTertiary: AppColors.textTertiaryDark,
     navItemActive: AppColors.navItemActive,
+    bubbleUserBg: AppColors.bubbleUserBgDark,
     accentChip: AppColors.skillChip,
     glassBg: Color(0x804A5767), // #4A5767 @50%
     glassBorder: Color(0x1AFFFFFF), // 白 @10%
@@ -152,6 +159,7 @@ class AppSkin extends ThemeExtension<AppSkin> {
     textSecondary: AppColors.textSecondaryDark,
     textTertiary: AppColors.textTertiaryDark,
     navItemActive: AppColors.navItemActive,
+    bubbleUserBg: AppColors.bubbleUserBgTransparent,
     accentChip: AppColors.skillChip,
     glassBg: Color(0x268A8985), // #8A8985 @15%
     glassBorder: Color(0x1AFFFFFF),
@@ -178,6 +186,7 @@ class AppSkin extends ThemeExtension<AppSkin> {
     Color? textSecondary,
     Color? textTertiary,
     Color? navItemActive,
+    Color? bubbleUserBg,
     Color? accentChip,
     Color? glassBg,
     Color? glassBorder,
@@ -200,6 +209,7 @@ class AppSkin extends ThemeExtension<AppSkin> {
         textSecondary: textSecondary ?? this.textSecondary,
         textTertiary: textTertiary ?? this.textTertiary,
         navItemActive: navItemActive ?? this.navItemActive,
+        bubbleUserBg: bubbleUserBg ?? this.bubbleUserBg,
         accentChip: accentChip ?? this.accentChip,
         glassBg: glassBg ?? this.glassBg,
         glassBorder: glassBorder ?? this.glassBorder,
@@ -227,6 +237,7 @@ class AppSkin extends ThemeExtension<AppSkin> {
       textSecondary: c(textSecondary, other.textSecondary),
       textTertiary: c(textTertiary, other.textTertiary),
       navItemActive: c(navItemActive, other.navItemActive),
+      bubbleUserBg: c(bubbleUserBg, other.bubbleUserBg),
       accentChip: c(accentChip, other.accentChip),
       glassBg: c(glassBg, other.glassBg),
       glassBorder: c(glassBorder, other.glassBorder),

@@ -78,6 +78,20 @@ class AppColors {
   /// 导航选中态底色:#0074DD @10%(明暗一致,studio NavItem 写死)。
   static const Color navItemActive = Color(0x1A0074DD);
 
+  // ---- 用户消息气泡底色 ----
+  // 中性灰,与导航选中态的蓝不同 —— 气泡是"我发的",不该沾品牌色。
+  // 助手回复没有气泡(纯文字),所以这里只有用户那一档。
+
+  static const Color bubbleUserBgLight = Color(0xFFF4F4F5);
+
+  /// 暗色取 #262626 而非更暗:它必须**亮于** `borderSecondaryDark`(#1A1A1A),
+  /// 否则气泡在深色面板上糊成一片,看不出是浮起的一块。
+  static const Color bubbleUserBgDark = Color(0xFF262626);
+
+  /// 透明模式必须带 alpha —— 窗口是真透明的,不透明底色会在桌面上拍出一块方块。
+  /// 35% 与 `AppSkin.transparent` 的 containerBg 同档。
+  static const Color bubbleUserBgTransparent = Color(0x59262626);
+
   /// 技能标签(青绿),studio SkillChips 写死。
   static const Color skillChip = Color(0xFF009688);
 
