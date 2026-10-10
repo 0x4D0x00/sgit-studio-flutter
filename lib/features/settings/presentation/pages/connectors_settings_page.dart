@@ -140,6 +140,9 @@ class _ConnectorsSettingsPageState extends State<ConnectorsSettingsPage> {
         searchHint: 'Search connectors...',
         onQueryChanged: (v) => setState(() => _showAllQuery = v),
         onBack: () => setState(_exitShowAll),
+        onTune: () => _notWired(context, l10n, 'category'),
+        onSort: () => _notWired(context, l10n, 'sort'),
+        onToolbarAdd: () => _notWired(context, l10n, l10n.commonAdd),
         connectorItems: _filterShowAll(buildAllConnectors(), (c) => c.title),
       );
     }

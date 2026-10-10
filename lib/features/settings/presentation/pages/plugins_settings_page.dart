@@ -186,6 +186,9 @@ class _PluginsSettingsPageState extends State<PluginsSettingsPage> {
         searchHint: 'Search plugins...',
         onQueryChanged: (v) => setState(() => _showAllQuery = v),
         onBack: () => setState(_exitShowAll),
+        onTune: () => _notWired(context, l10n, 'category'),
+        onSort: () => _notWired(context, l10n, 'sort'),
+        onToolbarAdd: () => _notWired(context, l10n, l10n.commonAdd),
         onAdd: (skill) => _notWired(context, l10n, skill.title),
         skillItems: _filterShowAll(buildAllNewPlugins(), (s) => s.title),
       );
