@@ -1488,4 +1488,86 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get customizeSearchHint => 'Search skills...';
+
+  @override
+  String get capabilitiesToolAccessMode => 'Tool access mode';
+
+  @override
+  String get capabilitiesToolAccessModeDesc =>
+      'Controls how connector tools are loaded in new conversations.';
+
+  @override
+  String get capabilitiesToolAccessLoadWhenNeeded => 'Load tools when needed';
+
+  @override
+  String get capabilitiesConnectorSearch => 'Connector search';
+
+  @override
+  String get capabilitiesConnectorSearchDesc =>
+      'Let Claude search the connector directory and surface ones relevant to your conversation.';
+
+  @override
+  String get capabilitiesSwitchModels =>
+      'Switch models when a message is flagged';
+
+  @override
+  String get capabilitiesSwitchModelsDesc =>
+      'When safeguards flag a message, automatically switch to a different model to keep chatting. When off, your chat will pause instead.';
+
+  @override
+  String get capabilitiesVisuals => 'Visuals';
+
+  @override
+  String get capabilitiesArtifacts => 'Artifacts';
+
+  @override
+  String get capabilitiesArtifactsDesc =>
+      'Generate code, documents, and designs in a dedicated window alongside your conversation.';
+
+  @override
+  String get capabilitiesAiArtifacts => 'AI-powered artifacts';
+
+  @override
+  String get capabilitiesAiArtifactsDesc =>
+      'Build apps and interactive documents that use Claude inside the artifact.';
+
+  @override
+  String get capabilitiesInlineVisualizations => 'Inline visualizations';
+
+  @override
+  String get capabilitiesInlineVisualizationsDesc =>
+      'Allow Claude to generate interactive visualizations, charts, and diagrams directly in the conversation.';
+
+  @override
+  String get capabilitiesCodeExecution => 'Code execution and file creation';
+
+  @override
+  String get capabilitiesCodeExecutionDesc =>
+      'Claude can execute code and create and edit docs, spreadsheets, presentations, PDFs, and data reports. Required for skills.';
+
+  @override
+  String get capabilitiesNetworkEgress => 'Allow network egress';
+
+  @override
+  String capabilitiesNetworkEgressDesc(
+    String viewDomains,
+    String securityRisks,
+  ) {
+    return 'Allow Claude to access common package managers to install packages and libraries for data analysis, visualizations, and file processing. $viewDomains. Monitor chats closely as this comes with $securityRisks.';
+  }
+
+  @override
+  String get capabilitiesNetworkEgressViewDomains =>
+      'View package manager domains';
+
+  @override
+  String get capabilitiesNetworkEgressSecurityRisks => 'security risks';
+
+  @override
+  String get capabilitiesSkills => 'Skills';
+
+  @override
+  String capabilitiesSkillsMoved(String customize) {
+    return 'Skills have moved to $customize.';
+  }
 }

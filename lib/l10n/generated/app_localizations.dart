@@ -2845,6 +2845,141 @@ abstract class AppLocalizations {
   /// In zh, this message translates to:
   /// **'搜索技能...'**
   String get customizeSearchHint;
+
+  /// No description provided for @capabilitiesToolAccessMode.
+  ///
+  /// In zh, this message translates to:
+  /// **'工具访问模式'**
+  String get capabilitiesToolAccessMode;
+
+  /// No description provided for @capabilitiesToolAccessModeDesc.
+  ///
+  /// In zh, this message translates to:
+  /// **'控制连接器工具在新对话中的加载方式。'**
+  String get capabilitiesToolAccessModeDesc;
+
+  /// No description provided for @capabilitiesToolAccessLoadWhenNeeded.
+  ///
+  /// In zh, this message translates to:
+  /// **'按需加载工具'**
+  String get capabilitiesToolAccessLoadWhenNeeded;
+
+  /// No description provided for @capabilitiesConnectorSearch.
+  ///
+  /// In zh, this message translates to:
+  /// **'连接器搜索'**
+  String get capabilitiesConnectorSearch;
+
+  /// No description provided for @capabilitiesConnectorSearchDesc.
+  ///
+  /// In zh, this message translates to:
+  /// **'允许 Claude 搜索连接器目录，并在对话中呈现相关的连接器。'**
+  String get capabilitiesConnectorSearchDesc;
+
+  /// No description provided for @capabilitiesSwitchModels.
+  ///
+  /// In zh, this message translates to:
+  /// **'消息被标记时切换模型'**
+  String get capabilitiesSwitchModels;
+
+  /// No description provided for @capabilitiesSwitchModelsDesc.
+  ///
+  /// In zh, this message translates to:
+  /// **'当安全机制标记某条消息时，自动切换到其他模型以继续对话。关闭后，对话将暂停。'**
+  String get capabilitiesSwitchModelsDesc;
+
+  /// No description provided for @capabilitiesVisuals.
+  ///
+  /// In zh, this message translates to:
+  /// **'视觉内容'**
+  String get capabilitiesVisuals;
+
+  /// No description provided for @capabilitiesArtifacts.
+  ///
+  /// In zh, this message translates to:
+  /// **'Artifacts'**
+  String get capabilitiesArtifacts;
+
+  /// No description provided for @capabilitiesArtifactsDesc.
+  ///
+  /// In zh, this message translates to:
+  /// **'在对话旁的独立窗口中生成代码、文档和设计。'**
+  String get capabilitiesArtifactsDesc;
+
+  /// No description provided for @capabilitiesAiArtifacts.
+  ///
+  /// In zh, this message translates to:
+  /// **'AI 驱动的 Artifacts'**
+  String get capabilitiesAiArtifacts;
+
+  /// No description provided for @capabilitiesAiArtifactsDesc.
+  ///
+  /// In zh, this message translates to:
+  /// **'构建在 artifact 内部调用 Claude 的应用与交互式文档。'**
+  String get capabilitiesAiArtifactsDesc;
+
+  /// No description provided for @capabilitiesInlineVisualizations.
+  ///
+  /// In zh, this message translates to:
+  /// **'对话内可视化'**
+  String get capabilitiesInlineVisualizations;
+
+  /// No description provided for @capabilitiesInlineVisualizationsDesc.
+  ///
+  /// In zh, this message translates to:
+  /// **'允许 Claude 直接在对话中生成交互式可视化、图表和图解。'**
+  String get capabilitiesInlineVisualizationsDesc;
+
+  /// No description provided for @capabilitiesCodeExecution.
+  ///
+  /// In zh, this message translates to:
+  /// **'代码执行与文件创建'**
+  String get capabilitiesCodeExecution;
+
+  /// No description provided for @capabilitiesCodeExecutionDesc.
+  ///
+  /// In zh, this message translates to:
+  /// **'Claude 可以执行代码，并创建和编辑文档、表格、演示文稿、PDF 和数据报告。技能功能依赖此项。'**
+  String get capabilitiesCodeExecutionDesc;
+
+  /// No description provided for @capabilitiesNetworkEgress.
+  ///
+  /// In zh, this message translates to:
+  /// **'允许网络出站'**
+  String get capabilitiesNetworkEgress;
+
+  /// No description provided for @capabilitiesNetworkEgressDesc.
+  ///
+  /// In zh, this message translates to:
+  /// **'允许 Claude 访问常用包管理器，以安装用于数据分析、可视化和文件处理的包与库。{viewDomains}。请密切监控对话，因为这会带来{securityRisks}。'**
+  String capabilitiesNetworkEgressDesc(
+    String viewDomains,
+    String securityRisks,
+  );
+
+  /// No description provided for @capabilitiesNetworkEgressViewDomains.
+  ///
+  /// In zh, this message translates to:
+  /// **'查看包管理器域名'**
+  String get capabilitiesNetworkEgressViewDomains;
+
+  /// No description provided for @capabilitiesNetworkEgressSecurityRisks.
+  ///
+  /// In zh, this message translates to:
+  /// **'安全风险'**
+  String get capabilitiesNetworkEgressSecurityRisks;
+
+  /// No description provided for @capabilitiesSkills.
+  ///
+  /// In zh, this message translates to:
+  /// **'技能'**
+  String get capabilitiesSkills;
+
+  /// No description provided for @capabilitiesSkillsMoved.
+  ///
+  /// In zh, this message translates to:
+  /// **'技能已移至「{customize}」。'**
+  String capabilitiesSkillsMoved(String customize);
 }
 
 class _AppLocalizationsDelegate

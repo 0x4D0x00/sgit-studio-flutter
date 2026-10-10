@@ -11,6 +11,7 @@ import 'package:sgit_studio_flutter/features/settings/presentation/pages/setting
 import 'package:sgit_studio_flutter/features/settings/presentation/pages/account_page.dart';
 import 'package:sgit_studio_flutter/features/settings/presentation/pages/privacy_page.dart';
 import 'package:sgit_studio_flutter/features/settings/presentation/pages/billing_page.dart';
+import 'package:sgit_studio_flutter/features/settings/presentation/pages/capabilities_page.dart';
 import 'package:sgit_studio_flutter/features/settings/presentation/pages/memory_page.dart';
 import 'package:sgit_studio_flutter/features/settings/presentation/pages/reflect_page.dart';
 import 'package:sgit_studio_flutter/features/settings/presentation/pages/time_focus_page.dart';
@@ -186,6 +187,11 @@ class _SettingsDialogState extends ConsumerState<_SettingsDialog> {
       case _SettingsTab.plugins:
         return const PluginsSettingsPage();
       case _SettingsTab.capabilities:
+        // 「技能已移至 Customize」里的链接走与侧栏「技能」项相同的分流：
+        // 中栏在 Customize 就切过去并关掉弹窗，否则在弹窗内切到「技能」页。
+        return CapabilitiesPage(
+          onOpenSkills: () => _onCustomizeItemTap(_SettingsTab.skills),
+        );
       case _SettingsTab.claudeCode:
         return const SettingsPlaceholderPage();
     }

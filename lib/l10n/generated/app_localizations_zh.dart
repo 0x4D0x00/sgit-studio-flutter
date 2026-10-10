@@ -1452,4 +1452,82 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get customizeSearchHint => '搜索技能...';
+
+  @override
+  String get capabilitiesToolAccessMode => '工具访问模式';
+
+  @override
+  String get capabilitiesToolAccessModeDesc => '控制连接器工具在新对话中的加载方式。';
+
+  @override
+  String get capabilitiesToolAccessLoadWhenNeeded => '按需加载工具';
+
+  @override
+  String get capabilitiesConnectorSearch => '连接器搜索';
+
+  @override
+  String get capabilitiesConnectorSearchDesc =>
+      '允许 Claude 搜索连接器目录，并在对话中呈现相关的连接器。';
+
+  @override
+  String get capabilitiesSwitchModels => '消息被标记时切换模型';
+
+  @override
+  String get capabilitiesSwitchModelsDesc =>
+      '当安全机制标记某条消息时，自动切换到其他模型以继续对话。关闭后，对话将暂停。';
+
+  @override
+  String get capabilitiesVisuals => '视觉内容';
+
+  @override
+  String get capabilitiesArtifacts => 'Artifacts';
+
+  @override
+  String get capabilitiesArtifactsDesc => '在对话旁的独立窗口中生成代码、文档和设计。';
+
+  @override
+  String get capabilitiesAiArtifacts => 'AI 驱动的 Artifacts';
+
+  @override
+  String get capabilitiesAiArtifactsDesc =>
+      '构建在 artifact 内部调用 Claude 的应用与交互式文档。';
+
+  @override
+  String get capabilitiesInlineVisualizations => '对话内可视化';
+
+  @override
+  String get capabilitiesInlineVisualizationsDesc =>
+      '允许 Claude 直接在对话中生成交互式可视化、图表和图解。';
+
+  @override
+  String get capabilitiesCodeExecution => '代码执行与文件创建';
+
+  @override
+  String get capabilitiesCodeExecutionDesc =>
+      'Claude 可以执行代码，并创建和编辑文档、表格、演示文稿、PDF 和数据报告。技能功能依赖此项。';
+
+  @override
+  String get capabilitiesNetworkEgress => '允许网络出站';
+
+  @override
+  String capabilitiesNetworkEgressDesc(
+    String viewDomains,
+    String securityRisks,
+  ) {
+    return '允许 Claude 访问常用包管理器，以安装用于数据分析、可视化和文件处理的包与库。$viewDomains。请密切监控对话，因为这会带来$securityRisks。';
+  }
+
+  @override
+  String get capabilitiesNetworkEgressViewDomains => '查看包管理器域名';
+
+  @override
+  String get capabilitiesNetworkEgressSecurityRisks => '安全风险';
+
+  @override
+  String get capabilitiesSkills => '技能';
+
+  @override
+  String capabilitiesSkillsMoved(String customize) {
+    return '技能已移至「$customize」。';
+  }
 }

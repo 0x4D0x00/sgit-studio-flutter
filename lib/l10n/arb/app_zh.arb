@@ -655,5 +655,44 @@
   "customizeTabTheme": "主题",
   "customizeTabLayout": "布局",
   "customizeTabShortcuts": "快捷键",
-  "customizeSearchHint": "搜索技能..."
+  "customizeSearchHint": "搜索技能...",
+  "capabilitiesToolAccessMode": "工具访问模式",
+  "capabilitiesToolAccessModeDesc": "控制连接器工具在新对话中的加载方式。",
+  "capabilitiesToolAccessLoadWhenNeeded": "按需加载工具",
+  "capabilitiesConnectorSearch": "连接器搜索",
+  "capabilitiesConnectorSearchDesc": "允许 Claude 搜索连接器目录，并在对话中呈现相关的连接器。",
+  "capabilitiesSwitchModels": "消息被标记时切换模型",
+  "capabilitiesSwitchModelsDesc": "当安全机制标记某条消息时，自动切换到其他模型以继续对话。关闭后，对话将暂停。",
+  "capabilitiesVisuals": "视觉内容",
+  "capabilitiesArtifacts": "Artifacts",
+  "capabilitiesArtifactsDesc": "在对话旁的独立窗口中生成代码、文档和设计。",
+  "capabilitiesAiArtifacts": "AI 驱动的 Artifacts",
+  "capabilitiesAiArtifactsDesc": "构建在 artifact 内部调用 Claude 的应用与交互式文档。",
+  "capabilitiesInlineVisualizations": "对话内可视化",
+  "capabilitiesInlineVisualizationsDesc": "允许 Claude 直接在对话中生成交互式可视化、图表和图解。",
+  "capabilitiesCodeExecution": "代码执行与文件创建",
+  "capabilitiesCodeExecutionDesc": "Claude 可以执行代码，并创建和编辑文档、表格、演示文稿、PDF 和数据报告。技能功能依赖此项。",
+  "capabilitiesNetworkEgress": "允许网络出站",
+  "capabilitiesNetworkEgressDesc": "允许 Claude 访问常用包管理器，以安装用于数据分析、可视化和文件处理的包与库。{viewDomains}。请密切监控对话，因为这会带来{securityRisks}。",
+  "@capabilitiesNetworkEgressDesc": {
+    "placeholders": {
+      "viewDomains": {
+        "type": "String"
+      },
+      "securityRisks": {
+        "type": "String"
+      }
+    }
+  },
+  "capabilitiesNetworkEgressViewDomains": "查看包管理器域名",
+  "capabilitiesNetworkEgressSecurityRisks": "安全风险",
+  "capabilitiesSkills": "技能",
+  "capabilitiesSkillsMoved": "技能已移至「{customize}」。",
+  "@capabilitiesSkillsMoved": {
+    "placeholders": {
+      "customize": {
+        "type": "String"
+      }
+    }
+  }
 }
