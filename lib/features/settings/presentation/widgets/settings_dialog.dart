@@ -19,6 +19,8 @@ import 'package:sgit_studio_flutter/features/settings/presentation/pages/setting
 import 'package:sgit_studio_flutter/features/settings/presentation/pages/skills_settings_page.dart';
 import 'package:sgit_studio_flutter/features/settings/presentation/pages/connectors_settings_page.dart';
 import 'package:sgit_studio_flutter/features/settings/presentation/pages/plugins_settings_page.dart';
+import 'package:sgit_studio_flutter/features/studio/presentation/pages/studio_page.dart';
+import 'package:sgit_studio_flutter/features/studio/studio_feature.dart';
 import 'package:sgit_studio_flutter/l10n/generated/app_localizations.dart';
 import 'package:sgit_studio_flutter/router/route_names.dart';
 
@@ -35,6 +37,13 @@ enum _SettingsTab {
   skills,
   connectors,
   plugins,
+
+  /// 「智能体」子页（场景 / 子 Agent / MCP / 知识库 / 中转站 / API 密钥 …）。
+  ///
+  /// 这几页共用一个 tab：具体是哪一页由 [_SettingsDialogState._studioPageKey]
+  /// 决定。给每个 key 单开一个枚举成员的话，那边加一页就得回来改这里，
+  /// 侧栏的 `menu` 与弹窗的 tab 两处清单必然分叉。
+  studio,
 }
 
 /// 设置弹窗外壳：盖在当前页上方的大号弹窗，左侧分类栏 + 右侧内容 + 右上角关闭。
@@ -54,6 +63,18 @@ class _SettingsDialog extends ConsumerStatefulWidget {
 
 class _SettingsDialogState extends ConsumerState<_SettingsDialog> {
   _SettingsTab _selectedTab = _SettingsTab.general;
+
+  /// [_SettingsTab.studio] 下当前正在看哪一个「智能体」子页（`StudioPageDef.key`）。
+  ///
+  /// 与 [_selectedTab] 分开记：切去「账户」再切回来时，用户回到的是原来那一页，
+  /// 而不是每次都弹回第一个。
+  ///
+  /// 默认取**归属本弹窗的第一个**页，不能图省事写 `all.first` —— 那正好是
+  /// `scenes` 才碰巧对，挪一下顺序就会默认到一个本弹窗根本不列的页上。
+  String _studioPageKey = StudioPageDef.all
+      .firstWhere((p) => p.placement == StudioPlacement.settingsDialog)
+      .key;
+
   final _searchController = TextEditingController();
   final _searchFocusNode = FocusNode();
   String _searchQuery = '';
@@ -162,6 +183,15 @@ class _SettingsDialogState extends ConsumerState<_SettingsDialog> {
     setState(() => _selectedTab = tab);
   }
 
+  /// 侧栏「智能体」子项被点：记下是哪一页，再切到共用的 [tab]。
+  ///
+  /// 与 [_onCustomizeItemTap] 的分流不同 —— 这些页在弹窗内**就地渲染**
+  /// （走 `StudioPage`），不切中栏、也不关弹窗。
+  void _onStudioItemTap(String key) => setState(() {
+        _studioPageKey = key;
+        _selectedTab = _SettingsTab.studio;
+      });
+
   Widget _buildCurrentPage() {
     switch (_selectedTab) {
       case _SettingsTab.general:
@@ -186,6 +216,11 @@ class _SettingsDialogState extends ConsumerState<_SettingsDialog> {
         return const ConnectorsSettingsPage();
       case _SettingsTab.plugins:
         return const PluginsSettingsPage();
+      case _SettingsTab.studio:
+        // 直接复用「智能体」那条路由的页面实现：同一份 spec、同一套判权
+        // （[StudioPage] 内部还要过一次 `visibleStudioPagesProvider`）。
+        // 不共用的话，弹窗里就得再维持一份子页分派，两处迟早对不上。
+        return StudioPage(pageKey: _studioPageKey);
       case _SettingsTab.capabilities:
         // 「技能已移至 Customize」里的链接走与侧栏「技能」项相同的分流：
         // 中栏在 Customize 就切过去并关掉弹窗，否则在弹窗内切到「技能」页。
@@ -264,8 +299,30 @@ class _SettingsDialogState extends ConsumerState<_SettingsDialog> {
       ),
     ];
 
+    // 「智能体」子页接在插件下面。文案、图标与归属都取自同一份真源 ——
+    // 左栏挪走一页这里自动接上，不用两处维护。
+    //
+    // ⚠️ 用 [visibleStudioPagesProvider] 而不是 [StudioPageDef.all]：与左栏菜单
+    // 同源顺带同判权。直接读 `all` 会把无权限的页也列出来，点进去只有
+    // 「无权访问」—— 等于把菜单是否存在这件事泄露出去。
+    //
+    // 「技能」「记忆」两项不在其中：它们的 `placement` 是 navMenu，因为这两个
+    // 名字在本弹窗里已经指向别的页面（Customize 那套卡片 / MemoryPage），
+    // 再列一遍会出现两个同名项指向不同页面。
+    final studioItems = [
+      for (final p in ref.watch(visibleStudioPagesProvider))
+        if (p.placement == StudioPlacement.settingsDialog)
+          _SidebarItemData(
+            icon: p.icon,
+            label: p.label(l10n),
+            tab: _SettingsTab.studio,
+            studioKey: p.key,
+          ),
+    ];
+
     final filteredItems = _filterItems(items);
     final filteredCustomizeItems = _filterItems(customizeItems);
+    final filteredStudioItems = _filterItems(studioItems);
 
     return SizedBox(
       width: 220,
@@ -296,6 +353,16 @@ class _SettingsDialogState extends ConsumerState<_SettingsDialog> {
                         skin: skin,
                         selected: _selectedTab == item.tab,
                         onTap: () => _onCustomizeItemTap(item.tab),
+                      )),
+                  // 「智能体」子页。与上面两组不同，这九项共用一个 tab ——
+                  // 选中态得靠 `_studioPageKey` 才能分出是哪一项。
+                  ...filteredStudioItems.map((item) => _SidebarItem(
+                        icon: item.icon,
+                        label: item.label,
+                        skin: skin,
+                        selected: _selectedTab == _SettingsTab.studio &&
+                            _studioPageKey == item.studioKey,
+                        onTap: () => _onStudioItemTap(item.studioKey!),
                       )),
                 ],
               ),
@@ -373,11 +440,15 @@ class _SidebarItemData {
     required this.icon,
     required this.label,
     required this.tab,
+    this.studioKey,
   });
 
   final IconData icon;
   final String label;
   final _SettingsTab tab;
+
+  /// 仅 [_SettingsTab.studio] 的项有值：对应 `StudioPageDef.key`。
+  final String? studioKey;
 }
 
 class _SidebarItem extends StatelessWidget {

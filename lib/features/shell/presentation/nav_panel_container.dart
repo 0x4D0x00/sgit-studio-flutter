@@ -79,7 +79,8 @@ class NavPanelContainer
     final l10n = AppLocalizations.of(
       context,
     );
-    // 智能体行的九个子页。判权由 provider 管（拒绝式），这里只管排版。
+    // 智能体行的子页。判权由 provider 管（拒绝式），这里只管排版；归属哪个入口
+    // 由每项的 `placement` 决定（见下方 menu 的过滤）。
     final studioPages = ref.watch(
       visibleStudioPagesProvider,
     );
@@ -144,14 +145,18 @@ class NavPanelContainer
           icon: Icons.tune,
           label: l10n.navCustomize,
         ),
-        // 智能体：这一行**本身没有落地页**，只是九个子页的把手 ——
+        // 智能体：这一行**本身没有落地页**，只是子页的把手 ——
         // 悬停弹菜单、左键点击把菜单钉住。所以它带 menu 而不进 _onSelect。
+        //
+        // ⚠️ 菜单里**只列 `navMenu` 归属的页**（目前是技能、记忆）。其余的子页
+        // 已挪进设置弹窗的「自定义」分组
         NavEntry(
           id: _idAgent,
           icon: Icons.auto_awesome_outlined,
           label: l10n.navStudioGroup,
           menu: [
             for (final p in studioPages)
+              if (p.placement == StudioPlacement.navMenu)
               AppMenuAction(
                 icon: p.icon,
                 label: p.label(

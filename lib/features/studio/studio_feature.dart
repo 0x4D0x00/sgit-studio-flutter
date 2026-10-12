@@ -4,6 +4,17 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:sgit_studio_flutter/features/studio/application/accessible_menus_controller.dart';
 import 'package:sgit_studio_flutter/l10n/generated/app_localizations.dart';
 
+/// 一个「智能体」子页的入口归属。
+///
+/// 一个页只在**一个**入口出现 —— 挪走就是挪走，不是两处都放。
+enum StudioPlacement {
+  /// 左栏「智能体」行的悬停菜单。
+  navMenu,
+
+  /// 设置弹窗「自定义」分组（技能 / 连接器 / 插件 那一组下面）。
+  settingsDialog,
+}
+
 /// 「智能体」子页注册清单 —— 本 feature 的单一真源。
 ///
 /// 与 sgit-studio `home/_layout/Body/StudioNav.tsx` 的 8 项同 key、同顺序
@@ -17,6 +28,7 @@ class StudioPageDef {
     required this.key,
     required this.icon,
     required this.label,
+    required this.placement,
     this.backendGated = true,
   });
 
@@ -36,26 +48,77 @@ class StudioPageDef {
   /// 真正的数据权限在各页调用的端点上。
   final bool backendGated;
 
+  /// 这一页从哪个入口进 —— 决定它是出现在左栏「智能体」的悬停菜单里，
+  /// 还是出现在设置弹窗的「自定义」分组里。
+  ///
+  /// 写进 def 而不是让两个入口各自过滤一遍 key 名单：后者要在两处同步维护，
+  /// 加一页忘了改另一处就会漏入口或重复出现。
+  final StudioPlacement placement;
+
+  /// 顺序即设置弹窗「自定义」分组里的展示顺序（`skill` / `memory` 除外，
+  /// 它们在那边有自己的入口，见各自条目的注释）。
   static const List<StudioPageDef> all = <StudioPageDef>[
-    StudioPageDef(key: 'scenes', icon: Icons.grid_view_rounded, label: _scenes),
-        StudioPageDef(
-        key: 'subagent', icon: Icons.smart_toy_outlined, label: _subagent),
-    StudioPageDef(key: 'skill', icon: Icons.auto_awesome_outlined, label: _skill),
-    StudioPageDef(key: 'mcp', icon: Icons.extension_outlined, label: _mcp),
-    StudioPageDef(key: 'tools', icon: Icons.widgets_outlined, label: _tools),
-    StudioPageDef(key: 'memory', icon: Icons.memory_rounded, label: _memory),
-        StudioPageDef(
-        key: 'knowledge', icon: Icons.menu_book_outlined, label: _knowledge),
-    StudioPageDef(key: 'llm-relay', icon: Icons.hub_outlined, label: _llmRelay),
-        // 第 9 项。studio 的 `StudioNav.tsx` 只有 8 项，这一项是本端新增的入口
-        // （端点 `ApiEndpoints.apiKey*` 早就有了，只是还没有落地页）。
-        StudioPageDef(
-          key: 'api-key',
-          icon: Icons.vpn_key_outlined,
-          label: _apiKey,
-          backendGated: false,
-        ),
-      ];
+    StudioPageDef(
+      key: 'scenes',
+      icon: Icons.grid_view_rounded,
+      label: _scenes,
+      placement: StudioPlacement.settingsDialog,
+    ),
+    StudioPageDef(
+      key: 'subagent',
+      icon: Icons.smart_toy_outlined,
+      label: _subagent,
+      placement: StudioPlacement.settingsDialog,
+    ),
+    // 技能留在左栏菜单：设置弹窗里的「技能」指向的是 Customize 那套
+    // 卡片/全量列表，与这页不是同一份 UI，放一起会串味。
+    StudioPageDef(
+      key: 'skill',
+      icon: Icons.auto_awesome_outlined,
+      label: _skill,
+      placement: StudioPlacement.navMenu,
+    ),
+    StudioPageDef(
+      key: 'mcp',
+      icon: Icons.extension_outlined,
+      label: _mcp,
+      placement: StudioPlacement.settingsDialog,
+    ),
+    StudioPageDef(
+      key: 'tools',
+      icon: Icons.widgets_outlined,
+      label: _tools,
+      placement: StudioPlacement.settingsDialog,
+    ),
+    // 记忆同理：弹窗里的「记忆」是 MemoryPage，与这页的笔记列表不是一回事。
+    StudioPageDef(
+      key: 'memory',
+      icon: Icons.memory_rounded,
+      label: _memory,
+      placement: StudioPlacement.navMenu,
+    ),
+    StudioPageDef(
+      key: 'knowledge',
+      icon: Icons.menu_book_outlined,
+      label: _knowledge,
+      placement: StudioPlacement.settingsDialog,
+    ),
+    StudioPageDef(
+      key: 'llm-relay',
+      icon: Icons.hub_outlined,
+      label: _llmRelay,
+      placement: StudioPlacement.settingsDialog,
+    ),
+    // 第 9 项。studio 的 `StudioNav.tsx` 只有 8 项，这一项是本端新增的入口
+    // （端点 `ApiEndpoints.apiKey*` 早就有了，只是还没有落地页）。
+    StudioPageDef(
+      key: 'api-key',
+      icon: Icons.vpn_key_outlined,
+      label: _apiKey,
+      placement: StudioPlacement.settingsDialog,
+      backendGated: false,
+    ),
+  ];
 }
 
 String _scenes(AppLocalizations l) => l.studioScenes;
