@@ -13,17 +13,22 @@ import 'package:flutter/foundation.dart';
 /// 所以：条目由控制器独占持有并原地追加，UI 通过 [revision] 这个
 /// `ValueListenable` 订阅**单条**变化 —— 一个 delta 只重建一个气泡，不重建列表。
 sealed class ChatItem {
-  ChatItem({required this.id, DateTime? createdAt})
-      : createdAt = createdAt ?? DateTime.now();
+  ChatItem({required this.id, this.createdAt});
 
   /// 与内核的 `item_id` 对齐。
   final int id;
 
-  /// 展示用的创建时间。**没有服务端字段可用** —— 内核协议只给 thread 级
-  /// createdAt/updatedAt，没有单条消息的时间戳。所以这里落的是本地
-  /// "条目被造出来那一刻"：用户发消息时是发送时刻，assistant 回答是
-  /// 开始流式输出的时刻，历史回放时是回放发生的时刻（非真实发送时刻）。
-  final DateTime createdAt;
+  /// 展示用的创建时间。**没有单条消息的服务端时间戳** —— 内核协议只给
+  /// thread 级 createdAt/updatedAt。
+  ///
+  /// ⚠️ **默认是 null
+  /// 赋值规则（谁有真时间谁赋）：
+  /// - 实时发送的用户消息 → [ChatController.send] 落 `now()`，那是真的发送时刻；
+  /// - 实时流式回答 → 落 `now()`，是真的开始输出的时刻；
+  /// - 历史回放 → 单条消息没有真时间可用，落 thread 级 `createdAt`（见
+  ///   `ViewEventMapper.toItems` 的 `createdAt`）—— 粒度是"整条会话"，但它是真的，
+  ///   且同一会话内恒定，不会每打开一次就漂成当前时刻。
+  final DateTime? createdAt;
 
   /// 版本号。每次内容变化 +1，UI 用 `ValueListenableBuilder` 订阅它。
   final ValueNotifier<int> revision = ValueNotifier<int>(0);
@@ -44,7 +49,12 @@ enum ChatRole { user, assistant }
 
 /// 文本消息。流式追加。
 final class TextItem extends ChatItem {
-  TextItem({required super.id, required this.role, String? initial}) {
+  TextItem({
+    required super.id,
+    required this.role,
+    String? initial,
+    super.createdAt,
+  }) {
     if (initial != null) _buf.write(initial);
   }
 

@@ -22,10 +22,15 @@ abstract final class ViewEventMapper {
   /// ⚠️ 回放条目用**负数 id**，与帧路的 `item_id`（内核给的 u64，非负）天然
   /// 不撞。回放完线程是 idle 的、不会有针对旧 item 的实时帧，所以不需要维护
   /// 一张 native id → 本地 id 的映射表。
+  ///
+  /// [createdAt] 是这条会话（thread）的创建时间，所有文本条目共用。单条消息
+  /// 没有真时间戳（见 [ChatItem.createdAt]），所以落 thread 级时间 —— 粒度粗，
+  /// 但是真的、且同一会话里恒定；传 null 则不显示，**不要**在这里补 `now()`。
   static List<ChatItem> toItems(
     List<Map<String, Object?>> events,
-    int Function() nextId,
-  ) {
+    int Function() nextId, {
+    DateTime? createdAt,
+  }) {
     final out = <ChatItem>[];
     // 同一个 item 的 started/delta/completed 要落到同一个条目上。
     final byItemId = <String, ChatItem>{};
@@ -40,10 +45,12 @@ abstract final class ViewEventMapper {
             id: nextId(),
             role: ChatRole.user,
             initial: (e['text'] ?? '').toString(),
+            createdAt: createdAt,
           )..markDone());
 
         case 'textStarted':
-          final item = TextItem(id: nextId(), role: ChatRole.assistant);
+          final item = TextItem(
+              id: nextId(), role: ChatRole.assistant, createdAt: createdAt);
           byItemId[itemId] = item;
           out.add(item);
 

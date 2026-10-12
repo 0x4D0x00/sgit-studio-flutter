@@ -199,7 +199,10 @@ class ChatController extends Notifier<ChatSessionState> {
     }
 
     _append(TextItem(
-        id: _syntheticId--, role: ChatRole.user, initial: trimmed));
+        id: _syntheticId--,
+        role: ChatRole.user,
+        initial: trimmed,
+        createdAt: DateTime.now()));
     // ⚠️ 本地插入的条目要自己通知列表 —— `itemsRevision` 的另一处 ++ 在 [_drainOnce]
     // 里，那条路径只覆盖内核推来的帧。漏了这句用户气泡就不显示（被 UI 集成测试抓到过）。
     itemsRevision.value++;
@@ -377,7 +380,8 @@ class ChatController extends Notifier<ChatSessionState> {
         debugPrint('[threads] $threadId 载入期间用户已换会话，丢弃这份内容');
         return;
       }
-      openThread(threadId, replay.events);
+      openThread(threadId, replay.events,
+          createdAt: replay.summary.createdAt);
       unawaited(_refreshThreadFromServer(threadId, gen));
     } catch (e) {
       // ⚠️ **本地没有这条会话 —— 这是唯一该让用户等的情形。**
@@ -400,7 +404,8 @@ class ChatController extends Notifier<ChatSessionState> {
         try {
           final replay = await ref.read(threadRepositoryProvider).open(threadId);
           if (_openGeneration != gen) return;
-          openThread(threadId, replay.events);
+          openThread(threadId, replay.events,
+              createdAt: replay.summary.createdAt);
           return; // 刚拉的就是最新，不必再刷一次
         } catch (e2) {
           // 拉回来了还是打不开 —— 落到下面按失败处理，但报**这一次**的原因：
@@ -478,7 +483,8 @@ class ChatController extends Notifier<ChatSessionState> {
     try {
       final replay = await ref.read(threadRepositoryProvider).open(threadId);
       if (_openGeneration != gen) return; // 再查一次：取数期间也可能切走
-      openThread(threadId, replay.events);
+      openThread(threadId, replay.events,
+          createdAt: replay.summary.createdAt);
     } catch (e) {
       // 已经显示着本地那份，重装失败就维持现状。
       debugPrint('[threads] $threadId 重装失败，保留本地内容：$e');
@@ -520,7 +526,15 @@ class ChatController extends Notifier<ChatSessionState> {
   /// `ThreadRepository.open` 取回），**不含 turn 级事件** —— 所以这里不碰
   /// `busy` / `turnId` / `lastTiming` / `lastUsage`：回放是装配历史，不是
   /// "刚跑完一轮"。
-  void openThread(String threadId, List<Map<String, Object?>> replayEvents) {
+  ///
+  /// [createdAt] 是该 thread 的创建时间（`ThreadReplay.summary.createdAt`），
+  /// 作为回放出来的各条消息的显示时间 —— 单条消息没有真时间戳，见
+  /// [ChatItem.createdAt]。
+  void openThread(
+    String threadId,
+    List<Map<String, Object?>> replayEvents, {
+    DateTime? createdAt,
+  }) {
     if (state.busy) interrupt();
     for (final i in _items) {
       i.dispose();
@@ -529,7 +543,11 @@ class ChatController extends Notifier<ChatSessionState> {
     _byId.clear();
     _streaming = null;
 
-    for (final item in ViewEventMapper.toItems(replayEvents, () => _syntheticId--)) {
+    for (final item in ViewEventMapper.toItems(
+      replayEvents,
+      () => _syntheticId--,
+      createdAt: createdAt,
+    )) {
       _append(item);
     }
     itemsRevision.value++;
@@ -650,7 +668,8 @@ class ChatController extends Notifier<ChatSessionState> {
         return false;
 
       case KernelFrameKind.itemStarted:
-        final item = TextItem(id: f.itemId, role: ChatRole.assistant);
+        final item = TextItem(
+            id: f.itemId, role: ChatRole.assistant, createdAt: DateTime.now());
         _streaming = item;
         _append(item);
         return true;

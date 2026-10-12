@@ -19,7 +19,9 @@ class BubbleActionsRow extends StatelessWidget {
   });
 
   final bool isUser;
-  final DateTime createdAt;
+
+  /// 为 null 时不显示日期标签
+  final DateTime? createdAt;
   final VoidCallback onCopy;
 
   /// 仅用户气泡传入。
@@ -28,7 +30,8 @@ class BubbleActionsRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
-    final dateWidget = _DateLabel(createdAt: createdAt);
+    final at = createdAt;
+    final dateWidget = at == null ? null : _DateLabel(createdAt: at);
 
     final icons = isUser
         ? [
@@ -47,9 +50,11 @@ class BubbleActionsRow extends StatelessWidget {
             _iconBtn(context, Icons.refresh_rounded, l10n.chatRetry, () {}),
           ];
 
-    final children = isUser
-        ? [dateWidget, ...icons]
-        : [...icons, dateWidget];
+    final children = <Widget>[
+      if (isUser) ?dateWidget,
+      ...icons,
+      if (!isUser) ?dateWidget,
+    ];
 
     return Row(
       mainAxisSize: MainAxisSize.min,
