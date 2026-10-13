@@ -397,6 +397,21 @@ class AppLocalizationsZh extends AppLocalizations {
   String get chatToolTruncated => '输出已截断，完整内容需展开获取';
 
   @override
+  String get chatThinking1 => '正在思考…';
+
+  @override
+  String get chatThinking2 => '正在梳理…';
+
+  @override
+  String get chatThinking3 => '正在推敲…';
+
+  @override
+  String get chatThinking4 => '正在核对…';
+
+  @override
+  String get chatThinking5 => '正在落笔…';
+
+  @override
   String get chatNoticeCompacted => '上下文已压缩';
 
   @override
@@ -1484,6 +1499,9 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get capabilitiesArtifactsDesc => '在对话旁的独立窗口中生成代码、文档和设计。';
+
+  @override
+  String get capabilitiesArtifactsLocked => '始终开启，不可关闭。';
 
   @override
   String get capabilitiesAiArtifacts => 'AI 驱动的 Artifacts';

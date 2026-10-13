@@ -406,6 +406,21 @@ class AppLocalizationsEn extends AppLocalizations {
       'Output truncated — expand to fetch the full text';
 
   @override
+  String get chatThinking1 => 'Thinking…';
+
+  @override
+  String get chatThinking2 => 'Working through it…';
+
+  @override
+  String get chatThinking3 => 'Weighing options…';
+
+  @override
+  String get chatThinking4 => 'Checking details…';
+
+  @override
+  String get chatThinking5 => 'Drafting…';
+
+  @override
   String get chatNoticeCompacted => 'Context compacted';
 
   @override
@@ -1523,6 +1538,10 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get capabilitiesArtifactsDesc =>
       'Generate code, documents, and designs in a dedicated window alongside your conversation.';
+
+  @override
+  String get capabilitiesArtifactsLocked =>
+      'Always on and can\'t be turned off.';
 
   @override
   String get capabilitiesAiArtifacts => 'AI-powered artifacts';

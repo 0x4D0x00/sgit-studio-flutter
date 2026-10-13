@@ -12,6 +12,7 @@ import 'package:sgit_studio_flutter/services/chat/chat_controller.dart';
 import 'package:sgit_studio_flutter/ui/components/chat/approval_card.dart';
 import 'package:sgit_studio_flutter/ui/components/chat/notice_bar.dart';
 import 'package:sgit_studio_flutter/ui/components/chat/text_bubble.dart';
+import 'package:sgit_studio_flutter/ui/components/chat/thinking_row.dart';
 import 'package:sgit_studio_flutter/ui/components/chat/tool_card.dart';
 
 /// 对话流。
@@ -29,6 +30,13 @@ class ChatTranscript extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final ctrl = ref.read(chatControllerProvider.notifier);
     final l10n = AppLocalizations.of(context);
+
+    // ⚠️ **只订阅这一个 bool**，不订整个 state。真正的流式热路径是
+    // `itemsRevision` + 各气泡自己的 `revision`，这里多订一个字段会让
+    // 每次 parse state 变化都过一遍本 widget 的 build —— `select` 把它缩到
+    // "这一个 bool 变了才重建"。
+    final thinking =
+        ref.watch(chatControllerProvider.select((s) => s.thinking));
 
     return ValueListenableBuilder<int>(
       valueListenable: ctrl.itemsRevision,
@@ -48,13 +56,23 @@ class ChatTranscript extends ConsumerWidget {
           padding: const EdgeInsets.symmetric(
               horizontal: WorkspaceMetrics.contentPaddingInline,
               vertical: WorkspaceMetrics.framePadding),
-          itemCount: items.length,
+          // ⚠️ 思考行是列表的**最后一项**（索引 == items.length），不是 index 0
+          // 的头部 —— 它跟着"最新一轮"走，而不是钉在会话顶端。
+          //
+          // 代价是 items 每加一条就让它的索引+1，也就是说**它无法被 Element 复用**，
+          // 每轮对话都会重新 mount（Timer 跟着重建，见 ThinkingRow 的 dispose）。
+          // 换来的是不用在每张卡前面插一刀、也不必管它该排在哪条旁边。
+          // 这一行一轮只出现一次，重建的代价可以忽略。
+          itemCount: items.length + (thinking ? 1 : 0),
           // 条目身份稳定，给 key 让 Flutter 复用 Element，避免整表重建。
-          itemBuilder: (context, i) => KeyedSubtree(
-            key: ValueKey<int>(items[i].id),
-            child: _card(context, ref, ctrl, l10n, items[i],
-                isLastAnswer: items[i].id == lastAssistantId),
-          ),
+          itemBuilder: (context, i) {
+            if (i >= items.length) return const ThinkingRow();
+            return KeyedSubtree(
+              key: ValueKey<int>(items[i].id),
+              child: _card(context, ref, ctrl, l10n, items[i],
+                  isLastAnswer: items[i].id == lastAssistantId),
+            );
+          },
         );
       },
     );

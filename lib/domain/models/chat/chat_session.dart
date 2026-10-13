@@ -27,6 +27,7 @@ enum ChatNotice {
 class ChatSessionState {
   const ChatSessionState({
     this.busy = false,
+    this.thinking = false,
     this.connecting = false,
     this.openingThread = false,
     this.turnId,
@@ -41,6 +42,23 @@ class ChatSessionState {
 
   /// 是否有 turn 在跑（决定发送键变停止键）。
   final bool busy;
+
+  /// 是否处于「已发出、还没吐出任何东西」的思考窗口。
+  ///
+  /// ## 为什么这是客户端状态、而不是内核事件
+  ///
+  /// 内核协议里**没有** reasoning / thinking 帧（[KernelFrameKind] 到
+  /// `tokenUsage` 为止）。所以这一行不是"把内核的想法渲染出来"，而是
+  /// **进度指示**：从发出到模型真开始吐字之间那段静默，用户看到的和"卡住了"
+  /// 完全一样。Claude 自己的思考状态行也是同一回事 —— 由客户端把等待讲出来。
+  ///
+  /// 因此**不臆造思考内容**。将来内核真推 reasoning 帧了，那是另一条条目类型
+  /// （`ChatItem`），不是把这个布尔改成字符串。
+  ///
+  /// 起止由 [ChatController] 管：`send()` / `editAndResend()` 置真，本轮
+  /// **首个内容落地**（`itemStarted` / `toolBegin`）置假。它必须与 [busy]
+  /// 一起被清 —— 见 [copyWith] 里 binding 的说明。
+  final bool thinking;
 
   /// 正在建连（首屏与重连时显示）。
   final bool connecting;
@@ -80,6 +98,7 @@ class ChatSessionState {
 
   ChatSessionState copyWith({
     bool? busy,
+    bool? thinking,
     bool? connecting,
     bool? openingThread,
     String? turnId,
@@ -95,6 +114,13 @@ class ChatSessionState {
   }) =>
       ChatSessionState(
         busy: busy ?? this.busy,
+        // ⚠️ thinking **是 busy 的下位状态**，两个必须同时为真才成立：
+        // 没有 turn 在跑却还在"思考"是自相矛盾的画面（停止键没了、思考行还在
+        // 转），所以任何把 busy 置假的路径都顺手把 thinking 一起带下去。
+        //
+        // 反过来故意**不做**（busy=真 就自动 thinking=真）：思考窗口的结束
+        // 由"首个内容落地"决定，与 busy 无关 —— turn 跑动期间两态来回切是常态。
+        thinking: (busy ?? this.busy) && (thinking ?? this.thinking),
         connecting: connecting ?? this.connecting,
         openingThread: openingThread ?? this.openingThread,
         // ⚠️ turnId 与 fault 刻意**不做 `?? this.x` 回落** —— 不传就等于清空。

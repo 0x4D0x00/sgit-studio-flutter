@@ -854,6 +854,36 @@ abstract class AppLocalizations {
   /// **'输出已截断，完整内容需展开获取'**
   String get chatToolTruncated;
 
+  /// No description provided for @chatThinking1.
+  ///
+  /// In zh, this message translates to:
+  /// **'正在思考…'**
+  String get chatThinking1;
+
+  /// No description provided for @chatThinking2.
+  ///
+  /// In zh, this message translates to:
+  /// **'正在梳理…'**
+  String get chatThinking2;
+
+  /// No description provided for @chatThinking3.
+  ///
+  /// In zh, this message translates to:
+  /// **'正在推敲…'**
+  String get chatThinking3;
+
+  /// No description provided for @chatThinking4.
+  ///
+  /// In zh, this message translates to:
+  /// **'正在核对…'**
+  String get chatThinking4;
+
+  /// No description provided for @chatThinking5.
+  ///
+  /// In zh, this message translates to:
+  /// **'正在落笔…'**
+  String get chatThinking5;
+
   /// No description provided for @chatNoticeCompacted.
   ///
   /// In zh, this message translates to:
@@ -2905,6 +2935,12 @@ abstract class AppLocalizations {
   /// In zh, this message translates to:
   /// **'在对话旁的独立窗口中生成代码、文档和设计。'**
   String get capabilitiesArtifactsDesc;
+
+  /// No description provided for @capabilitiesArtifactsLocked.
+  ///
+  /// In zh, this message translates to:
+  /// **'始终开启，不可关闭。'**
+  String get capabilitiesArtifactsLocked;
 
   /// No description provided for @capabilitiesAiArtifacts.
   ///

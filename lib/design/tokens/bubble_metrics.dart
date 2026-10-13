@@ -37,6 +37,25 @@ class ChatBubbleMetrics {
   /// 助手回复末尾品牌头像的直径。
   static const double avatarSize = 28;
 
+  // ---- 「正在思考」状态行 ----
+
+  /// 状态行的左缩进。
+  ///
+  /// ⚠️ **0 是有意的**：助手回复是**无气泡框**的纯文字，正文从列首（x=0）起排。
+  /// 给状态行加缩进反而会和它下面那段正文错开，看着像两条不相干的条目。
+  /// 留这个令牌而不是直接写 0，是为了以后正文真有了左内边距时，改一处就跟上。
+  static const double thinkingInline = 0;
+
+  /// 状态行的上下留白。取助手正文的**一半** —— 它是过渡态，不该像一条真回答
+  /// 那样占满整段节奏；给满 16 会让人觉得这是个已经结束了的东西。
+  static const double thinkingPaddingBlock = 8;
+
+  /// 状态行星形标记的边长。
+  static const double thinkingMarkSize = 15;
+
+  /// 状态行文字字号。比助手正文（14）小一档 —— 它是旁白，不是回答本身。
+  static const double thinkingFontSize = 13;
+
   /// 工具行与末尾头像之间的间距。
   ///
   /// ⚠️ 头像现在在整段对话最后一组回答的末尾 ——

@@ -206,7 +206,11 @@ class ChatController extends Notifier<ChatSessionState> {
     // ⚠️ 本地插入的条目要自己通知列表 —— `itemsRevision` 的另一处 ++ 在 [_drainOnce]
     // 里，那条路径只覆盖内核推来的帧。漏了这句用户气泡就不显示（被 UI 集成测试抓到过）。
     itemsRevision.value++;
-    state = state.copyWith(busy: true, turnId: null, clearNotice: true);
+    // thinking 与 busy 一起开：从这一刻到**本轮第一段内容落地**（`itemStarted`
+    // / `toolBegin`，见 [_endThinking]）之间，屏幕上只有用户那条气泡，
+    // 不摆东西出来用户分不清"在跑"和"卡住了"。
+    state = state.copyWith(
+        busy: true, thinking: true, turnId: null, clearNotice: true);
     _client.call(KernelOp.send, {'text': trimmed, 'model': model}, ++_reqSeq);
     _armStallWatchdog();
     return true;
@@ -668,6 +672,7 @@ class ChatController extends Notifier<ChatSessionState> {
         return false;
 
       case KernelFrameKind.itemStarted:
+        _endThinking();
         final item = TextItem(
             id: f.itemId, role: ChatRole.assistant, createdAt: DateTime.now());
         _streaming = item;
@@ -680,6 +685,9 @@ class ChatController extends Notifier<ChatSessionState> {
         return false;
 
       case KernelFrameKind.toolBegin:
+        // 模型直接决定调工具、一个字正文都没吐 —— 工具卡本身就是"在干活"的证据，
+        // 思考行该让位。少这一步的话，一条纯工具轮的思考行会一直转到 turn 结束。
+        _endThinking();
         final j = KernelFrameMapper.json(f);
         _append(ToolItem(
           id: f.itemId,
@@ -788,6 +796,27 @@ class ChatController extends Notifier<ChatSessionState> {
         // hello 的内容已在 open() 的 caps 里；callResult 由发起方自己认领。
         return false;
     }
+  }
+
+  /// 思考窗口收尾 —— 本轮已经有东西可看了，状态行让位。
+  ///
+  /// ⚠️ **只在真为真时才写 state**。这个函数在一次 turn 里会被每条 `itemStarted`
+  /// / `toolBegin` 调到（工具连续调十次就是十次），而每次 `state = ...` 都会
+  /// 通知 `chatControllerProvider` 的所有 `select` 订阅者。无脑写就是每帧一次
+  /// 全量通知，把 `itemsRevision` 那套"一个 delta 只重建一个气泡"的努力白费。
+  ///
+  /// ⚠️ **`turnId` / `fault` 必须显式带回来**。`ChatSessionState.copyWith` 对这两个
+  /// 字段刻意不做 `?? this.x` 回落 —— 不传就等于清空（见那边的注释，那是为了让
+  /// turn 结束能清 turnId、重连成功能清 fault）。于是"只想改一个 bool"的调用
+  /// 会顺手把 turnId 抹掉，而 `turnId == null` 意味着 [steer] 静默失败、界面
+  /// 从"插话"退回不可用 —— 症状离起因极远。这条被 `chat_ui_test` 的插话用例抓过。
+  void _endThinking() {
+    if (!state.thinking) return;
+    state = state.copyWith(
+      thinking: false,
+      turnId: state.turnId,
+      fault: state.fault,
+    );
   }
 
   /// native 因背压丢过 delta。**必须显形**：给当前条目打标 + 插一条提示。

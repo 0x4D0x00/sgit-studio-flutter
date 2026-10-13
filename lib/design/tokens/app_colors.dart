@@ -95,6 +95,13 @@ class AppColors {
   /// 技能标签(青绿),studio SkillChips 写死。
   static const Color skillChip = Color(0xFF009688);
 
+  /// 「正在思考」状态行的星形标记(暖橙)。
+  ///
+  /// 明暗两套主题共用**同一个值**:它只需要在一片中性灰里有足够对比度,
+  /// 而暖橙在 #FBFBFB 与 #070707 上都够亮,不必像 `bubbleUserBg` 那样分档。
+  /// 所以它**不进 [AppSkin]** —— 进 skin 的是那些必须随模式变色的令牌。
+  static const Color thinkingAccent = Color(0xFFD97757);
+
   /// 输入框顶边内高光。studio 用 `inset 0 1px 0 rgba(255,255,255,.5)`(亮)
   /// / `rgba(255,255,255,.06)`(暗),见 `glassInputStyle.ts:12-14`。
   static const Color inputInsetHighlightLight = Color(0x80FFFFFF); // 白 @50%
