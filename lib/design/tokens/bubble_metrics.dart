@@ -61,4 +61,43 @@ class ChatBubbleMetrics {
   /// ⚠️ 头像现在在整段对话最后一组回答的末尾 ——
   /// 这个值量的是「工具行下方到头像」那道缝，改位置时别当成左内边距用。
   static const double avatarGap = 12;
+
+  // ---- Markdown 块 ----
+
+  /// 块间距(段落、列表、代码块之间的纵向留白)。
+  static const double blockGap = 12;
+
+  /// 代码块内边距。
+  static const double codeBlockPadding = 12;
+
+  /// 代码块圆角。
+  static const double codeBlockRadius = 8;
+
+  /// 列表项左侧缩进(每增加一层)。
+  static const double listIndentPerLevel = 20;
+
+  /// 列表标记与正文之间的间距。
+  static const double listMarkerGap = 8;
+
+  /// 引用块左侧竖条宽度。
+  static const double quoteBarWidth = 3;
+
+  /// 引用块左侧竖条与正文之间的间距。
+  static const double quoteBarGap = 12;
+
+  /// 标题字号档(level 1..6)。
+  static const List<double> headingSizes = [18, 16, 14, 13, 12, 10];
+
+  // ---- 悬停 ----
+
+  /// 悬停底色的不透明度。
+  ///
+  /// ⚠️ **和 `NavRow` 的行悬停是同一个值（0.06）**：两处都是「在既有底色上叠一层
+  /// 文字色」。取两个值的话，同一份悬停手感会在导航栏和代码块之间出现温差。
+  /// 底色由 `skin.text` 生成，明暗/透明三种模式自动跟着走，组件不判 `isDark`。
+  static const double hoverAlpha = 0.06;
+
+  /// 悬停态的过渡时长。全站悬停交互统一 150ms（同 `SkillCard`），
+  /// 这里取名是为了不让组件各自写一遍魔法数字。
+  static const Duration hoverFade = Duration(milliseconds: 150);
 }

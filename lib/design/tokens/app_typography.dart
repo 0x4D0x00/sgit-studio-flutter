@@ -12,6 +12,12 @@ class AppTypography {
   /// 的 Roboto/Noto(内网 + CSP 双重挡)，主字体缺失时文字直接不渲染。
   static const String fontFamily = 'SGiTSans';
 
+  /// 等宽字体(代码、日志、命令行输出)。
+  ///
+  /// 目前存量代码在 8 处硬编码 `'monospace'`(tool_card.dart、artifact_output_panel.dart 等)，
+  /// 这里加常量给新代码用；把存量收编为后续可选，不塞进本次改动。
+  static const String monospace = 'monospace';
+
   /// 随包中日韩兜底字体。**必须排在系统字体名之前**——Web 上那些系统名一个都解析不到，
   /// 只有这份随包的能兜住汉字；桌面端有系统字体时也无妨(主字体已覆盖拉丁)。
   static const String fontFamilyCJK = 'SGiTSansCJK';

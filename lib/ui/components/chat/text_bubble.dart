@@ -1,3 +1,4 @@
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -10,6 +11,8 @@ import 'package:sgit_studio_flutter/l10n/generated/app_localizations.dart';
 import 'package:sgit_studio_flutter/services/layout/layout_controller.dart';
 import 'package:sgit_studio_flutter/ui/components/chat/artifact_chip.dart';
 import 'package:sgit_studio_flutter/ui/components/chat/bubble_actions_row.dart';
+import 'package:sgit_studio_flutter/ui/components/chat/markdown/markdown_view.dart';
+import 'package:sgit_studio_flutter/ui/components/chat/markdown/markdown_view_cache.dart';
 
 /// 文本气泡。**流式期间只有它自己重建。**
 ///
@@ -64,6 +67,13 @@ class _TextBubbleState extends ConsumerState<TextBubble> {
   /// 正在气泡内编辑。非 null 时气泡内容替换成输入框。
   TextEditingController? _editCtl;
 
+  /// Markdown 块级缓存 —— 流式追加时只重解析最后一块。
+  final _mdCache = MarkdownViewCache();
+
+  /// 链接的 [TapGestureRecognizer] 列表。每次重建前逐个 `dispose()` 旧列表，
+  /// 新列表由 [MarkdownSpans.build] 填充 —— 不释放就每条 delta 泄漏几个。
+  var _recognizers = <TapGestureRecognizer>[];
+
   void _startEdit(String text) {
     setState(() => _editCtl = TextEditingController(text: text)
       ..selection = TextSelection.collapsed(offset: text.length));
@@ -85,6 +95,9 @@ class _TextBubbleState extends ConsumerState<TextBubble> {
   @override
   void dispose() {
     _editCtl?.dispose();
+    for (final r in _recognizers) {
+      r.dispose();
+    }
     super.dispose();
   }
 
@@ -206,46 +219,65 @@ class _TextBubbleState extends ConsumerState<TextBubble> {
         ),
       );
 
-  /// 正文：文本 + 截断提示 + 代码块芯片。两种形态共用，所以不放进各自的分支。
+  /// 正文：文本 + 截断提示 + 代码块芯片。两种形态共用，但渲染逻辑按角色分流。
+  ///
+  /// 用户消息维持纯文本；助手回复走 markdown。代码块芯片**两者都保留** ——
+  /// 语义变成"去右侧面板打开"，与原地渲染的代码块互补而非重复。
   Widget _body(
     AppSkin skin,
     TextItem item,
     List<CodeArtifact> artifacts,
-  ) =>
-      Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          SelectableText(
+  ) {
+    final isUser = item.role == ChatRole.user;
+
+    // 每次重建前先释放上次的 recognizers。
+    for (final r in _recognizers) {
+      r.dispose();
+    }
+    _recognizers = <TapGestureRecognizer>[];
+
+    final content = isUser
+        ? SelectableText(
             item.text,
             style: TextStyle(fontSize: 14, height: 1.6, color: skin.text),
+          )
+        : MarkdownView(
+            blocks: _mdCache.parse(item.text),
+            recognizers: _recognizers,
+          );
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        content,
+        if (item.truncated)
+          Padding(
+            padding: const EdgeInsets.only(top: AppSpacing.xxs),
+            child: Text(
+              widget.truncatedHint,
+              style: TextStyle(fontSize: 11, color: skin.textTertiary),
+            ),
           ),
-          if (item.truncated)
-            Padding(
-              padding: const EdgeInsets.only(top: AppSpacing.xxs),
-              child: Text(
-                widget.truncatedHint,
-                style: TextStyle(fontSize: 11, color: skin.textTertiary),
-              ),
-            ),
-          // 代码块操作按钮
-          if (artifacts.isNotEmpty) ...[
-            const SizedBox(height: AppSpacing.xs),
-            Wrap(
-              spacing: AppSpacing.xs,
-              runSpacing: AppSpacing.xxs,
-              children: [
-                for (final artifact in artifacts)
-                  ArtifactChip(
-                    artifact: artifact,
-                    onTap: () => ref
-                        .read(layoutControllerProvider.notifier)
-                        .showArtifact(artifact),
-                  ),
-              ],
-            ),
-          ],
+        // 代码块操作按钮
+        if (artifacts.isNotEmpty) ...[
+          const SizedBox(height: AppSpacing.xs),
+          Wrap(
+            spacing: AppSpacing.xs,
+            runSpacing: AppSpacing.xxs,
+            children: [
+              for (final artifact in artifacts)
+                ArtifactChip(
+                  artifact: artifact,
+                  onTap: () => ref
+                      .read(layoutControllerProvider.notifier)
+                      .showArtifact(artifact),
+                ),
+            ],
+          ),
         ],
-      );
+      ],
+    );
+  }
 
   /// 悬浮工具行。占位高度固定，避免显示/隐藏时内容跳动。
   Widget _actionsSlot(
