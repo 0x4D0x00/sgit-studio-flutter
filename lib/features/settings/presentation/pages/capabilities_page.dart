@@ -39,7 +39,6 @@ class _CapabilitiesPageState extends State<CapabilitiesPage> {
   bool _connectorSearch = true;
   bool _switchModels = true;
 
-  bool _artifacts = true;
   bool _aiArtifacts = false;
   bool _inlineVisualizations = true;
 
@@ -111,12 +110,14 @@ class _CapabilitiesPageState extends State<CapabilitiesPage> {
         SettingsSectionHeader(l10n.capabilitiesVisuals),
         const SizedBox(height: AppSpacing.sm),
 
+        // Artifacts 恒为开启、不可关闭 —— 常开且不可点，tooltip 说明原因
+        // （与 `tools_page.dart` 的核心工具开关同一做法）
         SettingsSectionRowWithDesc(
           title: l10n.capabilitiesArtifacts,
           description: l10n.capabilitiesArtifactsDesc,
-          trailing: Switch(
-            value: _artifacts,
-            onChanged: (v) => setState(() => _artifacts = v),
+          trailing: Tooltip(
+            message: l10n.capabilitiesArtifactsLocked,
+            child: const Switch(value: true, onChanged: null),
           ),
         ),
         const SettingsSectionDivider(),
