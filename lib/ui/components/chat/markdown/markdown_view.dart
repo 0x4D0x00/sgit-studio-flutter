@@ -4,8 +4,11 @@ import 'package:flutter/material.dart';
 import 'package:sgit_studio_flutter/design/extensions/app_skin.dart';
 import 'package:sgit_studio_flutter/design/tokens/app_spacing.dart';
 import 'package:sgit_studio_flutter/design/tokens/bubble_metrics.dart';
+import 'package:sgit_studio_flutter/domain/models/chat/chat_artifact.dart';
 import 'package:sgit_studio_flutter/domain/models/chat/markdown/markdown_block.dart';
 import 'package:sgit_studio_flutter/domain/models/chat/markdown/markdown_inline.dart';
+import 'package:sgit_studio_flutter/l10n/generated/app_localizations.dart';
+import 'package:sgit_studio_flutter/ui/components/chat/artifact_chip.dart';
 import 'package:sgit_studio_flutter/ui/components/chat/markdown/code_block_card.dart';
 import 'package:sgit_studio_flutter/ui/components/chat/markdown/markdown_spans.dart';
 
@@ -24,6 +27,9 @@ class MarkdownView extends StatelessWidget {
     super.key,
     required this.blocks,
     required this.recognizers,
+    this.artifacts = const [],
+    this.onOpenArtifact,
+    this.onDownloadArtifact,
   });
 
   final List<MarkdownBlock> blocks;
@@ -31,6 +37,27 @@ class MarkdownView extends StatelessWidget {
   /// 由父级(`_TextBubbleState`)持有，用于在 dispose 时批量释放链接的
   /// [TapGestureRecognizer]。每次调用 build 前父级会先把旧列表逐个 `dispose()`。
   final List<TapGestureRecognizer> recognizers;
+
+  /// 本条消息里提取出的产物（**只包含超过行数阈值的长块**，见
+  /// `ChatArtifact.fromBlocks` 的 `inlineLineLimit`）。
+  ///
+  /// 与围栏按 [ChatArtifact.sourceStart] 精确配对 —— 语言和内容都可能重复，
+  /// 只有偏移是唯一的。
+  final List<ChatArtifact> artifacts;
+
+  /// 点击文件卡 → 右侧面板打开。
+  final void Function(ChatArtifact artifact)? onOpenArtifact;
+
+  /// 点击 Download。
+  final void Function(ChatArtifact artifact)? onDownloadArtifact;
+
+  /// 按偏移找这条围栏对应的产物。找不到（短块）返回 null。
+  ChatArtifact? artifactFor(MdCodeFence fence) {
+    for (final a in artifacts) {
+      if (a.sourceStart == fence.sourceStart) return a;
+    }
+    return null;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -56,10 +83,29 @@ class MarkdownView extends StatelessWidget {
       MdHeading() => _heading(context, block),
       MdList() => _list(context, block),
       MdQuote() => _quote(context, block),
-      MdCodeFence() => CodeBlockCard(code: block.code, language: block.language),
+      MdCodeFence() => _codeBlock(context, block),
       MdRule() => _rule(context),
       MdTable() => _table(context, block),
     };
+  }
+
+  /// 围栏 → 短块内联代码卡；长块（有产物）→ **只画文件卡，不画正文**。
+  /// ⚠️ 配对按偏移。对不上（短块、空围栏、或流式期产物还没提取到）时
+  /// 一律走普通代码卡 —— 短块本来就该内联，这是安全的默认。
+  Widget _codeBlock(BuildContext context, MdCodeFence block) {
+    final artifact = artifactFor(block);
+    if (artifact == null) {
+      return CodeBlockCard(code: block.code, language: block.language);
+    }
+
+    return ArtifactChip(
+      artifact: artifact,
+      downloadLabel: AppLocalizations.of(context).chatArtifactDownload,
+      onTap: onOpenArtifact == null ? () {} : () => onOpenArtifact!(artifact),
+      onDownload: onDownloadArtifact == null
+          ? () {}
+          : () => onDownloadArtifact!(artifact),
+    );
   }
 
   Widget _paragraph(BuildContext context, MdParagraph p) {

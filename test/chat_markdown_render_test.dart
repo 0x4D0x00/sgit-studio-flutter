@@ -9,6 +9,7 @@ import 'package:sgit_studio_flutter/design/themes/app_theme.dart';
 import 'package:sgit_studio_flutter/design/tokens/app_colors.dart';
 import 'package:sgit_studio_flutter/domain/models/chat/chat_item.dart';
 import 'package:sgit_studio_flutter/l10n/generated/app_localizations.dart';
+import 'package:sgit_studio_flutter/ui/components/chat/artifact_chip.dart';
 import 'package:sgit_studio_flutter/ui/components/chat/markdown/markdown_view_cache.dart';
 import 'package:sgit_studio_flutter/ui/components/chat/text_bubble.dart';
 
@@ -81,6 +82,90 @@ void main() {
         ),
         findsWidgets,
       );
+    });
+
+    // ⚠️ 阈值把围栏分成两种呈现，这是本次改动的核心：
+    //   短块 = 正文里普通代码块（读得完，不配文件卡）；
+    //   长块 = 只画文件卡，正文移出聊天（进右侧面板）。
+    testWidgets('短代码块 → 内联代码正文，不出现文件卡', (tester) async {
+      await tester.pumpWidget(harness(TextItem(
+        id: 20,
+        role: ChatRole.assistant,
+        initial: '```bash\nnuclei -u target -rl 5\n```',
+      )));
+
+      expect(find.byType(ArtifactChip), findsNothing,
+          reason: '短块不该变成"文件"');
+      // 正文内联可见。
+      expect(
+        tester
+            .widgetList<SelectableText>(find.byType(SelectableText))
+            .any((s) => s.data?.contains('nuclei') ?? false),
+        isTrue,
+        reason: '短块的命令要能直接在聊天里读到',
+      );
+    });
+
+    testWidgets('长代码块（>30 行）→ 只画文件卡，正文不在聊天里', (tester) async {
+      final body = List.generate(45, (i) => 'var x$i = $i;').join('\n');
+      await tester.pumpWidget(harness(TextItem(
+        id: 21,
+        role: ChatRole.assistant,
+        initial: '待办清单示例\n\n```dart\n$body\n```',
+      )));
+
+      expect(find.byType(ArtifactChip), findsOneWidget,
+          reason: '长块应该就地变成一张文件卡');
+      expect(
+        tester
+            .widgetList<SelectableText>(find.byType(SelectableText))
+            .any((s) => s.data?.contains('var x40') ?? false),
+        isFalse,
+        reason: '长块正文必须移出聊天，只留在右侧面板',
+      );
+    });
+
+    testWidgets('同一回答里长短混杂 → 短块内联、长块出卡，互不干扰', (tester) async {
+      final long = List.generate(40, (i) => 'line $i').join('\n');
+      await tester.pumpWidget(harness(TextItem(
+        id: 22,
+        role: ChatRole.assistant,
+        initial: '用法\n\n```bash\nnuclei -u target\n```\n\n实现\n\n```dart\n$long\n```',
+      )));
+
+      expect(find.byType(ArtifactChip), findsOneWidget);
+      // 短的 bash 命令仍可读。
+      expect(
+        tester
+            .widgetList<SelectableText>(find.byType(SelectableText))
+            .any((s) => s.data?.contains('nuclei') ?? false),
+        isTrue,
+      );
+    });
+
+    testWidgets('长块流式生成中 → 不抛异常', (tester) async {
+      // ⚠️ 把测试窗口调高。长块在**长到 30 行之前**仍是内联代码块，
+      //    `TextBubble` 自己不滚动（真实场景由外层 ListView 滚），
+      //    默认 800×600 会因内容超高报 RenderFlex overflow ——
+      //    那是"窗口太小"，不是渲染崩了。
+      tester.view.physicalSize = const Size(1200, 6000);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.reset);
+
+      final item = TextItem(id: 23, role: ChatRole.assistant);
+      await tester.pumpWidget(harness(item));
+
+      final body = '```dart\n${List.generate(45, (i) => 'var x$i = $i;').join('\n')}\n```';
+      for (var i = 1; i <= body.length; i += 7) {
+        final from = i - 7 < 0 ? 0 : i - 7;
+        item.append(body.substring(from, i));
+        await tester.pump();
+        expect(tester.takeException(), isNull,
+            reason: '流式第 $i 个字符时崩了');
+      }
+
+      // 写完应有产物并渲染成文件卡。
+      expect(find.byType(ArtifactChip), findsOneWidget);
     });
 
     testWidgets('加粗 → TextSpan 有 fontWeight.w700', (tester) async {

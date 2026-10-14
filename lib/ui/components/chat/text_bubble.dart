@@ -11,7 +11,6 @@ import 'package:sgit_studio_flutter/domain/models/chat/markdown/markdown_block.d
 import 'package:sgit_studio_flutter/l10n/generated/app_localizations.dart';
 import 'package:sgit_studio_flutter/services/export/artifact_exporter.dart';
 import 'package:sgit_studio_flutter/services/layout/layout_controller.dart';
-import 'package:sgit_studio_flutter/ui/components/chat/artifact_chip.dart';
 import 'package:sgit_studio_flutter/ui/components/chat/bubble_actions_row.dart';
 import 'package:sgit_studio_flutter/ui/components/chat/markdown/markdown_view.dart';
 import 'package:sgit_studio_flutter/ui/components/chat/markdown/markdown_view_cache.dart';
@@ -250,6 +249,9 @@ class _TextBubbleState extends ConsumerState<TextBubble> {
         : MarkdownView(
             blocks: blocks,
             recognizers: _recognizers,
+            artifacts: artifacts,
+            onOpenArtifact: _openArtifact,
+            onDownloadArtifact: _downloadArtifact,
           );
 
     return Column(
@@ -264,19 +266,8 @@ class _TextBubbleState extends ConsumerState<TextBubble> {
               style: TextStyle(fontSize: 11, color: skin.textTertiary),
             ),
           ),
-        // 产物文件卡片：点击在右侧面板打开，右侧 Download 直接落盘
-        if (artifacts.isNotEmpty) ...[
-          const SizedBox(height: AppSpacing.xs),
-          for (final artifact in artifacts) ...[
-            ArtifactChip(
-              artifact: artifact,
-              downloadLabel: AppLocalizations.of(context).chatArtifactDownload,
-              onTap: () => _openArtifact(artifact),
-              onDownload: () => _downloadArtifact(artifact),
-            ),
-            const SizedBox(height: AppSpacing.xs),
-          ],
-        ],
+        // ⚠️ 长块的文件卡**不在这里**再列一遍 —— 它由 `MarkdownView` 渲染在
+        //    代码块原来的位置（替代正文）。这里再排一列会让同一份产物出现两次。
       ],
     );
   }
