@@ -577,6 +577,10 @@
   "chatKernelStalled": "The kernel stopped responding — input re-enabled",
   "chatLocalExecUnavailable": "Local engine started, but command tools are unavailable (sgcode executable not found) — chat works, running commands and editing files does not. Install sgcode or switch to the remote engine.",
   "chatOpeningThread": "Loading this conversation…",
+  "chatJumpToLatest": "Jump to latest",
+  "@chatJumpToLatest": {
+    "description": "Floating button in the transcript: scroll straight to the newest answer."
+  },
   "chatThreadOpenFailed": "Couldn't open the conversation: {reason}",
   "@chatThreadOpenFailed": {
     "placeholders": { "reason": { "type": "String" } }

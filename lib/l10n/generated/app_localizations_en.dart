@@ -1345,6 +1345,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get chatOpeningThread => 'Loading this conversation…';
 
   @override
+  String get chatJumpToLatest => 'Jump to latest';
+
+  @override
   String chatThreadOpenFailed(String reason) {
     return 'Couldn\'t open the conversation: $reason';
   }

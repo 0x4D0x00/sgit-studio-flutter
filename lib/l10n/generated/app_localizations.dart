@@ -2582,6 +2582,12 @@ abstract class AppLocalizations {
   /// **'正在载入这条会话…'**
   String get chatOpeningThread;
 
+  /// 对话流浮出按钮：直接滚到最新一条回答。
+  ///
+  /// In zh, this message translates to:
+  /// **'回到最新'**
+  String get chatJumpToLatest;
+
   /// No description provided for @chatThreadOpenFailed.
   ///
   /// In zh, this message translates to:

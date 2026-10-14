@@ -88,6 +88,27 @@ class ChatBubbleMetrics {
   /// 标题字号档(level 1..6)。
   static const List<double> headingSizes = [18, 16, 14, 13, 12, 10];
 
+  // ---- 「回到底部」浮出按钮 ----
+
+  /// 按钮直径。与发送键同尺寸（32），浮在对话流上时不会比它更抢眼。
+  static const double jumpButtonSize = 32;
+  static const double jumpButtonIconSize = 18;
+
+  /// 按钮与列表底边之间的距离。
+  static const double jumpButtonMarginBottom = 12;
+
+  /// 按钮浮出/收回的时长。比 [hoverFade] 略慢 —— 它是个整块的浮层出现，
+  /// 不是给一行加底色，太快会像闪了一下。
+  static const Duration jumpButtonFade = Duration(milliseconds: 180);
+
+  /// 用户滚动后，按钮**还要再等这么久**才浮出来。
+  ///
+  /// 不是装饰性的延迟，是这个按钮能不能用的前提：把一段长回答滚到末尾时，
+  /// 内容一边长高一边把视口顶离底部，中途的每一帧都满足"不在底部"。
+  /// 少了这段停顿，滚动过程中按钮就会一路闪出来 —— 用户想看的恰恰是它挡住的
+  /// 那部分内容。停顿是「我停下来了」和「内容还在长」的分界线。
+  static const Duration scrollDwell = Duration(milliseconds: 600);
+
   // ---- 悬停 ----
 
   /// 悬停底色的不透明度。

@@ -237,6 +237,81 @@ void main() {
     ctrl.send('你好');
     expect(stub.calls, isEmpty, reason: '能力协商说不支持，就不该发出去');
   });
+
+  // ---- 思考状态 ----
+  //
+  // 它管的是"发出去了、还没吐字"那段静默。三种收尾路径各钉一条 ——
+  // 任何一条回退，用户就会看到一行永远转下去的"正在思考"。
+
+  test('发出 → thinking 开；第一段内容落地 → 关', () async {
+    await ctrl.connect();
+    expect(container.read(chatControllerProvider).thinking, isFalse);
+
+    // 模型必须显式给：没有可用模型时 send 直接拒（同上面两条用例的约束）。
+    expect(ctrl.send('在吗', model: 'test-model'), isTrue);
+    expect(container.read(chatControllerProvider).thinking, isTrue,
+        reason: '刚发出去、内核还没回，这段静默必须显形');
+
+    stub.emit(KernelFrameKind.itemStarted,
+        itemId: 1, json: {'role': 'assistant'});
+    stub.wake();
+    ctrl.drainNow();
+    expect(container.read(chatControllerProvider).thinking, isFalse,
+        reason: '有东西可看了，状态行该让位');
+
+    // 第二条 item（工具后的续写）不该把它重新打开。
+    stub.emit(KernelFrameKind.itemStarted,
+        itemId: 2, json: {'role': 'assistant'});
+    stub.wake();
+    ctrl.drainNow();
+    expect(container.read(chatControllerProvider).thinking, isFalse,
+        reason: '一轮里只思考一次，中途新建条目不算重新开始思考');
+  });
+
+  test('纯工具轮：toolBegin 也收思考行，不必等正文', () async {
+    await ctrl.connect();
+    ctrl.send('列一下文件', model: 'test-model');
+    expect(container.read(chatControllerProvider).thinking, isTrue);
+
+    // 模型直接决定调工具，一个字正文都没吐。
+    stub.emit(KernelFrameKind.toolBegin,
+        itemId: 9, json: {'name': 'shell', 'args': 'rg --files'});
+    stub.wake();
+    ctrl.drainNow();
+    expect(container.read(chatControllerProvider).thinking, isFalse,
+        reason: '工具卡本身就是"在干活"的证据，状态行不该陪着转到 turn 结束');
+  });
+
+  test('thinking 绑在 busy 上：任何把 busy 置假的路径都顺手收掉它', () async {
+    await ctrl.connect();
+    ctrl.send('在吗', model: 'test-model');
+    expect(container.read(chatControllerProvider).thinking, isTrue);
+
+    // 走"断开"这条清 busy 的路径 —— 中途被打断时状态行不能留在屏上。
+    stub.emit(KernelFrameKind.disconnected);
+    stub.wake();
+    ctrl.drainNow();
+
+    final st = container.read(chatControllerProvider);
+    expect(st.busy, isFalse);
+    expect(st.thinking, isFalse,
+        reason: 'busy 没了还在"思考"是自相矛盾的画面');
+  });
+
+  test('被拒的发送不点亮 thinking', () async {
+    await ctrl.connect();
+    ctrl.send('第一条', model: 'test-model');
+    // busy 时再发被拒 —— 不该把 thinking 重新点起来。
+    stub.emit(KernelFrameKind.itemStarted,
+        itemId: 1, json: {'role': 'assistant'});
+    stub.wake();
+    ctrl.drainNow();
+    expect(container.read(chatControllerProvider).thinking, isFalse);
+
+    expect(ctrl.send('第二条'), isFalse);
+    expect(container.read(chatControllerProvider).thinking, isFalse,
+        reason: '发都没发出去，谈不上在思考');
+  });
 }
 
 /// 测试替身：直接按契约编真帧，不起 timer。

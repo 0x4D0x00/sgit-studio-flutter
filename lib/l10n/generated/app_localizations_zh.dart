@@ -1312,6 +1312,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get chatOpeningThread => '正在载入这条会话…';
 
   @override
+  String get chatJumpToLatest => '回到最新';
+
+  @override
   String chatThreadOpenFailed(String reason) {
     return '打开会话失败：$reason';
   }

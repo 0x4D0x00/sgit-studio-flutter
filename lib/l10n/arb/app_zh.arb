@@ -580,6 +580,10 @@
   "chatKernelStalled": "内核长时间无响应，已恢复可输入状态",
   "chatLocalExecUnavailable": "本地引擎已启动，但命令类能力不可用（未找到 sgcode 可执行文件）—— 可以对话，但无法执行命令或改文件。装上 sgcode 或改用云端引擎。",
   "chatOpeningThread": "正在载入这条会话…",
+  "chatJumpToLatest": "回到最新",
+  "@chatJumpToLatest": {
+    "description": "对话流浮出按钮：直接滚到最新一条回答。"
+  },
   "chatThreadOpenFailed": "打开会话失败：{reason}",
   "@chatThreadOpenFailed": {
     "placeholders": { "reason": { "type": "String" } }
