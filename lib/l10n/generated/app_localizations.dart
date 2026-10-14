@@ -746,6 +746,72 @@ abstract class AppLocalizations {
   /// **'已复制'**
   String get chatCopied;
 
+  /// No description provided for @chatArtifactOpen.
+  ///
+  /// In zh, this message translates to:
+  /// **'在右侧打开'**
+  String get chatArtifactOpen;
+
+  /// No description provided for @chatArtifactDownload.
+  ///
+  /// In zh, this message translates to:
+  /// **'下载'**
+  String get chatArtifactDownload;
+
+  /// No description provided for @chatArtifactClose.
+  ///
+  /// In zh, this message translates to:
+  /// **'关闭'**
+  String get chatArtifactClose;
+
+  /// No description provided for @chatArtifactDownloading.
+  ///
+  /// In zh, this message translates to:
+  /// **'正在保存…'**
+  String get chatArtifactDownloading;
+
+  /// No description provided for @chatArtifactSaved.
+  ///
+  /// In zh, this message translates to:
+  /// **'已保存'**
+  String get chatArtifactSaved;
+
+  /// No description provided for @chatArtifactSaveFailed.
+  ///
+  /// In zh, this message translates to:
+  /// **'保存失败'**
+  String get chatArtifactSaveFailed;
+
+  /// No description provided for @chatArtifactExpand.
+  ///
+  /// In zh, this message translates to:
+  /// **'全屏查看'**
+  String get chatArtifactExpand;
+
+  /// No description provided for @chatArtifactCollapse.
+  ///
+  /// In zh, this message translates to:
+  /// **'退出全屏'**
+  String get chatArtifactCollapse;
+
+  /// No description provided for @chatArtifactPanelTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'产物'**
+  String get chatArtifactPanelTitle;
+
+  /// No description provided for @chatArtifactPanelEmpty.
+  ///
+  /// In zh, this message translates to:
+  /// **'本次会话还没有产物'**
+  String get chatArtifactPanelEmpty;
+
+  /// No description provided for @chatArtifactUnavailable.
+  ///
+  /// In zh, this message translates to:
+  /// **'这份内容无法以图形方式渲染，已按原文显示'**
+  String get chatArtifactUnavailable;
+
   /// No description provided for @chatEdit.
   ///
   /// In zh, this message translates to:

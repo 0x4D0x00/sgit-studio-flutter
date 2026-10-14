@@ -343,6 +343,39 @@ class AppLocalizationsZh extends AppLocalizations {
   String get chatCopied => '已复制';
 
   @override
+  String get chatArtifactOpen => '在右侧打开';
+
+  @override
+  String get chatArtifactDownload => '下载';
+
+  @override
+  String get chatArtifactClose => '关闭';
+
+  @override
+  String get chatArtifactDownloading => '正在保存…';
+
+  @override
+  String get chatArtifactSaved => '已保存';
+
+  @override
+  String get chatArtifactSaveFailed => '保存失败';
+
+  @override
+  String get chatArtifactExpand => '全屏查看';
+
+  @override
+  String get chatArtifactCollapse => '退出全屏';
+
+  @override
+  String get chatArtifactPanelTitle => '产物';
+
+  @override
+  String get chatArtifactPanelEmpty => '本次会话还没有产物';
+
+  @override
+  String get chatArtifactUnavailable => '这份内容无法以图形方式渲染，已按原文显示';
+
+  @override
   String get chatEdit => '编辑';
 
   @override

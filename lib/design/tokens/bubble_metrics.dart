@@ -73,6 +73,16 @@ class ChatBubbleMetrics {
   /// 代码块圆角。
   static const double codeBlockRadius = 8;
 
+  /// 产物文件卡片的最大宽度。
+  ///
+  /// ⚠️ **不能撑满转录列宽**：一张"文件卡"横贯整列会被读成一块区域分隔条，
+  /// 而它其实是正文末尾的一个附属入口。贴合内容、到这就封顶。
+  /// 取 [maxWidthUser] 的约 3/4 —— 比用户气泡窄一档，视觉上退到次要层。
+  static const double artifactCardMaxWidth = 520;
+
+  /// 产物文件卡片的左侧类型图标格边长。
+  static const double artifactCardIconBox = 36;
+
   /// 列表项左侧缩进(每增加一层)。
   static const double listIndentPerLevel = 20;
 

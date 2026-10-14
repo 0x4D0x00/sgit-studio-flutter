@@ -5,9 +5,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:sgit_studio_flutter/design/extensions/app_skin.dart';
 import 'package:sgit_studio_flutter/design/tokens/app_spacing.dart';
 import 'package:sgit_studio_flutter/design/tokens/bubble_metrics.dart';
+import 'package:sgit_studio_flutter/domain/models/chat/chat_artifact.dart';
 import 'package:sgit_studio_flutter/domain/models/chat/chat_item.dart';
-import 'package:sgit_studio_flutter/domain/models/chat/code_artifact.dart';
+import 'package:sgit_studio_flutter/domain/models/chat/markdown/markdown_block.dart';
 import 'package:sgit_studio_flutter/l10n/generated/app_localizations.dart';
+import 'package:sgit_studio_flutter/services/export/artifact_exporter.dart';
 import 'package:sgit_studio_flutter/services/layout/layout_controller.dart';
 import 'package:sgit_studio_flutter/ui/components/chat/artifact_chip.dart';
 import 'package:sgit_studio_flutter/ui/components/chat/bubble_actions_row.dart';
@@ -114,16 +116,17 @@ class _TextBubbleState extends ConsumerState<TextBubble> {
       child: ValueListenableBuilder<int>(
         valueListenable: item.revision,
         builder: (context, _, _) {
-          // 提取代码块
-          final artifacts = item.done
-              ? CodeArtifact.extractFromMarkdown(item.text)
-              : <CodeArtifact>[];
+          // 产物从**已经解析好的块**里提取，不另扫一遍原文 —— 围栏识别只有
+          // 解析器一处实现。流式期也提取：卡片头要跟着 delta 一起长出来。
+          final blocks = _mdCache.parse(item.text);
+          final artifacts = ChatArtifact.fromBlocks(blocks, item.text);
 
           final bubble = editing
               ? _buildEditor(context, skin)
               : (isUser
                   ? _userBubble(context, skin, item, showActions, artifacts)
-                  : _assistantReply(skin, item, showActions, artifacts));
+                  : _assistantReply(
+                      skin, item, blocks, showActions, artifacts));
 
           return MouseRegion(
             onEnter: (_) => setState(() => _hovering = true),
@@ -145,7 +148,7 @@ class _TextBubbleState extends ConsumerState<TextBubble> {
     AppSkin skin,
     TextItem item,
     bool showActions,
-    List<CodeArtifact> artifacts,
+    List<ChatArtifact> artifacts,
   ) =>
       Align(
         alignment: Alignment.centerRight,
@@ -165,7 +168,8 @@ class _TextBubbleState extends ConsumerState<TextBubble> {
                   color: skin.bubbleUserBg,
                   borderRadius: BorderRadius.circular(AppRadius.md),
                 ),
-                child: _body(skin, item, artifacts),
+                // 用户消息不渲染 markdown，块列表用不上 —— 产物仍从原文提取。
+                child: _body(skin, item, const [], artifacts),
               ),
               _actionsSlot(context, item,
                   isUser: true, showActions: showActions),
@@ -186,8 +190,9 @@ class _TextBubbleState extends ConsumerState<TextBubble> {
   Widget _assistantReply(
     AppSkin skin,
     TextItem item,
+    List<MarkdownBlock> blocks,
     bool showActions,
-    List<CodeArtifact> artifacts,
+    List<ChatArtifact> artifacts,
   ) =>
       Column(
         // 头像与正文都从列首起排，所以这里是 start 而不是 stretch。
@@ -196,7 +201,7 @@ class _TextBubbleState extends ConsumerState<TextBubble> {
           Padding(
             padding: const EdgeInsets.symmetric(
                 vertical: ChatBubbleMetrics.assistantPaddingBlock),
-            child: _body(skin, item, artifacts),
+            child: _body(skin, item, blocks, artifacts),
           ),
           _actionsSlot(context, item,
               isUser: false, showActions: showActions),
@@ -226,7 +231,8 @@ class _TextBubbleState extends ConsumerState<TextBubble> {
   Widget _body(
     AppSkin skin,
     TextItem item,
-    List<CodeArtifact> artifacts,
+    List<MarkdownBlock> blocks,
+    List<ChatArtifact> artifacts,
   ) {
     final isUser = item.role == ChatRole.user;
 
@@ -242,7 +248,7 @@ class _TextBubbleState extends ConsumerState<TextBubble> {
             style: TextStyle(fontSize: 14, height: 1.6, color: skin.text),
           )
         : MarkdownView(
-            blocks: _mdCache.parse(item.text),
+            blocks: blocks,
             recognizers: _recognizers,
           );
 
@@ -258,24 +264,50 @@ class _TextBubbleState extends ConsumerState<TextBubble> {
               style: TextStyle(fontSize: 11, color: skin.textTertiary),
             ),
           ),
-        // 代码块操作按钮
+        // 产物文件卡片：点击在右侧面板打开，右侧 Download 直接落盘
         if (artifacts.isNotEmpty) ...[
           const SizedBox(height: AppSpacing.xs),
-          Wrap(
-            spacing: AppSpacing.xs,
-            runSpacing: AppSpacing.xxs,
-            children: [
-              for (final artifact in artifacts)
-                ArtifactChip(
-                  artifact: artifact,
-                  onTap: () => ref
-                      .read(layoutControllerProvider.notifier)
-                      .showArtifact(artifact),
-                ),
-            ],
-          ),
+          for (final artifact in artifacts) ...[
+            ArtifactChip(
+              artifact: artifact,
+              downloadLabel: AppLocalizations.of(context).chatArtifactDownload,
+              onTap: () => _openArtifact(artifact),
+              onDownload: () => _downloadArtifact(artifact),
+            ),
+            const SizedBox(height: AppSpacing.xs),
+          ],
         ],
       ],
+    );
+  }
+
+  /// 打开产物到右侧面板。
+  void _openArtifact(ChatArtifact artifact) =>
+      ref.read(layoutControllerProvider.notifier).showArtifact(artifact);
+
+  /// 保存产物到本地。
+  ///
+  /// ⚠️ 三态提示：取消**不提示**。用户主动关掉文件对话框却看到"保存失败"
+  /// 会以为出了问题，实际上什么都没发生。
+  Future<void> _downloadArtifact(ChatArtifact artifact) async {
+    if (!mounted) return;
+    final l10n = AppLocalizations.of(context);
+    final messenger = ScaffoldMessenger.of(context);
+    final outcome = await ArtifactExporter.save(
+      artifact,
+      dialogTitle: l10n.chatArtifactDownload,
+    );
+    if (outcome == SaveOutcome.cancelled) return;
+
+    messenger.showSnackBar(
+      SnackBar(
+        content: Text(
+          outcome == SaveOutcome.saved
+              ? l10n.chatArtifactSaved
+              : l10n.chatArtifactSaveFailed,
+        ),
+        duration: const Duration(seconds: 2),
+      ),
     );
   }
 

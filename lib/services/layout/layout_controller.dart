@@ -1,7 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import 'package:sgit_studio_flutter/domain/models/chat/code_artifact.dart';
+import 'package:sgit_studio_flutter/domain/models/chat/chat_artifact.dart';
 import 'package:sgit_studio_flutter/layout/metrics/workspace_metrics.dart';
 
 /// 工作台外壳状态：左右栏的展开与宽度（对应 studio 的 global store
@@ -25,8 +25,8 @@ class LayoutState {
   final bool outputExpanded;
   final double outputWidth;
 
-  /// 当前在右侧面板显示的产物（代码块）。
-  final CodeArtifact? activeArtifact;
+  /// 当前在右侧面板显示的产物。
+  final ChatArtifact? activeArtifact;
 
   LayoutState
   copyWith({
@@ -34,7 +34,7 @@ class LayoutState {
     double? navWidth,
     bool? outputExpanded,
     double? outputWidth,
-    CodeArtifact? activeArtifact,
+    ChatArtifact? activeArtifact,
     bool clearArtifact = false,
   }) => LayoutState(
     navExpanded:
@@ -84,9 +84,9 @@ class LayoutController
     outputWidth: w,
   );
 
-  /// 显示代码产物到右侧面板。
+  /// 显示产物到右侧面板。
   void showArtifact(
-    CodeArtifact artifact,
+    ChatArtifact artifact,
   ) {
     state = state.copyWith(
       activeArtifact: artifact,

@@ -350,6 +350,40 @@ class AppLocalizationsEn extends AppLocalizations {
   String get chatCopied => 'Copied';
 
   @override
+  String get chatArtifactOpen => 'Open in panel';
+
+  @override
+  String get chatArtifactDownload => 'Download';
+
+  @override
+  String get chatArtifactClose => 'Close';
+
+  @override
+  String get chatArtifactDownloading => 'Saving…';
+
+  @override
+  String get chatArtifactSaved => 'Saved';
+
+  @override
+  String get chatArtifactSaveFailed => 'Couldn\'t save';
+
+  @override
+  String get chatArtifactExpand => 'Fullscreen';
+
+  @override
+  String get chatArtifactCollapse => 'Exit fullscreen';
+
+  @override
+  String get chatArtifactPanelTitle => 'Artifacts';
+
+  @override
+  String get chatArtifactPanelEmpty => 'No artifacts in this conversation yet';
+
+  @override
+  String get chatArtifactUnavailable =>
+      'This content can\'t be rendered graphically — showing the raw text';
+
+  @override
   String get chatEdit => 'Edit';
 
   @override

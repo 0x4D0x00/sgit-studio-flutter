@@ -144,20 +144,19 @@ class AppShell extends StatelessWidget {
                                 ],
                               ),
                             ),
-                            // TODO(P2): 右侧输出物面板 —— 暂时注释，等产物功能就绪后再恢复。
-                            // if (!narrow)
-                            //   ResizablePanel(
-                            //     side: AxisDirection.right,
-                            //     width: outputWidth,
-                            //     expanded: outputExpanded,
-                            //     minWidth: WorkspaceMetrics.outputMinWidth,
-                            //     maxWidth: WorkspaceMetrics.outputMaxWidth,
-                            //     onWidthChanged: onOutputWidthChanged,
-                            //     backgroundColor: skin.containerBg,
-                            //     borderSide:
-                            //         BorderSide(color: skin.borderSecondary),
-                            //     child: output,
-                            //   ),
+                            if (!narrow)
+                              ResizablePanel(
+                                side: AxisDirection.right,
+                                width: outputWidth,
+                                expanded: outputExpanded,
+                                minWidth: WorkspaceMetrics.outputMinWidth,
+                                maxWidth: WorkspaceMetrics.outputMaxWidth,
+                                onWidthChanged: onOutputWidthChanged,
+                                backgroundColor: skin.containerBg,
+                                borderSide:
+                                    BorderSide(color: skin.borderSecondary),
+                                child: output,
+                              ),
                           ],
                         ),
                       ),
@@ -203,7 +202,6 @@ class AppShell extends StatelessWidget {
                 child: headerTitle ?? const SizedBox.shrink(),
               ),
             ),
-            // TODO(P2): 输出物开关按钮 —— 暂时注释，等产物功能就绪后再恢复。
             // if (!narrow)
             //   IconButton(
             //     iconSize: 18,
