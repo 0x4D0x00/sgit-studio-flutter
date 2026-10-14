@@ -312,7 +312,7 @@ class MarkdownParser {
         while (i < lines.length &&
             lines[i].text.trim().isNotEmpty &&
             lines[i].text.contains('|')) {
-          rows.add(_splitRow(lines[i].text));
+          rows.add(_fitToWidth(_splitRow(lines[i].text), header.length));
           i++;
         }
         out.add(MdTable(
@@ -506,6 +506,20 @@ class MarkdownParser {
       if (!RegExp(r'^:?-+:?$').hasMatch(c.trim())) return false;
     }
     return true;
+  }
+
+  /// 把一行数据补齐/裁到 [width] 格。
+  ///
+  /// ⚠️ **不是可选的健壮性，是必需的**：Flutter 的 `Table` 在所有行的单元格
+  /// 数不一致时直接 assert 崩掉（"Table contains irregular row lengths"）。
+  /// 而流式输出里**任何一行的格子数都会阶段性对不上** —— 刚敲到 `| ` 的行
+  /// 只有 1 格、表头 3 格而正文只写了 2 格、闭口的 `|` 还没打出来。
+  /// 所以这里统一补齐（缺的填空串）或裁掉（多的丢掉），保证发出的 AST
+  /// 永远是矩形。
+  static List<String> _fitToWidth(List<String> cells, int width) {
+    if (cells.length == width) return cells;
+    if (cells.length > width) return cells.sublist(0, width);
+    return [...cells, ...List.filled(width - cells.length, '')];
   }
 
   /// 按 `|` 切格，去掉首尾空管道与每格空白。

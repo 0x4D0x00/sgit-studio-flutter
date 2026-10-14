@@ -88,6 +88,62 @@ void main() {
     });
   });
 
+  // ⚠️ 表格行必须是**矩形**。Flutter 的 `Table` 在行格数不齐时直接 assert 崩
+  // （"Table contains irregular row lengths"），而流式期任何一行的格数都会
+  // 阶段性对不上 —— 这是线上真实报错（红色错误屏），不是理论边界。
+  // 补齐发生在解析器而不是渲染器：一处修好，且能被单测钉住。
+  group('表格行宽对齐', () {
+    /// 所有行(含表头)格数一致的断言。
+    void expectRectangular(MdTable t) {
+      for (final (i, row) in t.rows.indexed) {
+        expect(row.length, t.header.length,
+            reason: '第 $i 行格数与表头不一致 → Table 会 assert 崩');
+      }
+    }
+
+    test('正文行比表头短 → 补齐空串', () {
+      final t = MarkdownParser.parse(
+        '| 助理类型 | 说明 |\n| --- | --- |\n| 办公助理 |',
+      )[0] as MdTable;
+      expect(t.header.length, 2);
+      expect(t.rows[0], ['办公助理', '']);
+      expectRectangular(t);
+    });
+
+    test('凭空一行 `|` → 不崩且补齐', () {
+      final t = MarkdownParser.parse(
+        '| 助理类型 | 说明 |\n| --- | --- |\n|',
+      )[0] as MdTable;
+      expect(t.rows[0], ['', '']);
+      expectRectangular(t);
+    });
+
+    test('正文行比表头长 → 裁掉多余的', () {
+      final t = MarkdownParser.parse(
+        '| A | B |\n| --- | --- |\n| 1 | 2 | 3 |',
+      )[0] as MdTable;
+      expect(t.rows[0], ['1', '2']);
+      expectRectangular(t);
+    });
+
+    test('逐字流式喂表格 → 每一步都不抛且行始终矩形', () {
+      const full = '| 助理类型 | 说明 |\n| --- | --- |\n| 办公助理 | 办公 |\n';
+      for (var i = 1; i <= full.length; i++) {
+        final prefix = full.substring(0, i);
+        final blocks = () {
+          try {
+            return MarkdownParser.parse(prefix);
+          } catch (e) {
+            fail('流式第 $i 个字符解析抛异常: $e');
+          }
+        }();
+        for (final b in blocks) {
+          if (b is MdTable) expectRectangular(b);
+        }
+      }
+    });
+  });
+
   group('边界：流式期半截文本', () {
     test('未闭合围栏 → 余下全当代码，不崩', () {
       expect(() => MarkdownParser.parse('```dart\nvar x = 1;\n段落'), returnsNormally);

@@ -126,6 +126,47 @@ void main() {
         findsWidgets,
       );
     });
+
+    // ⚠️ 表格单元格必须走行内 markdown。真实 bug：模型在表格里写
+    // `**办公助理**`，渲染出来是带星号的字面量 —— 因为单元格当初直接
+    // `Text(cell)`，绕过了 MarkdownInlineParser。
+    testWidgets('表格单元格 → 行内 markdown 生效，星号不露面', (tester) async {
+      await tester.pumpWidget(harness(TextItem(
+        id: 8,
+        role: ChatRole.assistant,
+        initial: '| 助理类型 | 说明 |\n| --- | --- |\n| **办公助理** | 办公 |',
+      )));
+
+      final cells = _cellTexts(tester);
+      expect(cells, contains('办公助理'), reason: '星号必须被解析掉');
+      expect(cells, isNot(contains('**办公助理**')));
+
+      // 加粗要真的落在样式上，而不只是把定界符删掉。
+      final selectables = tester.widgetList<SelectableText>(find.descendant(
+        of: find.byType(TextBubble),
+        matching: find.byType(SelectableText),
+      ));
+      final hasBold = selectables
+          .any((s) => _flattenSpans(s.textSpan!).any(
+              (sp) => sp.style?.fontWeight == FontWeight.w700));
+      expect(hasBold, true);
+    });
+
+    // ⚠️ 真实报错：表格流式生成中途红色错误屏。原因是半截行（比如刚打到 `|`）
+    // 的格数与表头对不上，Flutter 的 Table 直接 assert 崩。解析器补齐后，
+    // 从第一个字符到整表写完，任何一帧都不能抛。
+    testWidgets('表格逐字流式生成 → 全程不抛异常', (tester) async {
+      const md = '| 助理类型 | 说明 |\n| --- | --- |\n| **办公助理** | 办公 |\n';
+      final item = TextItem(id: 9, role: ChatRole.assistant);
+      await tester.pumpWidget(harness(item));
+
+      for (var i = 1; i <= md.length; i++) {
+        item.append(md[i - 1]);
+        await tester.pump();
+        expect(tester.takeException(), isNull,
+            reason: '流式第 $i 个字符（前缀 ${md.substring(0, i)}）时崩了');
+      }
+    });
   });
 
   group('用户消息维持纯文本', () {
@@ -203,6 +244,18 @@ void main() {
     });
   });
 }
+
+/// 取出气泡里所有单元格的纯文本（含表头）。
+///
+/// 表格单元格是 [SelectableText]，段落也是 —— 这里按"是不是 `Table` 的后代"
+/// 过滤，避免把段落文字也算进来。
+List<String> _cellTexts(WidgetTester tester) => tester
+    .widgetList<SelectableText>(find.descendant(
+      of: find.byType(Table),
+      matching: find.byType(SelectableText),
+    ))
+    .map((s) => s.textSpan?.toPlainText() ?? '')
+    .toList();
 
 /// 把 TextSpan 树压平成列表。
 List<TextSpan> _flattenSpans(InlineSpan span) {

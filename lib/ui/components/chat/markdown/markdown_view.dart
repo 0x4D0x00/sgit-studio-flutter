@@ -176,6 +176,16 @@ class MarkdownView extends StatelessWidget {
     return Divider(color: skin.borderSecondary, thickness: 1);
   }
 
+  /// GFM 表格。
+  ///
+  /// ⚠️ 单元格**必须走行内 markdown**（`MarkdownInlineParser`），不能直接
+  /// `Text(cell)` —— 模型在表格里写 `**办公助理**` 是家常便饭（表格常用来做
+  /// 分类罗列，条目名天然带强调），用 `Text` 会把星号原样画出来。
+  ///
+  /// 单元格用 [SelectableText] 而不是 [Text]：`IntrinsicColumnWidth` 下
+  /// 两者的 `minIntrinsicWidth` 都等于整行文本宽度，所以表格能正常收缩换行；
+  /// 但表格与段落是同一段回答，选择行为要一致，而且 [MarkdownSpans] 产出的
+  /// 链接 recognizer 本来也只有 Selectable 家族会派发。
   Widget _table(BuildContext context, MdTable t) {
     final skin = AppSkin.of(context);
     return SingleChildScrollView(
@@ -185,34 +195,41 @@ class MarkdownView extends StatelessWidget {
         defaultColumnWidth: const IntrinsicColumnWidth(),
         children: [
           TableRow(
-            children: t.header
-                .map((h) => Padding(
-                      padding: const EdgeInsets.all(AppSpacing.xs),
-                      child: Text(
-                        h,
-                        style: TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w600,
-                          color: skin.text,
-                        ),
-                      ),
-                    ))
-                .toList(),
+            children: [
+              for (final h in t.header)
+                _tableCell(context, h,
+                    const TextStyle(
+                        fontSize: 14, fontWeight: FontWeight.w600)),
+            ],
           ),
+          // ⚠️ 行高由解析器保证是矩形（每行格数 == 表头格数，见
+          // `MarkdownParser._fitToWidth`），这里不再做防御 —— 补在解析器
+          // 一处比在每个渲染分支补更可靠，也才有单测能钉住。
           for (final row in t.rows)
             TableRow(
-              children: row
-                  .map((c) => Padding(
-                        padding: const EdgeInsets.all(AppSpacing.xs),
-                        child: Text(
-                          c,
-                          style: TextStyle(fontSize: 14, color: skin.text),
-                        ),
-                      ))
-                  .toList(),
+              children: [
+                for (final c in row)
+                  _tableCell(context, c, const TextStyle(fontSize: 14)),
+              ],
             ),
         ],
       ),
+    );
+  }
+
+  /// 一个表格单元格：行内 markdown + [AppSpacing.xs] 内边距。
+  Widget _tableCell(BuildContext context, String text, TextStyle style) {
+    final skin = AppSkin.of(context);
+    final spans = MarkdownSpans.build(
+      MarkdownInlineParser.parse(text),
+      context,
+      recognizers,
+      baseStyle: style.copyWith(color: skin.text),
+    );
+
+    return Padding(
+      padding: const EdgeInsets.all(AppSpacing.xs),
+      child: SelectableText.rich(TextSpan(children: spans)),
     );
   }
 }
