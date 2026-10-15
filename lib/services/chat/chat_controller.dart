@@ -11,9 +11,12 @@ import 'package:sgit_studio_flutter/data/mappers/kernel_frame_mapper.dart';
 import 'package:sgit_studio_flutter/data/mappers/view_event_mapper.dart';
 import 'package:sgit_studio_flutter/data/transport/kernel/kernel_client_factory.dart';
 import 'package:sgit_studio_flutter/data/transport/kernel/kernel_frame.dart';
+import 'package:sgit_studio_flutter/domain/models/chat/chat_artifact.dart';
 import 'package:sgit_studio_flutter/domain/models/chat/chat_item.dart';
+import 'package:sgit_studio_flutter/domain/models/chat/markdown/markdown_block.dart';
 import 'package:sgit_studio_flutter/domain/models/chat/sgcode_settings.dart';
 import 'package:sgit_studio_flutter/domain/models/chat/chat_session.dart';
+import 'package:sgit_studio_flutter/features/artifacts/application/artifacts_controller.dart';
 import 'package:sgit_studio_flutter/features/chat/application/composer_settings_controller.dart';
 import 'package:sgit_studio_flutter/features/chat/application/session_sync_controller.dart';
 import 'package:sgit_studio_flutter/features/chat/application/thread_list_controller.dart';
@@ -567,6 +570,7 @@ class ChatController extends Notifier<ChatSessionState> {
     // 让后续发言接在这条 thread 上。Rust 侧 `thread/resume` 已经把它装进了
     // 活动的 thread_manager，所以 turn/start 打得中。
     _client.setThread(threadId);
+    _syncArtifacts();
   }
 
   /// 刷新会话列表；若这是一段新对话（还不知道 thread id），认领列表里最新的一条。
@@ -576,15 +580,54 @@ class ChatController extends Notifier<ChatSessionState> {
   /// 不会覆盖已知的会话。
   Future<void> _reloadThreadsAndAdoptNew() async {
     await ref.read(threadListProvider.notifier).reload();
-    if (state.currentThreadId != null) return;
-    final items = ref.read(threadListProvider).items;
-    if (items.isEmpty) return;
-    var newest = items.first;
-    for (final t in items) {
-      final a = t.updatedAt, b = newest.updatedAt;
-      if (a != null && (b == null || a.isAfter(b))) newest = t;
+    if (state.currentThreadId == null) {
+      final items = ref.read(threadListProvider).items;
+      if (items.isNotEmpty) {
+        var newest = items.first;
+        for (final t in items) {
+          final a = t.updatedAt, b = newest.updatedAt;
+          if (a != null && (b == null || a.isAfter(b))) newest = t;
+        }
+        state = state.copyWith(currentThreadId: newest.id);
+      }
     }
-    state = state.copyWith(currentThreadId: newest.id);
+    // 新对话的 thread id 要到这里才知道，所以一轮结束后的登记放在认领之后。
+    _syncArtifacts();
+  }
+
+  /// 把当前会话里的文件卡登记到「输出物」。
+  ///
+  /// 扫的是**助手回复里的长围栏**，规则与聊天里画文件卡的一致
+  /// （同样走 [ChatArtifact.fromBlocks]）—— 输出物页里有的，聊天里一定有卡。
+  ///
+  /// 调用点：历史会话装配完、一轮结束并认领到 thread id 之后。**流式中不扫**：
+  /// 半截围栏会登记出一条之后又变掉的产物。
+  ///
+  /// 解析整条会话有成本（长会话几百条回复），挪到下一个事件循环，不压在
+  /// 打开会话的那一帧上；期间换了会话就丢弃（见 [_openGeneration]）。
+  void _syncArtifacts() {
+    final threadId = state.currentThreadId;
+    if (threadId == null || state.openingThread || state.busy) return;
+    final gen = _openGeneration;
+    Timer.run(() {
+      // 延后执行期间 provider 可能已经销毁（页面/测试容器先走了）。
+      if (_disposed) return;
+      if (_openGeneration != gen || state.currentThreadId != threadId) return;
+      final found = <FoundArtifact>[];
+      for (final it in _items) {
+        if (it is! TextItem || it.role != ChatRole.assistant || it.isEmpty) {
+          continue;
+        }
+        final text = it.text;
+        final blocks = MarkdownParser.parse(text);
+        for (final a in ChatArtifact.fromBlocks(blocks, text)) {
+          found.add((artifact: a, at: it.createdAt));
+        }
+      }
+      ref
+          .read(artifactsControllerProvider.notifier)
+          .replaceForThread(threadId, found);
+    });
   }
 
   /// 停止当前 turn。
@@ -841,7 +884,10 @@ class ChatController extends Notifier<ChatSessionState> {
     _byId[item.id] = item;
   }
 
+  bool _disposed = false;
+
   void _disposeAll() {
+    _disposed = true;
     _stallTimer?.cancel();
     _client.close();
     for (final i in _items) {

@@ -4,6 +4,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:sgit_studio_flutter/domain/models/chat/thread_summary.dart';
+import 'package:sgit_studio_flutter/features/artifacts/application/artifacts_controller.dart';
 import 'package:sgit_studio_flutter/features/chat/application/composer_settings_controller.dart';
 import 'package:sgit_studio_flutter/features/chat/application/thread_repository_provider.dart';
 import 'package:sgit_studio_flutter/services/chat/chat_controller.dart';
@@ -196,6 +197,9 @@ class ThreadListController extends Notifier<ThreadListState> {
     );
     try {
       await ref.read(threadRepositoryProvider).delete(threadId);
+      // 真删成功才清输出物：失败会回滚会话，产物不能先没了。
+      if (_disposed) return;
+      ref.read(artifactsControllerProvider.notifier).removeForThreads([threadId]);
     } catch (e) {
       if (_disposed) return;
       debugPrint('[threads] 删除失败：${_msg(e)}');

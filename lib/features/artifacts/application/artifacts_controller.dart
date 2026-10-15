@@ -1,7 +1,12 @@
+import 'dart:async';
+import 'dart:convert';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'package:sgit_studio_flutter/core/storage/local_storage.dart';
 import 'package:sgit_studio_flutter/domain/models/artifact/artifact.dart';
+import 'package:sgit_studio_flutter/domain/models/chat/chat_artifact.dart';
 
 /// 产物列表状态。
 @immutable
@@ -53,33 +58,80 @@ class ArtifactsState {
       );
 }
 
+/// 一条会话里扫出来的文件卡 + 它所在消息的时间。
+typedef FoundArtifact = ({ChatArtifact artifact, DateTime? at});
+
 /// 产物列表控制器。
 ///
-/// ⚠️ 内核端点待接：目前返回空列表，等 `/sgcode-artifact/list` 放开后
-/// 对接真实数据（参考 `resource_list_controller.dart` 的 ResourceListController）。
+/// 数据来源是会话：`ChatController` 在会话载入 / 一轮结束后调 [replaceForThread]，
+/// 把那条会话里的文件卡整体登记进来。列表落盘（[LocalStorage]），重启后仍在。
 class ArtifactsController extends Notifier<ArtifactsState> {
   @override
-  ArtifactsState build() {
-    // TODO: 接内核 /sgcode-artifact/list，初次进页面拉取。
-    // 临时测试数据
-    return ArtifactsState(
-      items: [
-        Artifact(
-          id: '1',
-          title: 'PotAGI',
-          preview: '水循环的变化速度各不相同。报告对整个水循环过程进行了全面的评估，包括河流流量、地下水、蒸散发、陆地水储量、积雪和冰川，以及高影响事件。这些高影响事件通常指气象领域中的极端灾害。部分环节的变化加快了，比如降水、河流流量和土壤湿度，它们可能在数日或数周内随着天气情况而发生改变。相比之下，地下水、冰川和季节性积雪这类水体变化得比较缓慢，需要经过数个季节、数十年甚至更长的时间才能积累或消耗。',
-          language: 'dart',
-          updatedAt: DateTime(2025, 11, 4),
-        ),
-        Artifact(
-          id: '2',
-          title: 'UI',
-          preview: '',
-          language: 'javascript',
-          updatedAt: DateTime.now().subtract(const Duration(minutes: 3)),
-        ),
-      ],
-    );
+  ArtifactsState build() => ArtifactsState(items: _load());
+
+  List<Artifact> _load() {
+    final raw = LocalStorage.maybeInstance?.artifacts;
+    if (raw == null || raw.isEmpty) return const [];
+    try {
+      final list = jsonDecode(raw) as List<dynamic>;
+      return [
+        for (final e in list) Artifact.fromJson(e as Map<String, dynamic>),
+      ];
+    } catch (e) {
+      // 落盘格式坏了不该让整页打不开 —— 丢掉，下次会话载入会重新登记。
+      debugPrint('[artifacts] 读取本地列表失败，已忽略：$e');
+      return const [];
+    }
+  }
+
+  void _save(List<Artifact> items) {
+    final storage = LocalStorage.maybeInstance;
+    if (storage == null) return;
+    unawaited(storage.setArtifacts(
+      jsonEncode([for (final a in items) a.toJson()]),
+    ));
+  }
+
+  /// 用 [found] **整体替换**某条会话的产物。
+  ///
+  /// 整体替换而不是追加：编辑重发会丢掉后面的回复，那些回复里的文件卡也
+  /// 该一并消失。已存在的项（id 相同）保留原 `updatedAt`，新出现的用 [found]
+  /// 给的时间。
+  void replaceForThread(String threadId, List<FoundArtifact> found) {
+    final old = {
+      for (final a in state.items)
+        if (a.threadId == threadId) a.id: a,
+    };
+    final now = DateTime.now();
+    final fresh = <Artifact>[];
+    final seen = <String>{};
+    for (final f in found) {
+      final a = Artifact.fromChat(threadId, f.artifact, f.at ?? now);
+      if (!seen.add(a.id)) continue;
+      fresh.add(old[a.id] ?? a);
+    }
+
+    // 没变化就不动 —— 每轮结束都会调，别无谓地重写磁盘、重建页面。
+    final unchanged =
+        old.length == fresh.length && fresh.every((a) => old.containsKey(a.id));
+    if (unchanged) return;
+
+    // 按更新时间倒序：最近的在最前。
+    final items = [
+      ...state.items.where((a) => a.threadId != threadId),
+      ...fresh,
+    ]..sort((a, b) => b.updatedAt.compareTo(a.updatedAt));
+    state = state.copyWith(items: items);
+    _save(items);
+  }
+
+  /// 会话被删了，它的产物跟着走 —— 留着只会得到一个点不开的条目。
+  void removeForThreads(Iterable<String> threadIds) {
+    final ids = threadIds.toSet();
+    if (!state.items.any((a) => ids.contains(a.threadId))) return;
+    final items = state.items.where((a) => !ids.contains(a.threadId)).toList();
+    state = state.copyWith(items: items);
+    _save(items);
   }
 
   void setTypeFilter(String? language) {
@@ -89,13 +141,27 @@ class ArtifactsController extends Notifier<ArtifactsState> {
   void setSearchQuery(String query) {
     state = state.copyWith(searchQuery: query);
   }
-
-  Future<void> reload() async {
-    // TODO: 调用内核端点重新拉取列表。
-  }
 }
 
 final artifactsControllerProvider =
     NotifierProvider<ArtifactsController, ArtifactsState>(
   ArtifactsController.new,
+);
+
+/// 「从输出物页跳回会话」的定位请求。
+///
+/// 点卡片时置位；`ChatTranscript` 在会话内容到齐后把对应的文件卡滚进视野，
+/// 然后清掉。放在 provider 里是因为发起方（输出物页）与执行方（对话流）
+/// 不在同一棵子树，且跳转时对话页还没挂载。
+class ArtifactFocusController extends Notifier<Artifact?> {
+  @override
+  Artifact? build() => null;
+
+  void request(Artifact a) => state = a;
+  void clear() => state = null;
+}
+
+final artifactFocusProvider =
+    NotifierProvider<ArtifactFocusController, Artifact?>(
+  ArtifactFocusController.new,
 );

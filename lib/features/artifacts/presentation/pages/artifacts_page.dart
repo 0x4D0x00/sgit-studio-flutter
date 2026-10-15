@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -9,6 +11,8 @@ import 'package:sgit_studio_flutter/domain/models/artifact/artifact.dart';
 import 'package:sgit_studio_flutter/features/artifacts/application/artifacts_controller.dart';
 import 'package:sgit_studio_flutter/l10n/generated/app_localizations.dart';
 import 'package:sgit_studio_flutter/router/route_names.dart';
+import 'package:sgit_studio_flutter/services/chat/chat_controller.dart';
+import 'package:sgit_studio_flutter/services/layout/layout_controller.dart';
 import 'package:sgit_studio_flutter/ui/components/menu/app_menu.dart';
 
 /// 视图模式：网格 / 列表。
@@ -60,6 +64,28 @@ class _ArtifactsPageState extends ConsumerState<ArtifactsPage> {
         ),
       ],
     );
+  }
+
+  /// 点开一条输出物：回到它所在的会话，并在右侧面板打开这份文件。
+  ///
+  /// 三件事的顺序有讲究：
+  /// 1. **先开面板** —— 内容已经存在列表里，不必等会话载完，点完立刻有反馈；
+  /// 2. 不是当前会话才载入（当前会话已在内存里，重载会白闪一次、丢滚动位置）。
+  ///    `openThreadById` 的清空与置"载入中"是同步的，下一行跳页时是干净的载入态；
+  /// 3. 发定位请求，由对话流在内容到齐后把文件卡滚进视野（见 `ChatTranscript`）。
+  void _open(Artifact a) {
+    final threadId = a.threadId;
+    if (a.content.isNotEmpty) {
+      ref.read(layoutControllerProvider.notifier).showArtifact(a.toChatArtifact());
+    }
+    if (threadId == null) return;
+
+    final chat = ref.read(chatControllerProvider.notifier);
+    if (ref.read(chatControllerProvider).currentThreadId != threadId) {
+      unawaited(chat.openThreadById(threadId));
+    }
+    ref.read(artifactFocusProvider.notifier).request(a);
+    context.go(RouteNames.home);
   }
 
   void _notWired(String what) {
@@ -393,8 +419,9 @@ class _ArtifactsPageState extends ConsumerState<ArtifactsPage> {
               children: [
                 for (final a in items)
                   ArtifactCard(
+                    key: ValueKey(a.id),
                     artifact: a,
-                    onTap: () => _notWired(l10n.commonNotWired('点击跳转')),
+                    onTap: () => _open(a),
                     onCopyLink: () => _notWired(l10n.artifactsCopyLink),
                   ),
               ],
@@ -430,8 +457,9 @@ class _ArtifactsPageState extends ConsumerState<ArtifactsPage> {
             ),
             itemBuilder: (context, index) {
               return ArtifactListRow(
+                key: ValueKey(items[index].id),
                 artifact: items[index],
-                onTap: () => _notWired(l10n.commonNotWired('点击跳转')),
+                onTap: () => _open(items[index]),
                 onCopyLink: () => _notWired(l10n.artifactsCopyLink),
               );
             },

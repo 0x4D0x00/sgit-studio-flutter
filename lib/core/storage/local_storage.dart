@@ -11,6 +11,10 @@ class LocalStorage {
     return _instance!;
   }
 
+  /// 未初始化时为 null。给「有最好、没有也不该崩」的附属持久化用（比如输出物列表
+  /// 的落盘）—— 单测与 headless 场景不会走 [init]，用 [instance] 会直接断言失败。
+  static LocalStorage? get maybeInstance => _instance;
+
   static Future<LocalStorage> init() async {
     _instance ??= LocalStorage._(await SharedPreferences.getInstance());
     return _instance!;
@@ -26,6 +30,7 @@ class LocalStorage {
   static const _kLocale = 'locale';
   static const _kUsername = 'user_profile_username';
   static const _kAvatar = 'user_profile_avatar';
+  static const _kArtifacts = 'artifacts_v1';
 
   String? get authToken => _prefs.getString(_kAuthToken);
   Future<void> setAuthToken(String? v) async =>
@@ -64,4 +69,8 @@ class LocalStorage {
   String? get avatar => _prefs.getString(_kAvatar);
   Future<void> setAvatar(String? v) async =>
       v == null ? _prefs.remove(_kAvatar) : _prefs.setString(_kAvatar, v);
+
+  /// 输出物列表（JSON 数组字符串，格式见 `Artifact.toJson`）。
+  String? get artifacts => _prefs.getString(_kArtifacts);
+  Future<void> setArtifacts(String v) => _prefs.setString(_kArtifacts, v);
 }
