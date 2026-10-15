@@ -2,10 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:sgit_studio_flutter/design/extensions/app_skin.dart';
-import 'package:sgit_studio_flutter/design/tokens/app_spacing.dart';
+// import 'package:sgit_studio_flutter/design/tokens/app_spacing.dart';
 import 'package:sgit_studio_flutter/domain/models/chat/chat_item.dart';
 import 'package:sgit_studio_flutter/domain/models/chat/chat_session.dart';
-import 'package:sgit_studio_flutter/features/chat/presentation/assistant_switcher_container.dart';
+// import 'package:sgit_studio_flutter/features/chat/presentation/assistant_switcher_container.dart';
 import 'package:sgit_studio_flutter/features/chat/presentation/chat_composer.dart';
 import 'package:sgit_studio_flutter/features/chat/presentation/chat_transcript.dart';
 import 'package:sgit_studio_flutter/features/workspace/presentation/widgets/workspace_hero.dart';
@@ -61,7 +61,7 @@ class _WorkspacePageState extends ConsumerState<WorkspacePage> {
         Expanded(
           child: ValueListenableBuilder<int>(
             valueListenable: ctrl.itemsRevision,
-            builder: (context, _, __) {
+            builder: (context, _, _) {
               final isEmpty = ctrl.items.isEmpty;
               // ⚠️ 载入历史会话时**不能落到空态**。空态是"开始新对话"的欢迎页
               // （Hero + 技能标签），而用户刚点的是一条有内容的旧会话 ——
@@ -216,7 +216,7 @@ class _EmptyState extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final skin = AppSkin.of(context);
+    // final skin = AppSkin.of(context);
 
     return SingleChildScrollView(
       padding: const EdgeInsets.only(
@@ -233,10 +233,12 @@ class _EmptyState extends StatelessWidget {
           children: [
             const WorkspaceHero(),
             const SizedBox(height: 24),
-            WorkspaceSkillChips(accent: skin.accentChip),
-            const SizedBox(height: AppSpacing.lg),
-            const AssistantSwitcherContainer(),
-            const SizedBox(height: AppSpacing.lg),
+            // TODO(待启用): 技能标签行暂时下线，待 scene 真实 skill 清单经 FFI 接好再打开。
+            // WorkspaceSkillChips(accent: skin.accentChip),
+            // const SizedBox(height: AppSpacing.lg),
+            // TODO(待启用): 助理切换区暂时下线，四类助理（渗透/防护/竞赛/办公）尚未接入。
+            // const AssistantSwitcherContainer(),
+            // const SizedBox(height: AppSpacing.lg),
             composer,
           ],
         ),

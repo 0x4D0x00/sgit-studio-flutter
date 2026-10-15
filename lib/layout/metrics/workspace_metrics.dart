@@ -80,7 +80,7 @@ class WorkspaceMetrics {
   /// = [transcriptMediumWidth] - 2 × [contentPaddingInline]，两者本来就该相等。
   static const double inputAreaWidth = 768;
   static const double inputAreaRadius = 24;
-  static const double heroAvatarSize = 96;
+  static const double heroAvatarSize = 72;
   static const double welcomeFontSize = 24;
   static const double skillChipHeight = 40;
 }
