@@ -5,6 +5,7 @@ import 'package:sgit_studio_flutter/domain/models/chat/chat_artifact.dart';
 import 'package:sgit_studio_flutter/features/chat/presentation/thread_title_bar.dart';
 import 'package:sgit_studio_flutter/features/shell/presentation/nav_panel_container.dart';
 import 'package:sgit_studio_flutter/l10n/generated/app_localizations.dart';
+import 'package:sgit_studio_flutter/layout/metrics/workspace_metrics.dart';
 import 'package:sgit_studio_flutter/layout/panels/artifact_output_panel.dart';
 import 'package:sgit_studio_flutter/layout/panels/output_panel.dart';
 import 'package:sgit_studio_flutter/layout/shell/app_shell.dart';
@@ -57,20 +58,38 @@ class AppShellContainer extends ConsumerWidget {
             emptyText: l10n.shellOutputEmpty,
           );
 
-    return AppShell(
-      navExpanded: layout.navExpanded,
-      navWidth: layout.navWidth,
-      outputExpanded: layout.outputExpanded,
-      outputWidth: layout.outputWidth,
-      contentMaxWidth: contentMaxWidth,
-      onToggleNav: ctrl.toggleNav,
-      onToggleOutput: ctrl.toggleOutput,
-      onNavWidthChanged: ctrl.setNavWidth,
-      onOutputWidthChanged: ctrl.setOutputWidth,
-      nav: NavPanelContainer(activeNavId: activeNavId),
-      output: outputPanel,
-      headerTitle: activeNavId == null ? const ThreadTitleBar() : null,
-      child: child,
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        // 根据可用宽度动态计算右侧面板的安全宽度
+        // 总宽度 - 左栏宽度(如果展开) - 中栏最小宽度 = 右侧面板可用空间
+        final totalWidth = constraints.maxWidth;
+        final navActualWidth = layout.navExpanded ? layout.navWidth : 0;
+        final minCenterWidth = contentMaxWidth * 0.6; // 中栏至少保留 70% 的内容宽度
+        final availableForOutput = totalWidth - navActualWidth - minCenterWidth;
+        final safeOutputWidth = layout.outputWidth.clamp(
+          WorkspaceMetrics.outputMinWidth,
+          availableForOutput.clamp(
+            WorkspaceMetrics.outputMinWidth,
+            WorkspaceMetrics.outputMaxWidth,
+          ),
+        );
+
+        return AppShell(
+          navExpanded: layout.navExpanded,
+          navWidth: layout.navWidth,
+          outputExpanded: layout.outputExpanded,
+          outputWidth: safeOutputWidth,
+          contentMaxWidth: contentMaxWidth,
+          onToggleNav: ctrl.toggleNav,
+          onToggleOutput: ctrl.toggleOutput,
+          onNavWidthChanged: ctrl.setNavWidth,
+          onOutputWidthChanged: ctrl.setOutputWidth,
+          nav: NavPanelContainer(activeNavId: activeNavId),
+          output: outputPanel,
+          headerTitle: activeNavId == null ? const ThreadTitleBar() : null,
+          child: child,
+        );
+      },
     );
   }
 

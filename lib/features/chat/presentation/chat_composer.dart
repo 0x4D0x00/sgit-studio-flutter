@@ -188,7 +188,8 @@ class _ChatComposerState extends ConsumerState<ChatComposer> {
                 ],
               ),
             ),
-            if (widget.variant == ComposerVariant.conversation) _controlBar(l10n),
+            if (widget.variant == ComposerVariant.conversation)
+              _bottomRow(l10n),
           ],
         ),
       ),
@@ -337,16 +338,6 @@ class _ChatComposerState extends ConsumerState<ChatComposer> {
       ),
       child: Row(
         children: [
-          // 会话态把模型收成一个图标（空态在右下显示完整名字）。
-          if (widget.variant == ComposerVariant.conversation) ...[
-            ModelSelector(
-              selected: settings.selectedModel,
-              onChanged: (m) => ref
-                  .read(composerSettingsProvider.notifier)
-                  .setSelectedModel(m),
-            ),
-            const SizedBox(width: ComposerMetrics.actionItemGap),
-          ],
           _plusMenu(l10n, settings),
           _approvalMenu(l10n, settings.approvalPolicy),
           _engineModeMenu(l10n, settings.engineMode),
@@ -721,4 +712,28 @@ class _ChatComposerState extends ConsumerState<ChatComposer> {
         ReasoningEffort.max => l10n.chatEffortMax,
         ReasoningEffort.ultra => l10n.chatEffortUltra,
       };
+
+  // ---- 底部行（会话态）：控制条 + 模型选择器 ----
+
+  Widget _bottomRow(AppLocalizations l10n) {
+    final settings =
+        ref.watch(composerSettingsProvider.select((s) => s.settings));
+
+    return Padding(
+      padding: const EdgeInsets.only(top: AppSpacing.xs),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          Expanded(child: _controlBar(l10n)),
+          const SizedBox(width: AppSpacing.xs),
+          ModelSelector(
+            selected: settings.selectedModel,
+            onChanged: (m) => ref
+                .read(composerSettingsProvider.notifier)
+                .setSelectedModel(m),
+          ),
+        ],
+      ),
+    );
+  }
 }
