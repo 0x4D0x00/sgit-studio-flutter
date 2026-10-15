@@ -20,6 +20,7 @@ import 'package:sgit_studio_flutter/features/artifacts/application/artifacts_con
 import 'package:sgit_studio_flutter/features/chat/application/composer_settings_controller.dart';
 import 'package:sgit_studio_flutter/features/chat/application/session_sync_controller.dart';
 import 'package:sgit_studio_flutter/features/chat/application/thread_list_controller.dart';
+import 'package:sgit_studio_flutter/services/layout/layout_controller.dart';
 
 /// 会话控制器 —— 内核帧流的唯一消费者。
 ///
@@ -319,10 +320,15 @@ class ChatController extends Notifier<ChatSessionState> {
     await connect();
   }
 
+  /// 关闭右侧面板 —— 面板里的产物属于某条会话，换会话后就不该留着。
+  void _closeOutputPanel() =>
+      ref.read(layoutControllerProvider.notifier).closeOutput();
+
   /// 开始新对话：清空当前会话内容，并让下次发消息**新建 thread**。
   ///
   /// 不重连 —— 连接是按用户建的，换会话不需要重握手。
   void newChat() {
+    _closeOutputPanel();
     if (state.busy) interrupt();
     for (final i in _items) {
       i.dispose();
@@ -509,6 +515,8 @@ class ChatController extends Notifier<ChatSessionState> {
   /// 在内容真正载入完成之前就先亮起来 —— 载入是异步的，用户点完到内容回来
   /// 之间那段空档如果不亮，看着就像"没点中"。
   void beginOpenThread(String threadId) {
+    // 右侧面板跟着会话走：换到另一条会话就关掉（重点同一条不动它）。
+    if (state.currentThreadId != threadId) _closeOutputPanel();
     _openGeneration++;
     if (state.busy) interrupt();
     for (final i in _items) {

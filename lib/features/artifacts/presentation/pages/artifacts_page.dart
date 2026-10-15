@@ -75,15 +75,17 @@ class _ArtifactsPageState extends ConsumerState<ArtifactsPage> {
   /// 3. 发定位请求，由对话流在内容到齐后把文件卡滚进视野（见 `ChatTranscript`）。
   void _open(Artifact a) {
     final threadId = a.threadId;
+    final chat = ref.read(chatControllerProvider.notifier);
+    // 切会话会关右侧面板，所以必须**先切会话、后开面板**。
+    if (threadId != null &&
+        ref.read(chatControllerProvider).currentThreadId != threadId) {
+      unawaited(chat.openThreadById(threadId));
+    }
     if (a.content.isNotEmpty) {
       ref.read(layoutControllerProvider.notifier).showArtifact(a.toChatArtifact());
     }
     if (threadId == null) return;
 
-    final chat = ref.read(chatControllerProvider.notifier);
-    if (ref.read(chatControllerProvider).currentThreadId != threadId) {
-      unawaited(chat.openThreadById(threadId));
-    }
     ref.read(artifactFocusProvider.notifier).request(a);
     context.go(RouteNames.home);
   }
@@ -576,7 +578,7 @@ class _ArtifactCardState extends State<ArtifactCard> {
                     children: [
                       Text(
                         artifact.title,
-                        maxLines: 2,
+                        maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: TextStyle(
                           fontSize: 14,
