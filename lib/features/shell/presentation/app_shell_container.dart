@@ -18,20 +18,55 @@ import 'package:sgit_studio_flutter/ui/components/chat/artifact/artifact_viewer.
 ///
 /// 这是**整个外壳唯一的 provider 订阅点**：`AppShell` / `NavPanel` / `OutputPanel`
 /// 三个纯组件都不认识 Riverpod。
-class AppShellContainer extends ConsumerWidget {
+///
+/// ⚠️ 它同时是**右侧面板的收口点**。面板里的产物属于某条会话，所以它的可见性
+/// 由「布局状态」与「当前是不是会话页」两个条件共同决定 —— 只看前者，用户在
+/// Projects 页会看到一个占着半屏、内容却来自那条会话的面板（见 [didUpdateWidget]）。
+class AppShellContainer extends ConsumerStatefulWidget {
   const AppShellContainer({
     super.key,
     required this.child,
+    required this.isConversation,
     this.activeNavId,
   });
 
   final Widget child;
 
+  /// 当前路由是不是**会话页**（工作台）。
+  ///
+  /// 由路由层判定后注入 —— 不在这一层靠 `activeNavId == null` 反推：那个条件
+  /// 是"没有激活的导航项"，而设置页、登录页同样满足，会把非会话页误判成会话页。
+  /// 右侧面板只在会话页上有效，判错就会漏关（见 [didUpdateWidget]）。
+  final bool isConversation;
+
   /// 当前激活的导航项 id（产物页 / 智能体子页 / null=工作台）。
   final String? activeNavId;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<AppShellContainer> createState() => _AppShellContainerState();
+}
+
+class _AppShellContainerState extends ConsumerState<AppShellContainer> {
+  @override
+  void didUpdateWidget(AppShellContainer old) {
+    super.didUpdateWidget(old);
+    // 离开会话页 → 真的关掉右侧面板（不只是藏起来）。
+    //
+    // ⚠️ 判据是**离开**会话页，而不是"路由变了"。产物页点一张卡片的顺序是
+    // `showArtifact()` 之后才 `go(home)` —— 打开面板那一刻人还站在产物页上。
+    // 按"路由变了"关，会在跳回会话的路上把它当场关掉。
+    if (old.isConversation && !widget.isConversation) {
+      // 延到帧后再改状态：本回调跑在 build 之前，此刻动 provider 会把正在
+      // 构建的这棵树标脏。
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) return;
+        ref.read(layoutControllerProvider.notifier).closeOutput();
+      });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     final layout = ref.watch(layoutControllerProvider);
     final ctrl = ref.read(layoutControllerProvider.notifier);
@@ -77,17 +112,19 @@ class AppShellContainer extends ConsumerWidget {
         return AppShell(
           navExpanded: layout.navExpanded,
           navWidth: layout.navWidth,
-          outputExpanded: layout.outputExpanded,
+          // ⚠️ 非会话页恒为 false。关状态是 post-frame 的（见 didUpdateWidget），
+          // 只靠它会让离开会话页的那一帧仍把面板画出来 —— 肉眼就是"闪一下"。
+          outputExpanded: widget.isConversation && layout.outputExpanded,
           outputWidth: safeOutputWidth,
           contentMaxWidth: contentMaxWidth,
           onToggleNav: ctrl.toggleNav,
           onToggleOutput: ctrl.toggleOutput,
           onNavWidthChanged: ctrl.setNavWidth,
           onOutputWidthChanged: ctrl.setOutputWidth,
-          nav: NavPanelContainer(activeNavId: activeNavId),
+          nav: NavPanelContainer(activeNavId: widget.activeNavId),
           output: outputPanel,
-          headerTitle: activeNavId == null ? const ThreadTitleBar() : null,
-          child: child,
+          headerTitle: widget.isConversation ? const ThreadTitleBar() : null,
+          child: widget.child,
         );
       },
     );

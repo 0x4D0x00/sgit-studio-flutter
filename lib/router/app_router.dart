@@ -46,6 +46,9 @@ final routerProvider = Provider<GoRouter>((ref) {
           };
 
           return AppShellContainer(
+            // 只有工作台是会话页。其余路由（输出物 / Projects / 设置 / 智能体
+            // 子页）都不该带着右侧面板 —— 面板里的产物属于某条会话。
+            isConversation: path == RouteNames.home,
             activeNavId: activeNavId,
             child: child,
           );

@@ -74,7 +74,7 @@ void main() {
             GlobalWidgetsLocalizations.delegate,
             GlobalCupertinoLocalizations.delegate,
           ],
-          home: AppShellContainer(child: page),
+          home: AppShellContainer(isConversation: true, child: page),
         ),
       );
 
