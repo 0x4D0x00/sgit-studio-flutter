@@ -349,6 +349,9 @@ class _ChatTranscriptState extends ConsumerState<ChatTranscript> {
     final thinking =
         ref.watch(chatControllerProvider.select((s) => s.thinking));
 
+    // 有没有 turn 在跑 —— 决定末尾回答的工具行露不露面（见下面 tailComplete）。
+    final busy = ref.watch(chatControllerProvider.select((s) => s.busy));
+
     // 帧末收尾：跟随时钉回底部 + 刷新浮钮。挂在这里而不是各个通知里，
     // 是为了让"结构变化"和"尺寸变化"两条路都汇到同一个出口 —— 见 _settle。
     _scheduleSettle();
@@ -372,6 +375,16 @@ class _ChatTranscriptState extends ConsumerState<ChatTranscript> {
         // 最后一组回答的末尾气泡（当前/最近这轮的 assistant 文本）—— 从后往前
         // 找第一条 assistant TextItem，工具行对它常驻显示。
         int? lastAssistantId;
+        // 最后一个**用户**气泡的下标 —— 它之后的条目全都属于本轮回答。
+        // 这是「哪一条还在跑」的分界线（见下面的 replyComplete）。
+        var lastUserId = -1;
+        for (var i = items.length - 1; i >= 0; i--) {
+          final it = items[i];
+          if (it is TextItem && it.role == ChatRole.user) {
+            lastUserId = i;
+            break;
+          }
+        }
         for (var i = items.length - 1; i >= 0; i--) {
           final it = items[i];
           if (it is TextItem && it.role == ChatRole.assistant) {
@@ -423,15 +436,27 @@ class _ChatTranscriptState extends ConsumerState<ChatTranscript> {
                   itemBuilder: (context, i) {
                     if (thinking && i == 0) return const ThinkingRow();
                     // 反向索引换算：i 越大越靠上（越旧）。
-                    final item =
-                        items[items.length - 1 - (thinking ? i - 1 : i)];
+                    final at = items.length - 1 - (thinking ? i - 1 : i);
+                    final item = items[at];
                     return KeyedSubtree(
                       key: ValueKey<int>(item.id),
                       // 内层 GlobalKey 只服务于「定位到某条」（见 [_reveal]）。
                       child: KeyedSubtree(
                         key: _itemKeys.putIfAbsent(item.id, () => GlobalKey()),
                         child: _card(context, ref, ctrl, l10n, item,
-                            isLastAnswer: item.id == lastAssistantId),
+                            isLastAnswer: item.id == lastAssistantId,
+                            // 这一条的整轮回答跑完了没有 —— 见
+                            // `TextBubble.replyComplete`。
+                            //
+                            // ⚠️ **不能只看 `item.done`**：那是 `itemCompleted`
+                            // 的标记，而一轮回答由**多段**组成（每段一对
+                            // started/completed），所以一轮跑到一半时，前面那些段
+                            // 各自 done 都已经是 true —— 按 done 判定就会在回答中间插出工具行（正是这次要修的现象）。
+                            //
+                            // 真正的问题是「这一条属于哪一轮」。分界线是最后一条
+                            // **用户**消息：在它之前的都跑完了；在它之后的属于本轮，
+                            // 而本轮只要 [busy] 就还没结束。
+                            replyComplete: !busy || at <= lastUserId),
                       ),
                     );
                   },
@@ -450,8 +475,6 @@ class _ChatTranscriptState extends ConsumerState<ChatTranscript> {
   /// ⚠️ **常驻在树里，靠 opacity + IgnorePointer 控制**，不做条件挂载。
   /// 条件挂载会让整棵 Stack 在浮钮进出时重建一次布局；而纯粹淡出（不摘）则
   /// 会在对话右下角留一块透明的 [SizedBox] —— 正好压住最后一条回复的结尾，
-  /// 那是悬停操作和文本选择最常发生的地方。`IgnorePointer` 两头都躲开了：
-  /// 布局稳定，且看不见时一点都不吃点击。
   Widget _jumpButton(AppLocalizations l10n) => Positioned(
         // 与输入框同轴居中，不贴右边缘。正文列是有上限的
         // （`TranscriptWidth` 的 640/800/960 三档），宽档下屏幕很宽，
@@ -477,12 +500,13 @@ class _ChatTranscriptState extends ConsumerState<ChatTranscript> {
   /// 一条 → 一张卡。用 sealed class 的 switch，新增条目类型时编译器会在这里拦住。
   Widget _card(BuildContext context, WidgetRef ref, ChatController ctrl,
           AppLocalizations l10n, ChatItem item,
-          {required bool isLastAnswer}) =>
+          {required bool isLastAnswer, required bool replyComplete}) =>
       switch (item) {
         final TextItem t => TextBubble(
             item: t,
             truncatedHint: l10n.chatTextTruncated,
             isLastAnswer: isLastAnswer,
+            replyComplete: replyComplete,
             // 品牌头像在这里注入 —— `ui/` 层不许 import `services/`，
             // 所以 TextBubble 只收 ImageProvider，自己去哪取归本层管。
             assistantAvatar: BrandAssets.image(BrandAssets.loginMark),

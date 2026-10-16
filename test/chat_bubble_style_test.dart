@@ -12,6 +12,7 @@ import 'package:sgit_studio_flutter/design/tokens/app_spacing.dart';
 import 'package:sgit_studio_flutter/design/tokens/bubble_metrics.dart';
 import 'package:sgit_studio_flutter/domain/models/chat/chat_item.dart';
 import 'package:sgit_studio_flutter/l10n/generated/app_localizations.dart';
+import 'package:sgit_studio_flutter/ui/components/chat/bubble_actions_row.dart';
 import 'package:sgit_studio_flutter/ui/components/chat/text_bubble.dart';
 
 /// 气泡**形态**的回归测试 —— 用户是实心灰气泡，助手是完全没有框的纯文字。
@@ -31,7 +32,9 @@ void main() {
     'YPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==',
   ));
 
-  Widget harness(TextItem item, {bool isLastAnswer = false}) => ProviderScope(
+  Widget harness(TextItem item,
+          {bool isLastAnswer = false, bool replyComplete = false}) =>
+      ProviderScope(
         child: MaterialApp(
           theme: AppTheme.light(
             primary: AppColors.defaultPrimary,
@@ -51,6 +54,7 @@ void main() {
               truncatedHint: '内容可能不完整',
               assistantAvatar: avatar,
               isLastAnswer: isLastAnswer,
+              replyComplete: replyComplete,
             ),
           ),
         ),
@@ -60,6 +64,7 @@ void main() {
     await tester.pumpWidget(harness(
       TextItem(id: 1, role: ChatRole.assistant, initial: '防护助理的主要作用是什么'),
       isLastAnswer: true,
+      replyComplete: true,
     ));
 
     // ① 无框 —— 助手分支里一个 Container 都不该有。
@@ -95,7 +100,8 @@ void main() {
         TextItem(id: 3, role: ChatRole.assistant, initial: '这条回复到这儿就结束了');
 
     // ① 结尾那条：有头像，且**在正文下方**（不是像以前那样挂在左边）。
-    await tester.pumpWidget(harness(item, isLastAnswer: true));
+    await tester.pumpWidget(
+        harness(item, isLastAnswer: true, replyComplete: true));
     final textBottom = tester.getBottomLeft(find.byType(SelectableText)).dy;
     final avatarRect = tester.getRect(find.byType(Image));
     expect(avatarRect.top, greaterThanOrEqualTo(textBottom));
@@ -106,8 +112,51 @@ void main() {
     expect(avatarRect.width, ChatBubbleMetrics.avatarSize);
 
     // ② 非结尾那条：一个头像都不该有 —— 这条守住「别再每条回复都挂一枚」。
-    await tester.pumpWidget(harness(item));
+    await tester.pumpWidget(harness(item, replyComplete: true));
     expect(find.byType(Image), findsNothing);
+  });
+
+  /// 这一条钉住本轮要修的 bug：回答**还在流**的时候，末尾气泡底下不能出现
+  /// 工具行（截图里那两个红框）。
+  ///
+  /// 难点在于两种「看起来该显示」的判断都是错的：
+  /// - `isLastAnswer` —— 跑动期间列表末尾那条正是正在流出来的那条，
+  ///   所以一轮里它会先后落在每一段回答上；
+  /// - `item.done` —— 一轮由**多段**组成，`itemCompleted` 每段都发一次，
+  ///   所以一轮跑到一半时前面那些段 done 已经是 true。
+  /// 只有当 caller 明确告知「整轮结束」时才给工具行。
+  testWidgets('回答未结束（replyComplete=false）：工具行与头像都不出现，连占位高度也不留',
+      (tester) async {
+    final item =
+        TextItem(id: 4, role: ChatRole.assistant, initial: '正在往外吐的回答');
+
+    // 流式中：什么都没有。
+    await tester.pumpWidget(harness(item, isLastAnswer: true));
+    expect(find.byType(BubbleActionsRow), findsNothing,
+        reason: '回答还会变长时不该冒出「复制 / 朗读 / 重试」');
+    expect(find.byType(Image), findsNothing, reason: '整轮没结束就没有末尾头像');
+
+    // ⚠️ 那 24px 的占位高度也要一起省掉，否则多段回答的中间会凭空多出一道缝。
+    //
+    // 量的是**正文底边**而不是 `TextBubble` 自身的高度：外层那个 Column 的
+    // `mainAxisSize` 是 max，在 Scaffold 里会被拉满整屏，两种状态量出来一样高，
+    // 拿它比等于什么都没验。
+    final textBottom = tester.getBottomLeft(find.byType(SelectableText)).dy;
+
+    // 同一段内容，整轮结束后再看：工具行 + 头像都到位，且确实排在正文**下方**。
+    await tester.pumpWidget(
+        harness(item, isLastAnswer: true, replyComplete: true));
+    expect(find.byType(BubbleActionsRow), findsOneWidget);
+    expect(find.byType(Image), findsOneWidget);
+
+    final rowTop = tester.getTopLeft(find.byType(BubbleActionsRow)).dy;
+    final avatarTop = tester.getTopLeft(find.byType(Image)).dy;
+    expect(rowTop, greaterThanOrEqualTo(textBottom), reason: '工具行该在回复下方');
+    expect(avatarTop, greaterThanOrEqualTo(rowTop), reason: '头像该在工具行下方');
+    // 底边的位移就是「工具行 + 间隙 + 头像」那一摞；没往下走说明流式期仍留着占位。
+    expect(tester.getBottomLeft(find.byType(Image)).dy,
+        greaterThan(textBottom + ChatBubbleMetrics.avatarGap),
+        reason: '整轮结束后内容总高该比流式期长一截');
   });
 
   testWidgets('用户消息：实心灰气泡，底色取自 bubbleUserBg 令牌', (tester) async {

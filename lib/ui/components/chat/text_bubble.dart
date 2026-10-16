@@ -35,6 +35,7 @@ class TextBubble extends ConsumerStatefulWidget {
     required this.truncatedHint,
     required this.assistantAvatar,
     this.isLastAnswer = false,
+    this.replyComplete = false,
     this.onEditSave,
   });
 
@@ -52,7 +53,25 @@ class TextBubble extends ConsumerStatefulWidget {
 
   /// 这条是不是当前会话最后一组回答的末尾气泡 —— 是的话工具行常驻显示，
   /// 不需要悬停（用户气泡从不常驻，只有回答气泡走这条）。
+  ///
+  /// ⚠️ 光有它**不够**：跑动期间列表末尾那条就是正在流出来的那条，所以它
+  /// 一轮里会先后落在每一段回答上。必须与 [replyComplete] 一起用。
   final bool isLastAnswer;
+
+  /// 这条所在的**整轮回答**是否已经结束（内核的 turn 跑完了）。
+  ///
+  /// ⚠️ **false 时工具行整块不渲染，连那 24px 占位高度都不留。** 两件事各有
+  /// 各的理由，但都由这一个开关管：
+  ///
+  /// 1. **内容**：回复还在往外吐的时候，底下不该冒出一排「复制 / 朗读 / 重试」
+  ///    —— 那些按钮对一段还会变长的文本没有意义，而且鼠标一移上去就闪。
+  /// 2. **占位**：答案常常由**多段**组成（`itemStarted`/`itemCompleted` 成对出现，
+  ///    中间还夹着工具卡）。每段都是一个独立的 [TextBubble]，若只把工具行挖空、
+  ///    留着固定高度，回答中间就会凭空多出一道 24px 的缝 —— 看着像正文缺了一块。
+  ///
+  /// 默认 false（**失败时偏向不显示**）：谁忘了传，最坏结果是工具行不出现，
+  /// 而不是在流式回答中间冒出一排按钮。历史回放与历史消息一律传 true。
+  final bool replyComplete;
 
   /// 仅用户气泡传入：气泡内联编辑保存后调用，参数是编辑后的文本。
   /// 调用方（[ChatTranscript]）据此丢弃这条之后的内容并重新发送。
@@ -108,6 +127,7 @@ class _TextBubbleState extends ConsumerState<TextBubble> {
     final item = widget.item;
     final isUser = item.role == ChatRole.user;
     // 用户气泡从不常驻，只有"当前回答"的末尾气泡才常驻。
+    // ⚠️ 助手那边还要再过一道 [replyComplete]，见 [_assistantReply]。
     final showActions = _hovering || (widget.isLastAnswer && !isUser);
     final editing = _editCtl != null;
 
@@ -202,9 +222,13 @@ class _TextBubbleState extends ConsumerState<TextBubble> {
                 vertical: ChatBubbleMetrics.assistantPaddingBlock),
             child: _body(skin, item, blocks, artifacts),
           ),
-          _actionsSlot(context, item,
-              isUser: false, showActions: showActions),
-          if (widget.isLastAnswer) ...[
+          // ⚠️ 回答还没结束就**整块不渲染** —— 连那 24px 的占位高度一起省掉。
+          // 一段回答由多个 [TextBubble] 拼成，留着占位会让正文中间凭空多出
+          // 一道缝（见 [replyComplete]）。
+          if (widget.replyComplete)
+            _actionsSlot(context, item,
+                isUser: false, showActions: showActions),
+          if (widget.replyComplete && widget.isLastAnswer) ...[
             const SizedBox(height: ChatBubbleMetrics.avatarGap),
             _avatar(),
           ],
