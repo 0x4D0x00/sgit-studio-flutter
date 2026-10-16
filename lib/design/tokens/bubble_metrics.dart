@@ -73,6 +73,34 @@ class ChatBubbleMetrics {
   /// 代码块圆角。
   static const double codeBlockRadius = 8;
 
+  // ---- 正文里的横向滚动条（代码块 / 表格下方那条"可以右滑"的指示条）----
+
+  /// 滑条粗细。
+  ///
+  /// 与 Material 默认(6)同档，但**必须显式写**：这是"这里能滑"的一句提示，
+  /// 不是一件控件，再粗一点就会盖过代码正文。
+  static const double hScrollThickness = 4;
+
+  /// 滑条圆角。取 [hScrollThickness] 的一半 —— 滑块两端是半圆而不是方头。
+  static const double hScrollRadius = 3;
+
+  /// 滑条与内容底边的距离。留 1px 让它不贴着边框线画。
+  static const double hScrollCrossAxisMargin = 1;
+
+  /// 内容底边之下、留给滑条的那条空带高度。
+  ///
+  /// ⚠️ **这条空带是滑条能被画在"内容下方"的前提**：滑条的绘制区域就是
+  /// 横向滚动视图的盒子，想画在正文外面，只能让那个盒子比正文高一点。
+  /// 取 [hScrollThickness] + [hScrollCrossAxisMargin] 再多 1 —— 刚好容下，
+  /// 且不显空。**溢出时才留**（见 `HorizontalScrollArea`），否则短代码块
+  /// 底下会莫名其妙多出一道空白。
+  static const double hScrollGutter = 8;
+
+  /// 滑块不透明度。底色取 `skin.textTertiary`（明暗各一档由皮肤决定），
+  /// 这里再压一层 —— 与 [hoverAlpha] 同一套「在既有色上叠不透明度」的写法，
+  /// 组件不判 `isDark`。
+  static const double hScrollThumbAlpha = 0.4;
+
   /// 产物文件卡片的最大宽度。
   ///
   /// ⚠️ **不能撑满转录列宽**：一张"文件卡"横贯整列会被读成一块区域分隔条，

@@ -6,6 +6,7 @@ import 'package:sgit_studio_flutter/design/tokens/app_typography.dart';
 import 'package:sgit_studio_flutter/design/tokens/bubble_metrics.dart';
 import 'package:sgit_studio_flutter/l10n/generated/app_localizations.dart';
 import 'package:sgit_studio_flutter/ui/components/chat/bubble_actions_row.dart';
+import 'package:sgit_studio_flutter/ui/components/chat/markdown/horizontal_scroll_area.dart';
 
 /// 围栏代码块：圆角卡 + 等宽字体 + 横向滚动 + 复制按钮。
 ///
@@ -100,9 +101,12 @@ class _CodeBlockCardState extends State<CodeBlockCard> {
             ],
           ),
           const SizedBox(height: AppSpacing.xs),
-          // 代码正文：等宽 + 横向滚动
-          SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
+          // 代码正文：等宽 + 横向滚动。
+          //
+          // ⚠️ 走 [HorizontalScrollArea] 而不是裸 `SingleChildScrollView`：
+          // 长行被裁掉时右边那截**没有任何提示**，读者会把半截命令当完整的读。
+          // 那个组件在正文下方补一道常驻滑块，装得下时它自己不出。
+          HorizontalScrollArea(
             child: SelectableText(
               code,
               style: TextStyle(

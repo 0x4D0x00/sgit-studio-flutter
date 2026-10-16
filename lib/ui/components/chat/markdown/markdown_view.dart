@@ -10,6 +10,7 @@ import 'package:sgit_studio_flutter/domain/models/chat/markdown/markdown_inline.
 import 'package:sgit_studio_flutter/l10n/generated/app_localizations.dart';
 import 'package:sgit_studio_flutter/ui/components/chat/artifact_chip.dart';
 import 'package:sgit_studio_flutter/ui/components/chat/markdown/code_block_card.dart';
+import 'package:sgit_studio_flutter/ui/components/chat/markdown/horizontal_scroll_area.dart';
 import 'package:sgit_studio_flutter/ui/components/chat/markdown/markdown_spans.dart';
 
 /// Markdown 块级渲染器 —— 块 AST → Widget。
@@ -232,10 +233,12 @@ class MarkdownView extends StatelessWidget {
   /// 两者的 `minIntrinsicWidth` 都等于整行文本宽度，所以表格能正常收缩换行；
   /// 但表格与段落是同一段回答，选择行为要一致，而且 [MarkdownSpans] 产出的
   /// 链接 recognizer 本来也只有 Selectable 家族会派发。
+  ///
+  /// ⚠️ 列多时表格会超出列宽被裁掉 —— 右侧那几列既看不见也没提示。走
+  /// [HorizontalScrollArea] 在表格下方补一道滑块（装得下时它自己不出）。
   Widget _table(BuildContext context, MdTable t) {
     final skin = AppSkin.of(context);
-    return SingleChildScrollView(
-      scrollDirection: Axis.horizontal,
+    return HorizontalScrollArea(
       child: Table(
         border: TableBorder.all(color: skin.borderSecondary),
         defaultColumnWidth: const IntrinsicColumnWidth(),
