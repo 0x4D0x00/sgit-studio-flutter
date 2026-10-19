@@ -250,6 +250,15 @@ void main() {
   /// 让最新一条落在底部。少了这条，一个"永远顶对齐"的实现也能让上面
   /// 那条测试通过。
   testWidgets('长会话：内容超过一屏后仍停在最新一条（底部）', (tester) async {
+    // ⚠️ 显式收窄视口，**不要**依赖 mock 脚本自然"超过一屏"。
+    //    这条测试的前提是「内容真的溢出了视口」，而默认 800×600 下这个前提
+    //    只余下几十像素的余量 —— 任何一次纵向尺寸调整（例如移除回复末尾的
+    //    品牌头像）都会让它恰好塞进一屏，测试于是变成断言 `0 > 0`。
+    //    把视口压矮，前提就由这条测试自己保证，而不是由别处的版式决定。
+    tester.view.physicalSize = const Size(800, 420);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+
     await tester.pumpWidget(harness());
     final container = ProviderScope.containerOf(
         tester.element(find.byType(ChatComposer)));

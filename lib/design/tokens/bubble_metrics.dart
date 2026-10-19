@@ -34,9 +34,6 @@ class ChatBubbleMetrics {
   /// 相邻回复的疏密不会因为这次重做而变。
   static const double assistantPaddingBlock = 16;
 
-  /// 助手回复末尾品牌头像的直径。
-  static const double avatarSize = 28;
-
   // ---- 「正在思考」状态行 ----
 
   /// 状态行的左缩进。
@@ -55,12 +52,6 @@ class ChatBubbleMetrics {
 
   /// 状态行文字字号。比助手正文（14）小一档 —— 它是旁白，不是回答本身。
   static const double thinkingFontSize = 13;
-
-  /// 工具行与末尾头像之间的间距。
-  ///
-  /// ⚠️ 头像现在在整段对话最后一组回答的末尾 ——
-  /// 这个值量的是「工具行下方到头像」那道缝，改位置时别当成左内边距用。
-  static const double avatarGap = 12;
 
   // ---- Markdown 块 ----
 

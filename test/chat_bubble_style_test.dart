@@ -1,5 +1,3 @@
-import 'dart:convert';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -21,17 +19,12 @@ import 'package:sgit_studio_flutter/ui/components/chat/text_bubble.dart';
 /// → 真 UI」的端到端链路，是**行为**测试；这里只关心两种角色的**视觉形态**，
 /// 直接摆一个 `TextBubble` 就够，不必拖起整条链路。
 ///
-/// 钉在这里的是四件容易在后续改动中被悄悄改回去的事：
+/// 钉在这里的是三件容易在后续改动中被悄悄改回去的事：
 /// ① 助手回复没有气泡框；② 用户气泡底色走 `bubbleUserBg` 令牌；
-/// ③ 助手回复不受用户气泡的 680 宽度上限约束（否则设置页的「转录宽度」对它失效）；
-/// ④ 品牌头像只在**最后一条**回答的末尾出现一次，且**在其下方**，不是每条回复的左上方。
+/// ③ 助手回复不受用户气泡的 680 宽度上限约束（否则设置页的「转录宽度」对它失效）。
+///
+/// 品牌头像已从助手回复末尾移除，因此这里不再有头像相关断言。
 void main() {
-  /// 1×1 透明 PNG。头像只关心「有没有按尺寸摆出来」，不关心画的是什么。
-  final avatar = MemoryImage(base64Decode(
-    'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk'
-    'YPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==',
-  ));
-
   Widget harness(TextItem item,
           {bool isLastAnswer = false, bool replyComplete = false}) =>
       ProviderScope(
@@ -52,7 +45,6 @@ void main() {
             body: TextBubble(
               item: item,
               truncatedHint: '内容可能不完整',
-              assistantAvatar: avatar,
               isLastAnswer: isLastAnswer,
               replyComplete: replyComplete,
             ),
@@ -85,35 +77,15 @@ void main() {
     ));
     expect(box, isEmpty);
 
-    // ③ 头像按令牌尺寸摆出来了。
+    // ③ 助手回复里**不再有任何图片** —— 末尾的品牌头像已移除。
+    //    这条守住「不会再被悄悄加回来」（比如以后想加"AI 生成"角标时）。
     expect(
       find.descendant(
         of: find.byType(TextBubble),
         matching: find.byType(Image),
       ),
-      findsOneWidget,
+      findsNothing,
     );
-  });
-
-  testWidgets('品牌头像只挂在最后一组回答的末尾，且落在正文下方', (tester) async {
-    final item =
-        TextItem(id: 3, role: ChatRole.assistant, initial: '这条回复到这儿就结束了');
-
-    // ① 结尾那条：有头像，且**在正文下方**（不是像以前那样挂在左边）。
-    await tester.pumpWidget(
-        harness(item, isLastAnswer: true, replyComplete: true));
-    final textBottom = tester.getBottomLeft(find.byType(SelectableText)).dy;
-    final avatarRect = tester.getRect(find.byType(Image));
-    expect(avatarRect.top, greaterThanOrEqualTo(textBottom));
-    // 与正文同一列首，不居中、不右靠。
-    expect(avatarRect.left,
-        moreOrLessEquals(tester.getTopLeft(find.byType(SelectableText)).dx,
-            epsilon: 1));
-    expect(avatarRect.width, ChatBubbleMetrics.avatarSize);
-
-    // ② 非结尾那条：一个头像都不该有 —— 这条守住「别再每条回复都挂一枚」。
-    await tester.pumpWidget(harness(item, replyComplete: true));
-    expect(find.byType(Image), findsNothing);
   });
 
   /// 这一条钉住本轮要修的 bug：回答**还在流**的时候，末尾气泡底下不能出现
@@ -125,7 +97,7 @@ void main() {
   /// - `item.done` —— 一轮由**多段**组成，`itemCompleted` 每段都发一次，
   ///   所以一轮跑到一半时前面那些段 done 已经是 true。
   /// 只有当 caller 明确告知「整轮结束」时才给工具行。
-  testWidgets('回答未结束（replyComplete=false）：工具行与头像都不出现，连占位高度也不留',
+  testWidgets('回答未结束（replyComplete=false）：工具行不出现，连占位高度也不留',
       (tester) async {
     final item =
         TextItem(id: 4, role: ChatRole.assistant, initial: '正在往外吐的回答');
@@ -134,7 +106,6 @@ void main() {
     await tester.pumpWidget(harness(item, isLastAnswer: true));
     expect(find.byType(BubbleActionsRow), findsNothing,
         reason: '回答还会变长时不该冒出「复制 / 朗读 / 重试」');
-    expect(find.byType(Image), findsNothing, reason: '整轮没结束就没有末尾头像');
 
     // ⚠️ 那 24px 的占位高度也要一起省掉，否则多段回答的中间会凭空多出一道缝。
     //
@@ -143,19 +114,16 @@ void main() {
     // 拿它比等于什么都没验。
     final textBottom = tester.getBottomLeft(find.byType(SelectableText)).dy;
 
-    // 同一段内容，整轮结束后再看：工具行 + 头像都到位，且确实排在正文**下方**。
+    // 同一段内容，整轮结束后再看：工具行到位，且确实排在正文**下方**。
     await tester.pumpWidget(
         harness(item, isLastAnswer: true, replyComplete: true));
     expect(find.byType(BubbleActionsRow), findsOneWidget);
-    expect(find.byType(Image), findsOneWidget);
 
     final rowTop = tester.getTopLeft(find.byType(BubbleActionsRow)).dy;
-    final avatarTop = tester.getTopLeft(find.byType(Image)).dy;
     expect(rowTop, greaterThanOrEqualTo(textBottom), reason: '工具行该在回复下方');
-    expect(avatarTop, greaterThanOrEqualTo(rowTop), reason: '头像该在工具行下方');
-    // 底边的位移就是「工具行 + 间隙 + 头像」那一摞；没往下走说明流式期仍留着占位。
-    expect(tester.getBottomLeft(find.byType(Image)).dy,
-        greaterThan(textBottom + ChatBubbleMetrics.avatarGap),
+    // 底边的位移就是那 24px 工具行；没往下走说明流式期仍留着占位。
+    expect(tester.getBottomLeft(find.byType(BubbleActionsRow)).dy,
+        greaterThan(textBottom),
         reason: '整轮结束后内容总高该比流式期长一截');
   });
 

@@ -1,5 +1,3 @@
-import 'dart:convert';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -21,12 +19,6 @@ import 'package:sgit_studio_flutter/ui/components/chat/text_bubble.dart';
 /// - 加粗 → `fontWeight.w700` 的 TextSpan
 /// - 未闭合围栏不抛异常
 void main() {
-  /// 1×1 透明 PNG。
-  final avatar = MemoryImage(base64Decode(
-    'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk'
-    'YPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==',
-  ));
-
   Widget harness(TextItem item) => ProviderScope(
         child: MaterialApp(
           theme: AppTheme.light(
@@ -45,7 +37,6 @@ void main() {
             body: TextBubble(
               item: item,
               truncatedHint: '内容可能不完整',
-              assistantAvatar: avatar,
             ),
           ),
         ),

@@ -33,7 +33,6 @@ class TextBubble extends ConsumerStatefulWidget {
     super.key,
     required this.item,
     required this.truncatedHint,
-    required this.assistantAvatar,
     this.isLastAnswer = false,
     this.replyComplete = false,
     this.onEditSave,
@@ -43,13 +42,6 @@ class TextBubble extends ConsumerStatefulWidget {
 
   /// 「内容可能不完整」提示文案（native 背压丢过 delta 时显示）。
   final String truncatedHint;
-
-  /// 助手回复左侧的品牌头像。
-  ///
-  /// ⚠️ **由调用方注入而不是在这里取** —— `ui/` 是纯展示层，不许 import
-  /// `services/`（`brand_assets` 在那里）。照 `NavPanel.brandMark` 的既有做法，
-  /// 由 `ChatTranscript` 注入。
-  final ImageProvider assistantAvatar;
 
   /// 这条是不是当前会话最后一组回答的末尾气泡 —— 是的话工具行常驻显示，
   /// 不需要悬停（用户气泡从不常驻，只有回答气泡走这条）。
@@ -137,8 +129,12 @@ class _TextBubbleState extends ConsumerState<TextBubble> {
         builder: (context, _, _) {
           // 产物从**已经解析好的块**里提取，不另扫一遍原文 —— 围栏识别只有
           // 解析器一处实现。流式期也提取：卡片头要跟着 delta 一起长出来。
-          final blocks = _mdCache.parse(item.text);
-          final artifacts = ChatArtifact.fromBlocks(blocks, item.text);
+          // ⚠️ 用 [TextItem.displayText] 而不是 `item.text`：助手回复开头的
+          //    「技能 / 工具调用抬头」在协议层仍然存在（回放要用），但界面上
+          //    不该出现 —— 也不该被复制走，所以解析与产物提取都走同一份文本。
+          final body = item.displayText;
+          final blocks = _mdCache.parse(body);
+          final artifacts = ChatArtifact.fromBlocks(blocks, body);
 
           final bubble = editing
               ? _buildEditor(context, skin)
@@ -204,8 +200,6 @@ class _TextBubbleState extends ConsumerState<TextBubble> {
   ///
   /// 也**不套 `ConstrainedBox`**：让它吃满外壳给的转录列宽，设置页的
   /// 「转录宽度」三档才对回复真正生效。
-  ///
-  /// 品牌头像只在整段对话最后一组回答的末尾（工具行下方）出现一次 
   Widget _assistantReply(
     AppSkin skin,
     TextItem item,
@@ -228,23 +222,7 @@ class _TextBubbleState extends ConsumerState<TextBubble> {
           if (widget.replyComplete)
             _actionsSlot(context, item,
                 isUser: false, showActions: showActions),
-          if (widget.replyComplete && widget.isLastAnswer) ...[
-            const SizedBox(height: ChatBubbleMetrics.avatarGap),
-            _avatar(),
-          ],
         ],
-      );
-
-  /// 末尾的品牌头像。只由最后一组回答的末尾气泡摆出，压在工具行下方。
-  Widget _avatar() => SizedBox(
-        width: ChatBubbleMetrics.avatarSize,
-        height: ChatBubbleMetrics.avatarSize,
-        child: ClipOval(
-          child: Image(
-            image: widget.assistantAvatar,
-            fit: BoxFit.contain,
-          ),
-        ),
       );
 
   /// 正文：文本 + 截断提示 + 代码块芯片。两种形态共用，但渲染逻辑按角色分流。
@@ -267,7 +245,7 @@ class _TextBubbleState extends ConsumerState<TextBubble> {
 
     final content = isUser
         ? SelectableText(
-            item.text,
+            item.displayText,
             style: TextStyle(fontSize: 14, height: 1.6, color: skin.text),
           )
         : MarkdownView(
@@ -341,9 +319,9 @@ class _TextBubbleState extends ConsumerState<TextBubble> {
                 child: BubbleActionsRow(
                   isUser: isUser,
                   createdAt: item.createdAt,
-                  onCopy: () => copyToClipboard(context, item.text,
+                  onCopy: () => copyToClipboard(context, item.displayText,
                       AppLocalizations.of(context).chatCopied),
-                  onEdit: isUser ? () => _startEdit(item.text) : null,
+                  onEdit: isUser ? () => _startEdit(item.displayText) : null,
                 ),
               )
             : null,
