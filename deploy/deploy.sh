@@ -29,7 +29,9 @@ if [ -x "$HOME/flutter/bin/flutter" ]; then export PATH="$PATH:$HOME/flutter/bin
 export FLUTTER_STORAGE_BASE_URL="${FLUTTER_STORAGE_BASE_URL:-https://storage.flutter-io.cn}"
 export PUB_HOSTED_URL="${PUB_HOSTED_URL:-https://pub.flutter-io.cn}"
 
-DOCKER() { su root -c "docker $*"; }
+# docker 以当前用户直接跑：ubuntu 已在 docker 组（2026-10-19 起不再经 root）。
+# 真被拒（被移出组）时 sg docker 兜底一次，仍失败就报错，绝不裸 su root。
+DOCKER() { docker "$@" 2>/dev/null || sg docker -c "docker $(printf '%q ' "$@")"; }
 
 build_web() {
   echo ">> flutter build web ..."
