@@ -157,43 +157,42 @@ class _SettingsDialogState extends ConsumerState<_SettingsDialog> {
     );
   }
 
-  /// 技能/连接器/插件项被点：如果中栏当前正显示 Customize 页面，直接切换
+  /// 「自定义」分组里的项被点：如果中栏当前正显示 Customize 页面，直接切换
   /// 那边的标签并关掉本弹窗；否则按老样子在弹窗内自己渲染对应内容。
-  void _onCustomizeItemTap(_SettingsTab tab) {
-    final customizeTab = switch (tab) {
-      _SettingsTab.skills => CustomizeTab.skills,
-      _SettingsTab.connectors => CustomizeTab.connectors,
-      _SettingsTab.plugins => CustomizeTab.plugins,
-      _ => null,
-    };
-    if (customizeTab == null) return;
+  ///
+  /// 技能 / 连接器 / 插件与「智能体」子页（场景 / 子 Agent / MCP …）走**同一条**
+  /// 分流：在 Customize 页点「MCP」和在设置里点「MCP」，落到的是同一处。后者
+  /// 只多传一个 [studioKey]，由 [CustomizeTab.fromStudioPageKey] 翻成对应标签。
+  void _onCustomizeItemTap(_SettingsTab tab, {String? studioKey}) {
+    final target = switch (tab) {
+          _SettingsTab.skills => CustomizeTab.skills,
+          _SettingsTab.connectors => CustomizeTab.connectors,
+          _SettingsTab.plugins => CustomizeTab.plugins,
+          _ => null,
+        } ??
+        (studioKey == null ? null : CustomizeTab.fromStudioPageKey(studioKey));
 
-    // 直接问路由当前在哪一页，靠 CustomizePage 的 mount/unmount 去维护
-    // 额外的标记时机不可靠。
-    // 用 `GoRouter.of(context).routerDelegate.currentConfiguration` 而不是
-    // `GoRouterState.of(context)`：本弹窗是 `showDialog` 开出来的独立路由，
-    // 它的 `ModalRoute` 不是 go_router 的 Page，`GoRouterState.of` 在这里
-    // 找不到关联状态会直接抛异常。
-    final currentPath =
-        GoRouter.of(context).routerDelegate.currentConfiguration.uri.path;
-    final isCustomizeActive = currentPath == RouteNames.customize;
-    if (isCustomizeActive) {
-      ref.read(customizeTabControllerProvider.notifier).setTab(customizeTab);
-      Navigator.of(context).pop();
-      return;
+    if (target != null) {
+      // 直接问路由当前在哪一页，靠 CustomizePage 的 mount/unmount 去维护
+      // 额外的标记时机不可靠。
+      // 用 `GoRouter.of(context).routerDelegate.currentConfiguration` 而不是
+      // `GoRouterState.of(context)`：本弹窗是 `showDialog` 开出来的独立路由，
+      // 它的 `ModalRoute` 不是 go_router 的 Page，`GoRouterState.of` 在这里
+      // 找不到关联状态会直接抛异常。
+      final currentPath =
+          GoRouter.of(context).routerDelegate.currentConfiguration.uri.path;
+      if (currentPath == RouteNames.customize) {
+        ref.read(customizeTabControllerProvider.notifier).setTab(target);
+        Navigator.of(context).pop();
+        return;
+      }
     }
 
-    setState(() => _selectedTab = tab);
+    setState(() {
+      _selectedTab = tab;
+      if (studioKey != null) _studioPageKey = studioKey;
+    });
   }
-
-  /// 侧栏「智能体」子项被点：记下是哪一页，再切到共用的 [tab]。
-  ///
-  /// 与 [_onCustomizeItemTap] 的分流不同 —— 这些页在弹窗内**就地渲染**
-  /// （走 `StudioPage`），不切中栏、也不关弹窗。
-  void _onStudioItemTap(String key) => setState(() {
-        _studioPageKey = key;
-        _selectedTab = _SettingsTab.studio;
-      });
 
   Widget _buildCurrentPage() {
     switch (_selectedTab) {
@@ -365,7 +364,10 @@ class _SettingsDialogState extends ConsumerState<_SettingsDialog> {
                         skin: skin,
                         selected: _selectedTab == _SettingsTab.studio &&
                             _studioPageKey == item.studioKey,
-                        onTap: () => _onStudioItemTap(item.studioKey!),
+                        onTap: () => _onCustomizeItemTap(
+                          _SettingsTab.studio,
+                          studioKey: item.studioKey,
+                        ),
                       )),
                 ],
               ),

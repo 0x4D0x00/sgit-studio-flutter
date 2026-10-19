@@ -35,6 +35,17 @@ enum CustomizeTab {
 
   /// 是否属于「自定义」（LobeChat 那套），决定要不要显示 Yours/Discover 切换。
   bool get isCustomizeContent => studioPageKey == null;
+
+  /// [studioPageKey] 的反查：`StudioPageDef.key` → tab。
+  ///
+  /// 设置弹窗的侧栏项只拿得到 key（不是枚举），要按与技能/连接器/插件相同的
+  /// 分流逻辑跳到这里来时，需要先把 key 翻译回 tab。找不到返回 null。
+  static CustomizeTab? fromStudioPageKey(String key) {
+    for (final tab in CustomizeTab.values) {
+      if (tab.studioPageKey == key) return tab;
+    }
+    return null;
+  }
 }
 
 /// Customize 页面当前选中的标签，放到 provider 而不是页面内部 State ——

@@ -8,6 +8,7 @@ import 'customize_models.dart';
 import 'customize_show_all_row.dart';
 import 'customize_tag_chip.dart';
 import 'customize_toolbar.dart';
+import 'responsive_card_wrap.dart';
 
 /// Discover 页面里点「Show all」之后的全量列表页。
 ///
@@ -38,8 +39,8 @@ class CustomizeShowAllView extends StatelessWidget {
     this.onToolbarAdd,
     required List<ConnectorItem> this.connectorItems,
     this.searchHint,
-  })  : skillItems = null,
-        onAdd = null;
+  }) : skillItems = null,
+       onAdd = null;
 
   const CustomizeShowAllView.skills({
     super.key,
@@ -85,9 +86,6 @@ class CustomizeShowAllView extends StatelessWidget {
   final String? searchHint;
   final List<ConnectorItem>? connectorItems;
   final List<SkillItem>? skillItems;
-
-  /// 卡片放进两列所需的最小宽度。
-  static const double _minCardWidth = 280;
 
   @override
   Widget build(BuildContext context) {
@@ -207,29 +205,17 @@ class CustomizeShowAllView extends StatelessWidget {
   }
 
   Widget _buildConnectorGrid(List<ConnectorItem> items) {
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        final twoColumns =
-            constraints.maxWidth >= _minCardWidth * 2 + AppSpacing.md;
-        final width = twoColumns
-            ? (constraints.maxWidth - AppSpacing.md) / 2
-            : constraints.maxWidth;
-        return Wrap(
-          spacing: AppSpacing.md,
-          runSpacing: AppSpacing.md,
-          children: items.map((connector) {
-            return SizedBox(
-              width: width,
-              child: ConnectorCard(
-                connector: connector,
-                skin: skin,
-                l10n: l10n,
-                onTap: () {},
-              ),
-            );
-          }).toList(),
-        );
-      },
+    // 列数按可用宽度自适应，与技能页/连接器页同一份逻辑。
+    return ResponsiveCardWrap(
+      children: [
+        for (final connector in items)
+          ConnectorCard(
+            connector: connector,
+            skin: skin,
+            l10n: l10n,
+            onTap: () {},
+          ),
+      ],
     );
   }
 }

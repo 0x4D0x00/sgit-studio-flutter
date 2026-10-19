@@ -10,6 +10,9 @@ import 'package:sgit_studio_flutter/features/studio/application/settings_reposit
 import 'package:sgit_studio_flutter/features/studio/studio_page_specs.dart';
 import 'package:sgit_studio_flutter/l10n/generated/app_localizations.dart';
 import 'package:sgit_studio_flutter/ui/components/async_view.dart';
+import 'package:sgit_studio_flutter/ui/components/hover_lift.dart';
+
+import 'responsive_card_wrap.dart';
 
 /// 技能库 —— **设置弹窗与 Customize 页共用这一份**。
 ///
@@ -40,10 +43,12 @@ class SkillLibraryGrid extends ConsumerWidget {
     if (query.isEmpty) return items;
     final q = query.toLowerCase();
     return items
-        .where((it) =>
-            it.name.toLowerCase().contains(q) ||
-            it.id.toLowerCase().contains(q) ||
-            it.description.toLowerCase().contains(q))
+        .where(
+          (it) =>
+              it.name.toLowerCase().contains(q) ||
+              it.id.toLowerCase().contains(q) ||
+              it.description.toLowerCase().contains(q),
+        )
         .toList(growable: false);
   }
 
@@ -55,8 +60,7 @@ class SkillLibraryGrid extends ConsumerWidget {
     final l10n = AppLocalizations.of(context);
     final messenger = ScaffoldMessenger.of(context);
     final repo = ref.read(settingsRepositoryProvider);
-    final ctrl =
-        ref.read(resourceListProvider(StudioPageSpecs.skill).notifier);
+    final ctrl = ref.read(resourceListProvider(StudioPageSpecs.skill).notifier);
     final title = item.name.isNotEmpty ? item.name : item.id.split('/').last;
 
     final ok = await showDialog<bool>(
@@ -131,8 +135,7 @@ class SkillsYoursEmpty extends StatelessWidget {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(Icons.auto_awesome_outlined,
-              size: 32, color: skin.textTertiary),
+          Icon(Icons.auto_awesome_outlined, size: 32, color: skin.textTertiary),
           const SizedBox(height: AppSpacing.sm),
           Text(
             l10n.skillsYoursEmptyTitle,
@@ -159,10 +162,6 @@ class _SkillGroups extends StatelessWidget {
   final List<ResourceItem> items;
   final void Function(ResourceItem) onRemove;
 
-  /// 卡片宽度下限。列数由可用宽度**自动算**，不是写死两列 ——
-  /// 大窗口下铺满整行，窄窗口自动降列。
-  static const double _minWidth = 300;
-
   @override
   Widget build(BuildContext context) {
     final skin = AppSkin.of(context);
@@ -173,40 +172,25 @@ class _SkillGroups extends StatelessWidget {
       (it) => it.id,
     );
 
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        // 能放几列就放几列（至少一列）。间距从总宽里先扣掉。
-        final avail = constraints.maxWidth;
-        final cols = ((avail + AppSpacing.md) / (_minWidth + AppSpacing.md))
-            .floor()
-            .clamp(1, 8);
-        final w = (avail - AppSpacing.md * (cols - 1)) / cols;
-
-        return ListView(
-          padding: const EdgeInsets.only(bottom: AppSpacing.lg),
-          children: [
-            for (final b in buckets) ...[
-              _GroupHeader(group: b.group, count: b.items.length),
-              Wrap(
-                spacing: AppSpacing.md,
-                runSpacing: AppSpacing.md,
-                children: [
-                  for (final it in b.items)
-                    SizedBox(
-                      width: w,
-                      child: _SkillCard(
-                        item: it,
-                        skin: skin,
-                        l10n: l10n,
-                        onRemove: () => onRemove(it),
-                      ),
-                    ),
-                ],
-              ),
+    return ListView(
+      padding: const EdgeInsets.only(bottom: AppSpacing.lg),
+      children: [
+        for (final b in buckets) ...[
+          _GroupHeader(group: b.group, count: b.items.length),
+          // 列数由 [ResponsiveCardWrap] 按可用宽度算 —— 与连接器/插件页同一份逻辑。
+          ResponsiveCardWrap(
+            children: [
+              for (final it in b.items)
+                _SkillCard(
+                  item: it,
+                  skin: skin,
+                  l10n: l10n,
+                  onRemove: () => onRemove(it),
+                ),
             ],
-          ],
-        );
-      },
+          ),
+        ],
+      ],
     );
   }
 }
@@ -235,8 +219,10 @@ class _GroupHeader extends StatelessWidget {
             ),
           ),
           const SizedBox(width: AppSpacing.xxs),
-          Text('· $count',
-              style: TextStyle(fontSize: 12, color: skin.textTertiary)),
+          Text(
+            '· $count',
+            style: TextStyle(fontSize: 12, color: skin.textTertiary),
+          ),
         ],
       ),
     );
@@ -244,6 +230,8 @@ class _GroupHeader extends StatelessWidget {
 }
 
 /// 一张技能卡：名称 + 路径 + 描述 + 删除。
+///
+/// 悬停手感与 [ConnectorCard] 一致：轻微放大 + 阴影浮起（共用 [HoverLift]）。
 class _SkillCard extends StatelessWidget {
   const _SkillCard({
     required this.item,
@@ -257,68 +245,90 @@ class _SkillCard extends StatelessWidget {
   final AppLocalizations l10n;
   final VoidCallback onRemove;
 
+  /// 描述固定占位高度 = 12px 字号 × 1.5 行高 × 3 行。
+  static const double _descMinHeight = 12 * 1.5 * 3;
+
   @override
   Widget build(BuildContext context) {
     final title = item.name.isNotEmpty ? item.name : item.id.split('/').last;
-    return Container(
-      padding: const EdgeInsets.all(AppSpacing.md),
-      decoration: BoxDecoration(
-        color: skin.containerBg,
-        borderRadius: BorderRadius.circular(AppRadius.md),
-        border: Border.all(color: skin.borderSecondary),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Expanded(
-                child: Text(
-                  title,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: TextStyle(
-                    fontSize: 13.5,
-                    fontWeight: FontWeight.w600,
-                    color: skin.text,
+    return HoverLift(
+      builder: (_, hovering) => AnimatedContainer(
+        duration: const Duration(milliseconds: 150),
+        curve: Curves.easeOut,
+        padding: const EdgeInsets.all(AppSpacing.md),
+        decoration: BoxDecoration(
+          color: skin.containerBg,
+          borderRadius: BorderRadius.circular(AppRadius.md),
+          border: Border.all(color: skin.borderSecondary),
+          boxShadow: hovering
+              ? [
+                  BoxShadow(
+                    color: skin.border.withValues(alpha: 0.4),
+                    blurRadius: 12,
+                    offset: const Offset(0, 4),
+                  ),
+                ]
+              : null,
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    title,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      fontSize: 13.5,
+                      fontWeight: FontWeight.w600,
+                      color: skin.text,
+                    ),
                   ),
                 ),
-              ),
-              Tooltip(
-                message: l10n.studioRemove,
-                child: InkWell(
-                  onTap: onRemove,
-                  borderRadius: BorderRadius.circular(AppRadius.sm),
-                  child: Padding(
-                    padding: const EdgeInsets.all(2),
-                    child: Icon(Icons.delete_outline_rounded,
-                        size: 15, color: skin.textTertiary),
+                Tooltip(
+                  message: l10n.studioRemove,
+                  child: InkWell(
+                    onTap: onRemove,
+                    borderRadius: BorderRadius.circular(AppRadius.sm),
+                    child: Padding(
+                      padding: const EdgeInsets.all(2),
+                      child: Icon(
+                        Icons.delete_outline_rounded,
+                        size: 15,
+                        color: skin.textTertiary,
+                      ),
+                    ),
                   ),
                 ),
-              ),
-            ],
-          ),
-          const SizedBox(height: AppSpacing.xxs),
-          Text(
-            item.id,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            style: TextStyle(fontSize: 11, color: skin.textTertiary),
-          ),
-          if (item.description.isNotEmpty) ...[
-            const SizedBox(height: AppSpacing.xs),
+              ],
+            ),
+            const SizedBox(height: AppSpacing.xxs),
             Text(
-              item.description,
-              maxLines: 3,
+              item.id,
+              maxLines: 1,
               overflow: TextOverflow.ellipsis,
-              style: TextStyle(
-                fontSize: 12,
-                height: 1.5,
-                color: skin.textSecondary,
+              style: TextStyle(fontSize: 11, color: skin.textTertiary),
+            ),
+            const SizedBox(height: AppSpacing.xs),
+            // 描述区固定占三行高度：一行/空描述的卡片不会矮一截，
+            // 同一行的卡片底边始终对齐。
+            ConstrainedBox(
+              constraints: const BoxConstraints(minHeight: _descMinHeight),
+              child: Text(
+                item.description,
+                maxLines: 3,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                  fontSize: 12,
+                  height: 1.5,
+                  color: skin.textSecondary,
+                ),
               ),
             ),
           ],
-        ],
+        ),
       ),
     );
   }

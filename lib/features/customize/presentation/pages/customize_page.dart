@@ -14,6 +14,7 @@ import '../widgets/customize_section_header.dart';
 import '../widgets/customize_show_all_view.dart';
 import '../widgets/customize_toolbar.dart';
 import '../widgets/pill_tab_bar.dart';
+import '../widgets/responsive_card_wrap.dart';
 import '../widgets/skill_card.dart';
 import '../widgets/skill_library.dart';
 import '../widgets/connector_card.dart';
@@ -134,19 +135,13 @@ class _CustomizePageState extends ConsumerState<CustomizePage> {
     return Container(
       decoration: BoxDecoration(
         color: skin.baseBg,
-        border: Border(
-          bottom: BorderSide(
-            color: skin.border,
-            width: 0.5,
-          ),
-        ),
+        border: Border(bottom: BorderSide(color: skin.border, width: 0.5)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Padding(
-            padding:
-            const EdgeInsetsGeometry.all(AppSpacing.md),
+            padding: const EdgeInsetsGeometry.all(AppSpacing.md),
             child: Text(
               'Customize',
               style: TextStyle(
@@ -183,17 +178,17 @@ class _CustomizePageState extends ConsumerState<CustomizePage> {
   /// 「自定义」内容（技能/连接器/插件）与 sgcode 的智能体配置页，
   /// 两套文案各有自己的键。
   String _tabLabel(CustomizeTab tab, AppLocalizations l10n) => switch (tab) {
-        CustomizeTab.skills => l10n.studioSkill,
-        CustomizeTab.connectors => l10n.customizeTabConnectors,
-        CustomizeTab.plugins => l10n.customizeTabPlugins,
-        CustomizeTab.scenes => l10n.studioScenes,
-        CustomizeTab.subagent => l10n.studioSubagent,
-        CustomizeTab.mcp => l10n.studioMcp,
-        CustomizeTab.tools => l10n.studioTools,
-        CustomizeTab.knowledge => l10n.studioKnowledge,
-        CustomizeTab.llmRelay => l10n.studioLlmRelay,
-        CustomizeTab.apiKey => l10n.studioApiKey,
-      };
+    CustomizeTab.skills => l10n.studioSkill,
+    CustomizeTab.connectors => l10n.customizeTabConnectors,
+    CustomizeTab.plugins => l10n.customizeTabPlugins,
+    CustomizeTab.scenes => l10n.studioScenes,
+    CustomizeTab.subagent => l10n.studioSubagent,
+    CustomizeTab.mcp => l10n.studioMcp,
+    CustomizeTab.tools => l10n.studioTools,
+    CustomizeTab.knowledge => l10n.studioKnowledge,
+    CustomizeTab.llmRelay => l10n.studioLlmRelay,
+    CustomizeTab.apiKey => l10n.studioApiKey,
+  };
 
   List<PillTab> _buildTabs(AppLocalizations l10n) {
     final selectedTab = ref.watch(customizeTabControllerProvider);
@@ -245,7 +240,11 @@ class _CustomizePageState extends ConsumerState<CustomizePage> {
     ];
   }
 
-  Widget _buildContent(BuildContext context, AppSkin skin, AppLocalizations l10n) {
+  Widget _buildContent(
+    BuildContext context,
+    AppSkin skin,
+    AppLocalizations l10n,
+  ) {
     final selectedTab = ref.watch(customizeTabControllerProvider);
 
     // sgcode 智能体配置页：直接复用设置弹窗里那几个页面实现
@@ -274,8 +273,13 @@ class _CustomizePageState extends ConsumerState<CustomizePage> {
   }
 
   // Skills/Plugins + Discover 页面：显示 "For you" + "New" 区域
-  Widget _buildSkillsDiscoverContent(BuildContext context, AppSkin skin, AppLocalizations l10n) {
-    final isPlugins = ref.watch(customizeTabControllerProvider) == CustomizeTab.plugins;
+  Widget _buildSkillsDiscoverContent(
+    BuildContext context,
+    AppSkin skin,
+    AppLocalizations l10n,
+  ) {
+    final isPlugins =
+        ref.watch(customizeTabControllerProvider) == CustomizeTab.plugins;
 
     // Skills 视图 = 与设置弹窗里的技能页**同一份数据**（`SkillLibraryGrid`）。
     // Plugins 仍是 LobeChat 那套样例数据 —— 它没有对应的本地真源。
@@ -324,7 +328,8 @@ class _CustomizePageState extends ConsumerState<CustomizePage> {
         CustomizeSectionHeader(
           l10n.customizeTabNew,
           showSeeAll: true,
-          onSeeAll: () => _openShowAll(isPlugins ? 'New plugins' : 'New skills'),
+          onSeeAll: () =>
+              _openShowAll(isPlugins ? 'New plugins' : 'New skills'),
         ),
         const SizedBox(height: AppSpacing.md),
         _buildNewSkillsRow(context, skin, l10n),
@@ -333,7 +338,11 @@ class _CustomizePageState extends ConsumerState<CustomizePage> {
   }
 
   // Skills/Plugins + Yours 页面：显示列表样式
-  Widget _buildSkillsYoursContent(BuildContext context, AppSkin skin, AppLocalizations l10n) {
+  Widget _buildSkillsYoursContent(
+    BuildContext context,
+    AppSkin skin,
+    AppLocalizations l10n,
+  ) {
     // Skills 的 Yours 与设置弹窗里的技能页**共用同一个空态**：用户自建技能
     // 目前还没有创建入口，列表恒空。Plugins 仍走 LobeChat 那套样例（无本地真源）。
     if (ref.watch(customizeTabControllerProvider) == CustomizeTab.skills) {
@@ -347,12 +356,7 @@ class _CustomizePageState extends ConsumerState<CustomizePage> {
         Container(
           padding: const EdgeInsets.all(AppSpacing.md),
           decoration: BoxDecoration(
-            border: Border(
-              bottom: BorderSide(
-                color: skin.border,
-                width: 0.5,
-              ),
-            ),
+            border: Border(bottom: BorderSide(color: skin.border, width: 0.5)),
           ),
           child: Row(
             children: [
@@ -372,10 +376,7 @@ class _CustomizePageState extends ConsumerState<CustomizePage> {
               ? Center(
                   child: Text(
                     'No skills found',
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: skin.textSecondary,
-                    ),
+                    style: TextStyle(fontSize: 14, color: skin.textSecondary),
                   ),
                 )
               : ListView.builder(
@@ -389,7 +390,8 @@ class _CustomizePageState extends ConsumerState<CustomizePage> {
                       description: skill['description'] as String,
                       timeAgo: skill['timeAgo'] as String,
                       skin: skin,
-                      onTap: () => _notWired(context, l10n, skill['title'] as String),
+                      onTap: () =>
+                          _notWired(context, l10n, skill['title'] as String),
                       onRemove: () => _removeYoursSkill(skill),
                     );
                   },
@@ -400,7 +402,11 @@ class _CustomizePageState extends ConsumerState<CustomizePage> {
   }
 
   // Connectors + Discover 页面：显示带轮播图的页面
-  Widget _buildConnectorsDiscoverContent(BuildContext context, AppSkin skin, AppLocalizations l10n) {
+  Widget _buildConnectorsDiscoverContent(
+    BuildContext context,
+    AppSkin skin,
+    AppLocalizations l10n,
+  ) {
     if (_showAllTitle != null) {
       final filtered = _filterShowAll(buildAllConnectors(), (c) => c.title);
       return CustomizeShowAllView.connectors(
@@ -443,7 +449,11 @@ class _CustomizePageState extends ConsumerState<CustomizePage> {
   }
 
   // Connectors + Yours 页面：显示表格样式
-  Widget _buildConnectorsYoursContent(BuildContext context, AppSkin skin, AppLocalizations l10n) {
+  Widget _buildConnectorsYoursContent(
+    BuildContext context,
+    AppSkin skin,
+    AppLocalizations l10n,
+  ) {
     final connectors = buildYoursConnectors();
     final filtered = _filterBy(connectors, (c) => c.name);
 
@@ -453,16 +463,14 @@ class _CustomizePageState extends ConsumerState<CustomizePage> {
           ? Center(
               child: Text(
                 'No connectors found',
-                style: TextStyle(
-                  fontSize: 14,
-                  color: skin.textSecondary,
-                ),
+                style: TextStyle(fontSize: 14, color: skin.textSecondary),
               ),
             )
           : YoursConnectorTable(
               skin: skin,
               connectors: filtered,
-              onConnect: (connector) => _notWired(context, l10n, connector.name),
+              onConnect: (connector) =>
+                  _notWired(context, l10n, connector.name),
             ),
     );
   }
@@ -473,38 +481,28 @@ class _CustomizePageState extends ConsumerState<CustomizePage> {
     AppSkin skin,
     AppLocalizations l10n,
   ) {
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        final twoColumns = constraints.maxWidth >= _minCardWidth * 2 + AppSpacing.md;
-        final width = twoColumns
-            ? (constraints.maxWidth - AppSpacing.md) / 2
-            : constraints.maxWidth;
-        return Wrap(
-          spacing: AppSpacing.md,
-          runSpacing: AppSpacing.md,
-          children: items.map((connector) {
-            return SizedBox(
-              width: width,
-              child: ConnectorCard(
-                connector: connector,
-                skin: skin,
-                l10n: l10n,
-                onTap: () => _notWired(context, l10n, connector.title),
-              ),
-            );
-          }).toList(),
-        );
-      },
+    // 列数按可用宽度自适应，与技能页/插件页同一份逻辑。
+    return ResponsiveCardWrap(
+      children: [
+        for (final connector in items)
+          ConnectorCard(
+            connector: connector,
+            skin: skin,
+            l10n: l10n,
+            onTap: () => _notWired(context, l10n, connector.title),
+          ),
+      ],
     );
   }
 
-  Widget _buildSkillsGrid(BuildContext context, AppSkin skin, AppLocalizations l10n) {
+  Widget _buildSkillsGrid(
+    BuildContext context,
+    AppSkin skin,
+    AppLocalizations l10n,
+  ) {
     final filtered = _filterBy(buildForYouSkills(), (s) => s.title);
     return _buildSkillsWrap(context, filtered, skin, l10n);
   }
-
-  /// 一张卡片最少需要这么宽才放得下图标+文案+加号按钮，窄于此就退成单列，否则内容溢出
-  static const double _minCardWidth = 280;
 
   Widget _buildSkillsWrap(
     BuildContext context,
@@ -512,32 +510,25 @@ class _CustomizePageState extends ConsumerState<CustomizePage> {
     AppSkin skin,
     AppLocalizations l10n,
   ) {
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        final twoColumns = constraints.maxWidth >= _minCardWidth * 2 + AppSpacing.md;
-        final width = twoColumns
-            ? (constraints.maxWidth - AppSpacing.md) / 2
-            : constraints.maxWidth;
-        return Wrap(
-          spacing: AppSpacing.md,
-          runSpacing: AppSpacing.md,
-          children: items.map((skill) {
-            return SizedBox(
-              width: width,
-              child: SkillCard(
-                skill: skill,
-                skin: skin,
-                l10n: l10n,
-                onTap: () => _notWired(context, l10n, '点击跳转'),
-              ),
-            );
-          }).toList(),
-        );
-      },
+    // 列数按可用宽度自适应，与技能库/连接器页同一份逻辑。
+    return ResponsiveCardWrap(
+      children: [
+        for (final skill in items)
+          SkillCard(
+            skill: skill,
+            skin: skin,
+            l10n: l10n,
+            onTap: () => _notWired(context, l10n, '点击跳转'),
+          ),
+      ],
     );
   }
 
-  Widget _buildNewSkillsRow(BuildContext context, AppSkin skin, AppLocalizations l10n) {
+  Widget _buildNewSkillsRow(
+    BuildContext context,
+    AppSkin skin,
+    AppLocalizations l10n,
+  ) {
     final filtered = _filterBy(buildNewSkills(), (s) => s.title);
     return _buildSkillsWrap(context, filtered, skin, l10n);
   }

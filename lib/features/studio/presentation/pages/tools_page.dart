@@ -7,6 +7,7 @@ import 'package:sgit_studio_flutter/domain/models/studio/tool_catalog.dart';
 import 'package:sgit_studio_flutter/features/studio/application/tools_controller.dart';
 import 'package:sgit_studio_flutter/l10n/generated/app_localizations.dart';
 import 'package:sgit_studio_flutter/ui/components/async_view.dart';
+import 'package:sgit_studio_flutter/ui/components/hover_lift.dart';
 
 /// 工具页 —— sgcode 引擎的**内置工具**，按类别分组展示。
 ///
@@ -38,7 +39,7 @@ class ToolsPage extends ConsumerWidget {
             padding: const EdgeInsets.fromLTRB(
                 AppSpacing.md, 0, AppSpacing.md, AppSpacing.xs),
             child: Text(s.error!,
-                style: TextStyle(
+              style: TextStyle(
                     fontSize: 12, color: Theme.of(context).colorScheme.error)),
           ),
         Expanded(
@@ -63,9 +64,10 @@ class ToolsPage extends ConsumerWidget {
                     child: Text(
                       '${g.name} · ${g.rows.length}',
                       style: TextStyle(
-                          fontSize: 12,
-                          fontWeight: FontWeight.w600,
-                          color: skin.textSecondary),
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                        color: skin.textSecondary,
+                      ),
                     ),
                   ),
                   for (final r in g.rows)
@@ -91,30 +93,33 @@ class ToolsPage extends ConsumerWidget {
   Widget _header(AppSkin skin, AppLocalizations l10n, ToolsState s,
           ToolsController ctrl) =>
       Padding(
-        padding: const EdgeInsets.fromLTRB(
+    padding: const EdgeInsets.fromLTRB(
             AppSpacing.md, AppSpacing.md, AppSpacing.md, AppSpacing.xs),
-        child: Row(
-          children: [
-            Text(title,
-                style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                    color: skin.text)),
-            const SizedBox(width: AppSpacing.xs),
+    child: Row(
+      children: [
+        Text(
+          title,
+          style: TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.w600,
+            color: skin.text,
+          ),
+        ),
+        const SizedBox(width: AppSpacing.xs),
             Text('${s.total}',
                 style: TextStyle(fontSize: 12, color: skin.textTertiary)),
-            const Spacer(),
-            IconButton(
-              iconSize: 18,
-              tooltip: l10n.studioRefresh,
-              color: skin.textSecondary,
-              icon: const Icon(Icons.refresh_rounded),
-              // force：用户主动点的，不能被合并窗口吞掉。
-              onPressed: () => ctrl.reload(force: true),
-            ),
-          ],
+        const Spacer(),
+        IconButton(
+          iconSize: 18,
+          tooltip: l10n.studioRefresh,
+          color: skin.textSecondary,
+          icon: const Icon(Icons.refresh_rounded),
+          // force：用户主动点的，不能被合并窗口吞掉。
+          onPressed: () => ctrl.reload(force: true),
         ),
-      );
+      ],
+    ),
+  );
 }
 
 class _Row extends StatelessWidget {
@@ -131,91 +136,109 @@ class _Row extends StatelessWidget {
     final skin = AppSkin.of(context);
     final def = row.def;
 
-    return Container(
-      padding: const EdgeInsets.symmetric(
-          horizontal: AppSpacing.md, vertical: AppSpacing.sm),
-      // 与资源卡片同一套 token，两类页面放在一起不会像两个产品。
-      decoration: BoxDecoration(
-        color: skin.containerBgSecondary,
-        borderRadius: BorderRadius.circular(AppRadius.lg),
-        border: Border.all(color: skin.borderSecondary),
-      ),
-      child: Row(
-        children: [
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Row(
-                  children: [
-                    Flexible(
-                      child: Text(
-                        def.label,
-                        style: TextStyle(
+    // 与资源卡片同一套 token + 同一份悬停手感，两类页面放在一起不会像两个产品。
+    return HoverLift(
+      builder: (_, hovering) => AnimatedContainer(
+        duration: const Duration(milliseconds: 150),
+        curve: Curves.easeOut,
+        padding: const EdgeInsets.symmetric(
+          horizontal: AppSpacing.md,
+          vertical: AppSpacing.sm,
+        ),
+        decoration: BoxDecoration(
+          color: skin.containerBgSecondary,
+          borderRadius: BorderRadius.circular(AppRadius.lg),
+          border: Border.all(color: skin.borderSecondary),
+          boxShadow: hovering
+              ? [
+                  BoxShadow(
+                    color: skin.border.withValues(alpha: 0.4),
+                    blurRadius: 12,
+                    offset: const Offset(0, 4),
+                  ),
+                ]
+              : null,
+        ),
+        child: Row(
+          children: [
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Row(
+                    children: [
+                      Flexible(
+                        child: Text(
+                          def.label,
+                          style: TextStyle(
                             fontSize: 13,
                             fontWeight: FontWeight.w500,
-                            color: skin.text),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
+                            color: skin.text,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
                       ),
-                    ),
-                    if (def.kind == ToolKind.core)
-                      _tag(skin, '核心', skin.textTertiary),
-                    if (row.enabled && def.exposure == ToolExposure.deferred)
-                      _tag(skin, '按需', skin.textTertiary),
-                  ],
-                ),
-                const SizedBox(height: 2),
-                Text(
-                  def.desc,
-                  style: TextStyle(fontSize: 11, color: skin.textTertiary),
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                ),
-                const SizedBox(height: 2),
-                // 技术名：和日志、提示词里出现的名字对上。
-                Text(
-                  def.id,
-                  style: TextStyle(
+                      if (def.kind == ToolKind.core)
+                        _tag(skin, '核心', skin.textTertiary),
+                      if (row.enabled && def.exposure == ToolExposure.deferred)
+                        _tag(skin, '按需', skin.textTertiary),
+                    ],
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    def.desc,
+                    style: TextStyle(fontSize: 11, color: skin.textTertiary),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  const SizedBox(height: 2),
+                  // 技术名：和日志、提示词里出现的名字对上。
+                  Text(
+                    def.id,
+                    style: TextStyle(
                       fontSize: 10,
                       color: skin.textTertiary,
-                      fontFeatures: const [FontFeature.tabularFigures()]),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ],
+                      fontFeatures: const [FontFeature.tabularFigures()],
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ],
+              ),
             ),
-          ),
-          const SizedBox(width: AppSpacing.sm),
-          if (busy)
-            const SizedBox(
+            const SizedBox(width: AppSpacing.sm),
+            if (busy)
+              const SizedBox(
                 width: 20,
                 height: 20,
-                child: CircularProgressIndicator(strokeWidth: 2))
-          else if (onToggle == null)
-            // 核心工具：显示成常开且不可点，tooltip 说明原因 ——
-            // 别让用户对着点不动的开关猜。
-            Tooltip(
-              message: '核心能力，引擎始终启用',
-              child: Switch(value: true, onChanged: null),
-            )
-          else
-            Switch(value: row.enabled, onChanged: onToggle),
-        ],
+                child: CircularProgressIndicator(strokeWidth: 2),
+              )
+            else if (onToggle == null)
+              // 核心工具：显示成常开且不可点，tooltip 说明原因 ——
+              // 别让用户对着点不动的开关猜。
+              Tooltip(
+                message: '核心能力，引擎始终启用',
+                child: Switch(value: true, onChanged: null),
+              )
+            else
+              Switch(value: row.enabled, onChanged: onToggle),
+          ],
+        ),
       ),
     );
   }
 
   Widget _tag(AppSkin skin, String text, Color color) => Padding(
-        padding: const EdgeInsets.only(left: 6),
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(4),
-            border: Border.all(color: skin.borderSecondary),
-          ),
-          child: Text(text, style: TextStyle(fontSize: 9, color: color)),
-        ),
-      );
+    padding: const EdgeInsets.only(left: 6),
+    child: Container(
+      padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(4),
+        border: Border.all(color: skin.borderSecondary),
+      ),
+      child: Text(text, style: TextStyle(fontSize: 9, color: color)),
+    ),
+  );
 }
