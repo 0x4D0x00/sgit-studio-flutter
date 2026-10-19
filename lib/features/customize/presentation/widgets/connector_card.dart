@@ -70,7 +70,7 @@ class ConnectorCard extends StatelessWidget {
                           child: Text(
                             connector.title,
                             style: TextStyle(
-                              fontSize: 15,
+                              fontSize: 14,
                               fontWeight: FontWeight.w600,
                               color: skin.text,
                             ),
@@ -90,14 +90,14 @@ class ConnectorCard extends StatelessWidget {
                     ConstrainedBox(
                       constraints: BoxConstraints(
                         minHeight:
-                            MediaQuery.textScalerOf(context).scale(13) *
+                            MediaQuery.textScalerOf(context).scale(12) *
                             1.4 *
                             2,
                       ),
                       child: Text(
                         connector.description,
                         style: TextStyle(
-                          fontSize: 13,
+                          fontSize: 12,
                           color: skin.textSecondary,
                           height: 1.4,
                         ),

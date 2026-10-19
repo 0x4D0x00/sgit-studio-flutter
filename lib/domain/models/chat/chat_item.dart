@@ -1,5 +1,7 @@
 import 'package:flutter/foundation.dart';
 
+import 'package:sgit_studio_flutter/domain/models/chat/assistant_preamble.dart';
+
 /// 会话条目 —— UI 消费的领域模型。
 ///
 /// ⚠️ 这里**没有任何协议字段**。线格式（`KernelFrame`）与协议 DTO 一律留在 data 层，
@@ -62,9 +64,22 @@ final class TextItem extends ChatItem {
 
   final StringBuffer _buf = StringBuffer();
   String? _cache;
+  String? _displayCache;
 
   /// 已累积的全文。`StringBuffer.toString()` 是 O(n)，所以缓存到下次 [append]。
   String get text => _cache ??= _buf.toString();
+
+  /// 界面上该显示的正文 —— 助手回复已去掉开头的「技能 / 工具调用抬头」
+  /// （见 [AssistantPreamble]）。
+  ///
+  /// 渲染、复制、产物提取**一律用它**：抬头不是回答内容，只该在协议层存在。
+  /// 用户消息原样返回（用户输入里出现什么都是他自己写的）。
+  ///
+  /// ⚠️ 抬头只可能在最前面，[AssistantPreamble.strip] 只看开头有限的一段，
+  /// 所以这里在流式热路径上调用也是 O(1)-ish，不会退化成全文扫描。
+  String get displayText => _displayCache ??= role == ChatRole.assistant
+      ? AssistantPreamble.strip(text)
+      : text;
 
   bool get isEmpty => _buf.isEmpty;
 
@@ -75,6 +90,7 @@ final class TextItem extends ChatItem {
     if (chunk.isEmpty) return;
     _buf.write(chunk);
     _cache = null;
+    _displayCache = null;
     revision.value++;
   }
 }

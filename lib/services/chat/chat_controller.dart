@@ -626,7 +626,10 @@ class ChatController extends Notifier<ChatSessionState> {
         if (it is! TextItem || it.role != ChatRole.assistant || it.isEmpty) {
           continue;
         }
-        final text = it.text;
+        // ⚠️ 与聊天里画文件卡用的是**同一份文本**（[TextItem.displayText]，
+        //    已去掉开头的调用抬头）—— 否则输出物页里的 sourceStart 会和
+        //    聊天里那张卡对不上，点卡片定位不到。
+        final text = it.displayText;
         final blocks = MarkdownParser.parse(text);
         for (final a in ChatArtifact.fromBlocks(blocks, text)) {
           found.add((artifact: a, at: it.createdAt));

@@ -16,7 +16,6 @@ import 'package:sgit_studio_flutter/features/chat/application/composer_settings_
 import 'package:sgit_studio_flutter/features/chat/application/model_list_controller.dart';
 import 'package:sgit_studio_flutter/l10n/generated/app_localizations.dart';
 import 'package:sgit_studio_flutter/layout/metrics/workspace_metrics.dart';
-import 'package:sgit_studio_flutter/services/brand/brand_assets.dart';
 import 'package:sgit_studio_flutter/services/chat/chat_controller.dart';
 import 'package:sgit_studio_flutter/ui/components/chat/approval_card.dart';
 import 'package:sgit_studio_flutter/ui/components/chat/artifact_chip.dart';
@@ -291,7 +290,8 @@ class _ChatTranscriptState extends ConsumerState<ChatTranscript> {
     for (var i = items.length - 1; i >= 0; i--) {
       final it = items[i];
       if (it is! TextItem || it.role != ChatRole.assistant) continue;
-      final text = it.text;
+      // 与渲染侧取同一份文本 —— 偏移（sourceStart）必须来自同一串字符。
+      final text = it.displayText;
       if (!text.contains('```') && !text.contains('~~~')) continue;
       for (final a
           in ChatArtifact.fromBlocks(MarkdownParser.parse(text), text)) {
@@ -507,9 +507,6 @@ class _ChatTranscriptState extends ConsumerState<ChatTranscript> {
             truncatedHint: l10n.chatTextTruncated,
             isLastAnswer: isLastAnswer,
             replyComplete: replyComplete,
-            // 品牌头像在这里注入 —— `ui/` 层不许 import `services/`，
-            // 所以 TextBubble 只收 ImageProvider，自己去哪取归本层管。
-            assistantAvatar: BrandAssets.image(BrandAssets.loginMark),
             onEditSave: t.role == ChatRole.user
                 ? (text) => ctrl.editAndResend(t.id, text,
                     model: ref

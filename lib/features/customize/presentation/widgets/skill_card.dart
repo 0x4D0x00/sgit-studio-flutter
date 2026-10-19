@@ -72,7 +72,7 @@ class SkillCard extends StatelessWidget {
                           child: Text(
                             skill.title,
                             style: TextStyle(
-                              fontSize: 15,
+                              fontSize: 14,
                               fontWeight: FontWeight.w600,
                               color: skin.text,
                             ),
@@ -91,14 +91,14 @@ class SkillCard extends StatelessWidget {
                     ConstrainedBox(
                       constraints: BoxConstraints(
                         minHeight:
-                            MediaQuery.textScalerOf(context).scale(13) *
+                            MediaQuery.textScalerOf(context).scale(12) *
                             1.4 *
                             2,
                       ),
                       child: Text(
                         skill.description,
                         style: TextStyle(
-                          fontSize: 13,
+                          fontSize: 12,
                           color: skin.textSecondary,
                           height: 1.4,
                         ),
