@@ -598,6 +598,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get loginCaptchaRequired => '请输入图形验证码';
 
   @override
+  String get loginSessionExpired => '登录已过期，请重新登录';
+
+  @override
   String get settingsTitle => '设置';
 
   @override
@@ -1500,6 +1503,36 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get customizeTabShortcuts => '快捷键';
+
+  @override
+  String get customizeTabConnectors => '连接器';
+
+  @override
+  String get customizeTabPlugins => '插件';
+
+  @override
+  String get customizeTabYours => '你的';
+
+  @override
+  String get customizeTabDiscover => '发现';
+
+  @override
+  String get customizeTabForYou => '为你推荐';
+
+  @override
+  String get customizeTabNew => '最新';
+
+  @override
+  String get customizeSearchSkillsHint => '搜索技能…';
+
+  @override
+  String get customizeSearchPluginsHint => '搜索插件…';
+
+  @override
+  String get skillsYoursEmptyTitle => '你还没有自建技能';
+
+  @override
+  String get skillsYoursEmptyHint => '母版下发的技能在 Discover 里';
 
   @override
   String get customizeSearchHint => '搜索技能...';

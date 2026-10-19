@@ -6,6 +6,7 @@ import 'dart:isolate';
 import 'package:ffi/ffi.dart';
 
 import 'package:sgit_studio_flutter/core/result/api_exception.dart';
+import 'package:sgit_studio_flutter/core/result/auth_failure.dart';
 import 'package:sgit_studio_flutter/data/repositories/settings_repository.dart';
 
 // ---- C 函数签名（对齐 sgcode-rs/sgit-ffi/src/settings.rs）----
@@ -122,13 +123,25 @@ DynamicLibrary _openNativeLib() {
 }
 
 /// 解析 native 返回的 JSON 信封。`{"error":...}` 一律抛 [ApiException]。
+///
+/// ⚠️ **鉴权失败必须在这里广播出去**。上游（模型列表、中转站、studio 各页）
+/// 拿到异常后多数会 `catch` 住回空列表 —— 那是对的（一个 scope 挂了不该拖累
+/// 另一侧），但它同时也意味着失效信号到此为止。用户看到的是"暂无可用模型"，
+/// 永远回不到登录页。所以信号在这里就发，不指望异常冒泡。
 Map<String, Object?> _decode(String raw) {
   final decoded = jsonDecode(raw);
   if (decoded is! Map<String, Object?>) {
     throw const ApiException('配置接口响应格式异常');
   }
   final e = decoded['error'];
-  if (e != null) throw ApiException(e.toString());
+  if (e != null) {
+    final msg = e.toString();
+    // 优先 native 的结构化 `code`，关键词判据只作旧 DLL 的降级。
+    final byCode = decoded['code'] == 'auth_expired';
+    final expired = byCode || isAuthFailureMessage(msg);
+    if (expired) AuthFailure.report(msg);
+    throw ApiException(msg, isAuthExpired: expired);
+  }
   return decoded;
 }
 

@@ -99,8 +99,11 @@ class _SettingsDialogState extends ConsumerState<_SettingsDialog> {
     final skin = AppSkin.of(context);
     final l10n = AppLocalizations.of(context);
     final size = MediaQuery.sizeOf(context);
-    final width = math.min(800.0, size.width * 0.9);
-    final height = math.min(660.0, size.height * 0.8);
+    // 弹窗尺寸。上限从 800×660 提到 1200×860 —— 800 宽在 2560 的窗口里
+    // 只够放两列卡片，而右半边屏幕整片空着；内容（技能 200+ 条、
+    // 中转站的三级表）本来就需要宽度。
+    final width = math.min(1200.0, size.width * 0.92);
+    final height = math.min(860.0, size.height * 0.88);
 
     return Dialog(
       backgroundColor: skin.containerBg,

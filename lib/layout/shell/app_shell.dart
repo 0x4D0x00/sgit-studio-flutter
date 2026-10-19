@@ -124,21 +124,36 @@ class AppShell extends StatelessWidget {
                               child: Column(
                                 children: [
                                   _header(context, skin, narrow),
-                                  // 中栏内容统一限宽居中（会话 / projects / artifacts 等）。
-                                  // 宽度取「设置档位」与「可用空间」的较小值 ——
-                                  // 用户选了宽档但窗口只有 900 时不能溢出。
+                                  // 中栏内容宽度。
+                                  //
+                                  // ⚠️ 限宽的**初衷是会话页的正文列**（阅读舒适度），
+                                  // 不该套在技能库 / 设置这类铺卡片或表格的页面上 ——
+                                  // 那些页在 2560 宽的窗口里被压成 800 只够放两列，
+                                  // 右半边整片空白。
+                                  //
+                                  // 所以这里分两种：会话页限宽居中，其余页**占满**。
+                                  // [contentMaxWidth] 为 0 表示"不设上限"。
                                   Expanded(
                                     child: LayoutBuilder(
-                                      builder: (context, c) => Align(
-                                        alignment: Alignment.topCenter,
-                                        child: SizedBox(
-                                          width: c.maxWidth < contentMaxWidth
-                                              ? c.maxWidth
-                                              : contentMaxWidth,
-                                          height: c.maxHeight,
-                                          child: child,
-                                        ),
-                                      ),
+                                      builder: (context, c) {
+                                        if (contentMaxWidth <= 0) {
+                                          return SizedBox(
+                                            width: c.maxWidth,
+                                            height: c.maxHeight,
+                                            child: child,
+                                          );
+                                        }
+                                        return Align(
+                                          alignment: Alignment.topCenter,
+                                          child: SizedBox(
+                                            width: c.maxWidth < contentMaxWidth
+                                                ? c.maxWidth
+                                                : contentMaxWidth,
+                                            height: c.maxHeight,
+                                            child: child,
+                                          ),
+                                        );
+                                      },
                                     ),
                                   ),
                                 ],

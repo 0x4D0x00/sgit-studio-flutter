@@ -1220,6 +1220,12 @@ abstract class AppLocalizations {
   /// **'请输入图形验证码'**
   String get loginCaptchaRequired;
 
+  /// No description provided for @loginSessionExpired.
+  ///
+  /// In zh, this message translates to:
+  /// **'登录已过期，请重新登录'**
+  String get loginSessionExpired;
+
   /// No description provided for @settingsTitle.
   ///
   /// In zh, this message translates to:
@@ -2941,6 +2947,66 @@ abstract class AppLocalizations {
   /// In zh, this message translates to:
   /// **'快捷键'**
   String get customizeTabShortcuts;
+
+  /// No description provided for @customizeTabConnectors.
+  ///
+  /// In zh, this message translates to:
+  /// **'连接器'**
+  String get customizeTabConnectors;
+
+  /// No description provided for @customizeTabPlugins.
+  ///
+  /// In zh, this message translates to:
+  /// **'插件'**
+  String get customizeTabPlugins;
+
+  /// No description provided for @customizeTabYours.
+  ///
+  /// In zh, this message translates to:
+  /// **'你的'**
+  String get customizeTabYours;
+
+  /// No description provided for @customizeTabDiscover.
+  ///
+  /// In zh, this message translates to:
+  /// **'发现'**
+  String get customizeTabDiscover;
+
+  /// No description provided for @customizeTabForYou.
+  ///
+  /// In zh, this message translates to:
+  /// **'为你推荐'**
+  String get customizeTabForYou;
+
+  /// No description provided for @customizeTabNew.
+  ///
+  /// In zh, this message translates to:
+  /// **'最新'**
+  String get customizeTabNew;
+
+  /// No description provided for @customizeSearchSkillsHint.
+  ///
+  /// In zh, this message translates to:
+  /// **'搜索技能…'**
+  String get customizeSearchSkillsHint;
+
+  /// No description provided for @customizeSearchPluginsHint.
+  ///
+  /// In zh, this message translates to:
+  /// **'搜索插件…'**
+  String get customizeSearchPluginsHint;
+
+  /// No description provided for @skillsYoursEmptyTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'你还没有自建技能'**
+  String get skillsYoursEmptyTitle;
+
+  /// No description provided for @skillsYoursEmptyHint.
+  ///
+  /// In zh, this message translates to:
+  /// **'母版下发的技能在 Discover 里'**
+  String get skillsYoursEmptyHint;
 
   /// No description provided for @customizeSearchHint.
   ///

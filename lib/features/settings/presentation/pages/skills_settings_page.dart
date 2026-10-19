@@ -1,21 +1,17 @@
 import 'package:flutter/material.dart';
 
-import 'package:sgit_studio_flutter/design/extensions/app_skin.dart';
 import 'package:sgit_studio_flutter/design/tokens/app_spacing.dart';
-import 'package:sgit_studio_flutter/l10n/generated/app_localizations.dart';
-import 'package:sgit_studio_flutter/ui/components/confirm.dart';
-
-import 'package:sgit_studio_flutter/features/customize/presentation/widgets/customize_models.dart';
-import 'package:sgit_studio_flutter/features/customize/presentation/widgets/customize_sample_data.dart';
-import 'package:sgit_studio_flutter/features/customize/presentation/widgets/customize_section_header.dart';
-import 'package:sgit_studio_flutter/features/customize/presentation/widgets/customize_show_all_view.dart';
 import 'package:sgit_studio_flutter/features/customize/presentation/widgets/customize_toolbar.dart';
 import 'package:sgit_studio_flutter/features/customize/presentation/widgets/pill_tab_bar.dart';
-import 'package:sgit_studio_flutter/features/customize/presentation/widgets/skill_card.dart';
-import 'package:sgit_studio_flutter/features/customize/presentation/widgets/yours_list_item.dart';
+import 'package:sgit_studio_flutter/features/customize/presentation/widgets/skill_library.dart';
+import 'package:sgit_studio_flutter/l10n/generated/app_localizations.dart';
 
-/// 设置弹窗里的 Skills 页面：与顶层 Customize 路由页的 Skills 内容一致，
-/// 复用同一套工具条/卡片/列表组件，只是嵌在设置弹窗内（不带 Scaffold）。
+/// 设置弹窗里的 Skills 页面 —— 内容与 Customize 的 Skills 是**同一份**。
+///
+/// 数据源、分组与卡片全部来自 [SkillLibraryGrid]，这里只多一层「Discover / Yours」
+/// 的切换外壳。两处复用同一个组件而不是各写一遍：它们读的是同一个目录
+/// `~/.sgitai/skills`，分开实现必然漂成两套内容（先前 Customize 用假数据、
+/// 设置用真源，就是这么裂开的）。
 class SkillsSettingsPage extends StatefulWidget {
   const SkillsSettingsPage({super.key});
 
@@ -28,39 +24,13 @@ class _SkillsSettingsPageState extends State<SkillsSettingsPage> {
   final _searchController = TextEditingController();
   String _query = '';
 
-  late final List<Map<String, Object>> _yoursSkills = buildYoursSkills();
-
-  /// 「Show all」全量列表是否打开，以及它自己的搜索词。
-  bool _showAll = false;
-  final _showAllSearchController = TextEditingController();
-  String _showAllQuery = '';
-
   @override
   void dispose() {
     _searchController.dispose();
-    _showAllSearchController.dispose();
     super.dispose();
   }
 
-  List<T> _filterBy<T>(List<T> items, String Function(T) titleOf) {
-    if (_query.isEmpty) return items;
-    final q = _query.toLowerCase();
-    return items.where((item) => titleOf(item).toLowerCase().contains(q)).toList(growable: false);
-  }
-
-  List<T> _filterShowAll<T>(List<T> items, String Function(T) titleOf) {
-    if (_showAllQuery.isEmpty) return items;
-    final q = _showAllQuery.toLowerCase();
-    return items.where((item) => titleOf(item).toLowerCase().contains(q)).toList(growable: false);
-  }
-
-  void _exitShowAll() {
-    _showAll = false;
-    _showAllQuery = '';
-    _showAllSearchController.clear();
-  }
-
-  void _notWired(BuildContext context, AppLocalizations l10n, String what) {
+  void _notWired(AppLocalizations l10n, String what) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(l10n.commonNotWired(what)),
@@ -69,174 +39,43 @@ class _SkillsSettingsPageState extends State<SkillsSettingsPage> {
     );
   }
 
-  Future<void> _removeYoursSkill(Map<String, Object> skill) async {
-    final l10n = AppLocalizations.of(context);
-    final ok = await confirmDanger(
-      context,
-      title: l10n.studioRemoveConfirm(skill['title'] as String),
-      confirmText: l10n.commonDelete,
-    );
-    if (!ok) return;
-
-    setState(() => _yoursSkills.remove(skill));
-  }
-
   @override
   Widget build(BuildContext context) {
-    final skin = AppSkin.of(context);
     final l10n = AppLocalizations.of(context);
 
     return Column(
       children: [
-        // 全量列表自带头部和搜索框，这里就不再画一遍工具条。
-        if (!_showAll)
-          Padding(
-            padding: const EdgeInsets.only(bottom: AppSpacing.md),
-            child: CustomizeToolbar(
-              tabs: PillTabBar(
-                tabs: [
-                  PillTab(
-                    label: 'Yours',
-                    selected: _isYoursView,
-                    onTap: () => setState(() => _isYoursView = true),
-                  ),
-                  PillTab(
-                    label: 'Discover',
-                    selected: !_isYoursView,
-                    onTap: () => setState(() => _isYoursView = false),
-                  ),
-                ],
-              ),
-              searchController: _searchController,
-              query: _query,
-              onQueryChanged: (v) => setState(() => _query = v),
-              onTune: () => _notWired(context, l10n, 'category'),
-              onSort: () => _notWired(context, l10n, 'sort'),
-              onAdd: () => _notWired(context, l10n, l10n.commonAdd),
+        Padding(
+          padding: const EdgeInsets.only(bottom: AppSpacing.md),
+          child: CustomizeToolbar(
+            tabs: PillTabBar(
+              tabs: [
+                PillTab(
+                  label: 'Yours',
+                  selected: _isYoursView,
+                  onTap: () => setState(() => _isYoursView = true),
+                ),
+                PillTab(
+                  label: 'Discover',
+                  selected: !_isYoursView,
+                  onTap: () => setState(() => _isYoursView = false),
+                ),
+              ],
             ),
+            searchController: _searchController,
+            query: _query,
+            onQueryChanged: (v) => setState(() => _query = v),
+            onTune: () => _notWired(l10n, 'category'),
+            onSort: () => _notWired(l10n, 'sort'),
+            onAdd: () => _notWired(l10n, l10n.commonAdd),
           ),
+        ),
         Expanded(
           child: _isYoursView
-              ? _buildYoursContent(context, skin, l10n)
-              : _buildDiscoverContent(context, skin, l10n),
+              ? const SkillsYoursEmpty()
+              : SkillLibraryGrid(query: _query),
         ),
       ],
-    );
-  }
-
-  Widget _buildYoursContent(BuildContext context, AppSkin skin, AppLocalizations l10n) {
-    final filtered = _filterBy(_yoursSkills, (s) => s['title'] as String);
-
-    return Column(
-      children: [
-        Container(
-          padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm),
-          decoration: BoxDecoration(
-            border: Border(bottom: BorderSide(color: skin.border, width: 0.5)),
-          ),
-          child: Row(
-            children: [
-              Text(
-                'From Anthropic & Partners',
-                style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: skin.text),
-              ),
-            ],
-          ),
-        ),
-        Expanded(
-          child: filtered.isEmpty
-              ? Center(
-                  child: Text(
-                    'No skills found',
-                    style: TextStyle(fontSize: 14, color: skin.textSecondary),
-                  ),
-                )
-              : ListView.builder(
-                  itemCount: filtered.length,
-                  itemBuilder: (context, index) {
-                    final skill = filtered[index];
-                    return YoursListItem(
-                      icon: skill['icon'] as IconData,
-                      title: skill['title'] as String,
-                      source: skill['source'] as String,
-                      description: skill['description'] as String,
-                      timeAgo: skill['timeAgo'] as String,
-                      skin: skin,
-                      onTap: () => _notWired(context, l10n, skill['title'] as String),
-                      onRemove: () => _removeYoursSkill(skill),
-                    );
-                  },
-                ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildDiscoverContent(BuildContext context, AppSkin skin, AppLocalizations l10n) {
-    if (_showAll) {
-      return CustomizeShowAllView.skills(
-        title: 'New skills',
-        tabLabel: 'Skills',
-        skin: skin,
-        l10n: l10n,
-        searchController: _showAllSearchController,
-        query: _showAllQuery,
-        searchHint: 'Search skills...',
-        onQueryChanged: (v) => setState(() => _showAllQuery = v),
-        onBack: () => setState(_exitShowAll),
-        onTune: () => _notWired(context, l10n, 'category'),
-        onSort: () => _notWired(context, l10n, 'sort'),
-        onToolbarAdd: () => _notWired(context, l10n, l10n.commonAdd),
-        onAdd: (skill) => _notWired(context, l10n, skill.title),
-        skillItems: _filterShowAll(buildAllNewSkills(), (s) => s.title),
-      );
-    }
-
-    return ListView(
-      children: [
-        const CustomizeSectionHeader('For you'),
-        const SizedBox(height: AppSpacing.md),
-        _buildWrap(context, _filterBy(buildForYouSkills(), (s) => s.title), skin, l10n),
-        const SizedBox(height: AppSpacing.md),
-        CustomizeSectionHeader(
-          'New',
-          showSeeAll: true,
-          onSeeAll: () => setState(() => _showAll = true),
-        ),
-        const SizedBox(height: AppSpacing.md),
-        _buildWrap(context, _filterBy(buildNewSkills(), (s) => s.title), skin, l10n),
-      ],
-    );
-  }
-
-  static const double _minCardWidth = 260;
-
-  Widget _buildWrap(
-    BuildContext context,
-    List<SkillItem> items,
-    AppSkin skin,
-    AppLocalizations l10n,
-  ) {
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        final twoColumns = constraints.maxWidth >= _minCardWidth * 2 + AppSpacing.md;
-        final width = twoColumns ? (constraints.maxWidth - AppSpacing.md) / 2 : constraints.maxWidth;
-        return Wrap(
-          spacing: AppSpacing.md,
-          runSpacing: AppSpacing.md,
-          children: items.map((skill) {
-            return SizedBox(
-              width: width,
-              child: SkillCard(
-                skill: skill,
-                skin: skin,
-                l10n: l10n,
-                onTap: () => _notWired(context, l10n, skill.title),
-              ),
-            );
-          }).toList(),
-        );
-      },
     );
   }
 }

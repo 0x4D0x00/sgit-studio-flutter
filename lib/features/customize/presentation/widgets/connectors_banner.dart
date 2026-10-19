@@ -135,8 +135,12 @@ class _ConnectorsPromoBannerState extends State<ConnectorsPromoBanner> {
       ),
       child: Column(
         children: [
+          // ⚠️ 220 是写死的高度，装不下这张卡的五行内容（标签 + 标题 + 副标题 +
+          // 图标行 + 按钮）—— 在 2560 宽窗口下实测溢出 14px。
+          // 用一条固定但更宽裕的高度：PageView 要求子项高度一致，
+          // 所以不能让它随内容自适应，只能给足。
           SizedBox(
-            height: 220,
+            height: 250,
             child: PageView.builder(
               controller: _pageController,
               onPageChanged: (index) => setState(() => _currentPage = index),

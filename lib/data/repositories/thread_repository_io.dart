@@ -6,6 +6,7 @@ import 'dart:isolate';
 import 'package:ffi/ffi.dart';
 
 import 'package:sgit_studio_flutter/core/result/api_exception.dart';
+import 'package:sgit_studio_flutter/core/result/auth_failure.dart';
 import 'package:sgit_studio_flutter/data/repositories/thread_repository.dart';
 import 'package:sgit_studio_flutter/domain/models/chat/thread_summary.dart';
 
@@ -86,7 +87,13 @@ Map<String, Object?> _unwrap(String raw) {
   }
   final status = decoded['status'];
   if (status == 'fail' || status == 'error') {
-    throw ApiException(decoded['message']?.toString() ?? '会话操作失败');
+    final msg = decoded['message']?.toString() ?? '会话操作失败';
+    // 会话接口最容易撞到「未登录」：token 过期后第一件事就是列会话。
+    // 在这里就广播，别让 thread_list_controller 的 catch 把它咽成空白列表。
+    final expired = decoded['code'] == 'auth_expired' ||
+        isAuthFailureMessage(msg);
+    if (expired) AuthFailure.report(msg);
+    throw ApiException(msg, isAuthExpired: expired);
   }
   final data = decoded['data'];
   return data is Map ? data.cast<String, Object?>() : decoded;

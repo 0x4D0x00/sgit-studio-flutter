@@ -10,7 +10,6 @@ import 'package:sgit_studio_flutter/features/chat/application/thread_list_contro
 import 'package:sgit_studio_flutter/features/chat/presentation/thread_actions.dart';
 import 'package:sgit_studio_flutter/features/projects/application/projects_controller.dart';
 import 'package:sgit_studio_flutter/features/projects/presentation/widgets/create_project_dialog.dart';
-import 'package:sgit_studio_flutter/features/studio/studio_feature.dart';
 import 'package:sgit_studio_flutter/l10n/generated/app_localizations.dart';
 import 'package:sgit_studio_flutter/layout/panels/models/nav_entry.dart';
 import 'package:sgit_studio_flutter/layout/panels/nav_panel.dart';
@@ -79,11 +78,6 @@ class NavPanelContainer
     final l10n = AppLocalizations.of(
       context,
     );
-    // 智能体行的子页。判权由 provider 管（拒绝式），这里只管排版；归属哪个入口
-    // 由每项的 `placement` 决定（见下方 menu 的过滤）。
-    final studioPages = ref.watch(
-      visibleStudioPagesProvider,
-    );
     // 历史对话 = sgcode 的 **thread**，不是场景。
     //
     // 这里原先取的是 `resourceListProvider(StudioPageSpecs.scenes)` —— 场景是
@@ -121,7 +115,11 @@ class NavPanelContainer
       ),
       brandName: BrandConfig.instance.name,
       activeId: effectiveActiveId,
-      // 导航行：新对话、输出物、智能体
+      // 导航行：新对话、输出物、Projects、Customize。
+      //
+      // ⚠️ 「智能体」那一行已移除：它的子页全部进了设置弹窗
+      // （`StudioPlacement.settingsDialog` / `.none`），左栏这一行已经没有
+      // 任何可列的子项，留着就是一个点开什么也没有的悬停菜单。
       header: [
         NavEntry(
           id: _idNewChat,
@@ -144,35 +142,6 @@ class NavPanelContainer
           id: idCustomize,
           icon: Icons.tune,
           label: l10n.navCustomize,
-        ),
-        // 智能体：这一行**本身没有落地页**，只是子页的把手 ——
-        // 悬停弹菜单、左键点击把菜单钉住。所以它带 menu 而不进 _onSelect。
-        //
-        // ⚠️ 菜单里**只列 `navMenu` 归属的页**（目前是技能、记忆）。其余的子页
-        // 已挪进设置弹窗的「自定义」分组
-        NavEntry(
-          id: _idAgent,
-          icon: Icons.auto_awesome_outlined,
-          label: l10n.navStudioGroup,
-          menu: [
-            for (final p in studioPages)
-              if (p.placement == StudioPlacement.navMenu)
-              AppMenuAction(
-                icon: p.icon,
-                label: p.label(
-                  l10n,
-                ),
-                // 选中的子页打勾，菜单开着时能看出当前在哪一页。
-                checked:
-                    activeNavId ==
-                    p.key,
-                onTap: () => context.go(
-                  RouteNames.studio(
-                    p.key,
-                  ),
-                ),
-              ),
-          ],
         ),
       ],
       sections: [

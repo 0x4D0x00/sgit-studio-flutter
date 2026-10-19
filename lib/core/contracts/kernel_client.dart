@@ -168,9 +168,15 @@ enum ApprovalDecision {
 }
 
 final class KernelException implements Exception {
-  const KernelException(this.message, {this.fatal = false});
+  const KernelException(this.message, {this.fatal = false, this.isAuthFailure = false});
   final String message;
   final bool fatal;
+
+  /// 这次失败是「身份没了」（网关判未登录 / 令牌失效），不是网络或业务错误。
+  ///
+  /// 网关的失败信封与业务失败同形（`{status:"fail", message:"..."}`），
+  /// 不加这个标记的话，上层只能按 message 猜。
+  final bool isAuthFailure;
 
   @override
   String toString() => 'KernelException: $message';

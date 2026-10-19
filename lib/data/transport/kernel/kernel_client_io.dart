@@ -9,6 +9,7 @@ import 'package:flutter/foundation.dart';
 import 'package:sgit_studio_flutter/core/config/runtime_config.dart';
 import 'package:sgit_studio_flutter/core/contracts/kernel_client.dart';
 import 'package:sgit_studio_flutter/core/contracts/kernel_ops.dart';
+import 'package:sgit_studio_flutter/core/result/auth_failure.dart';
 import 'package:sgit_studio_flutter/data/transport/ffi/sgit_request_ffi_io.dart';
 import 'package:sgit_studio_flutter/data/transport/kernel/kernel_frame.dart';
 import 'package:sgit_studio_flutter/domain/models/chat/sgcode_settings.dart';
@@ -482,7 +483,13 @@ final class IoKernelClient implements KernelClient {
     if (decoded == null) throw const KernelException('网关响应格式异常');
     // 失败信封统一在这里抛，各仓储不用各自判一遍。
     if (decoded['status'] == 'fail' || decoded['status'] == 'error') {
-      throw KernelException(decoded['message']?.toString() ?? '请求失败');
+      final msg = decoded['message']?.toString() ?? '请求失败';
+      // 鉴权失败在这里就广播：网关这条路的调用方（studio 各页、Web 仓储）
+      // 大多会 catch 住回空，信号必须从这里发出去，别指望冒泡到路由。
+      final expired = decoded['code'] == 'auth_expired' ||
+          isAuthFailureMessage(msg);
+      if (expired) AuthFailure.report(msg);
+      throw KernelException(msg, isAuthFailure: expired);
     }
     return decoded;
   }

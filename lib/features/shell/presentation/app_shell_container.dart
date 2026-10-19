@@ -116,7 +116,9 @@ class _AppShellContainerState extends ConsumerState<AppShellContainer> {
           // 只靠它会让离开会话页的那一帧仍把面板画出来 —— 肉眼就是"闪一下"。
           outputExpanded: widget.isConversation && layout.outputExpanded,
           outputWidth: safeOutputWidth,
-          contentMaxWidth: contentMaxWidth,
+          // 只有会话页吃「转录宽度」档位。其余页（技能库 / 设置 / 产物 / Projects）
+          // 是铺卡片或表格的，限宽会让大窗口右半边整片空着 —— 传 0 表示不设上限。
+          contentMaxWidth: widget.isConversation ? contentMaxWidth : 0,
           onToggleNav: ctrl.toggleNav,
           onToggleOutput: ctrl.toggleOutput,
           onNavWidthChanged: ctrl.setNavWidth,

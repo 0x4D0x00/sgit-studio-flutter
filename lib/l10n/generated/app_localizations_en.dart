@@ -611,6 +611,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get loginCaptchaRequired => 'Please enter the image captcha';
 
   @override
+  String get loginSessionExpired =>
+      'Your session has expired — please sign in again';
+
+  @override
   String get settingsTitle => 'Settings';
 
   @override
@@ -1537,6 +1541,37 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get customizeTabShortcuts => 'Shortcuts';
+
+  @override
+  String get customizeTabConnectors => 'Connectors';
+
+  @override
+  String get customizeTabPlugins => 'Plugins';
+
+  @override
+  String get customizeTabYours => 'Yours';
+
+  @override
+  String get customizeTabDiscover => 'Discover';
+
+  @override
+  String get customizeTabForYou => 'For you';
+
+  @override
+  String get customizeTabNew => 'New';
+
+  @override
+  String get customizeSearchSkillsHint => 'Search skills...';
+
+  @override
+  String get customizeSearchPluginsHint => 'Search plugins...';
+
+  @override
+  String get skillsYoursEmptyTitle => 'You have no skills of your own yet';
+
+  @override
+  String get skillsYoursEmptyHint =>
+      'Skills pushed from the master library live in Discover';
 
   @override
   String get customizeSearchHint => 'Search skills...';

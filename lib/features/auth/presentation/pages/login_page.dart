@@ -207,7 +207,11 @@ class _LoginPageState extends ConsumerState<LoginPage> {
   Widget _card(ThemeData theme, bool isDark) {
     final l10n = AppLocalizations.of(context);
     final auth = ref.watch(authControllerProvider);
-    final error = _localError ?? auth.error;
+    // 被动失效（token 过期 / 服务端判未登录）优先于其它错误：它是用户被
+    // 送到这个页面的**原因**，得先解释清楚，不能显示后端那句
+    // `认证失败: 无效的user_auth_token: ...`（对用户没有任何意义）。
+    final error = _localError ??
+        (auth.sessionExpired ? l10n.loginSessionExpired : auth.error);
 
     return Container(
       width: _LoginMetrics.cardWidth,

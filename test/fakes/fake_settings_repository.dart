@@ -148,15 +148,25 @@ class FakeSettingsRepository implements SettingsRepository {
     return _entries[kind] ?? const [];
   }
 
+  /// `read(kind, id)` 要返回的正文，key 是 `kind/id`。
+  ///
+  /// 原先 [read] 恒返回空串 —— 对只断言"读过没有"的测试够了，但记忆页要把
+  /// 全文塞进编辑器，"点开拿到的是全文而不是列表摘要"这条就没有抓手。
+  final Map<String, String> readContent = {};
+
+  /// `write(kind, id, content)` 落下的正文，key 是 id。供断言写回内容。
+  final Map<String, String> written = {};
+
   @override
   Future<String> read(String kind, String id) async {
     calls.add('read:$kind/$id');
-    return '';
+    return readContent['$kind/$id'] ?? '';
   }
 
   @override
   Future<SettingsEntry> write(String kind, String id, String content) async {
     calls.add('write:$kind/$id');
+    written[id] = content;
     return SettingsEntry(id: id, synced: true);
   }
 

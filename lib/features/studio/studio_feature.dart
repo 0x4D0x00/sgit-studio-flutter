@@ -13,6 +13,17 @@ enum StudioPlacement {
 
   /// 设置弹窗「自定义」分组（技能 / 连接器 / 插件 那一组下面）。
   settingsDialog,
+
+  /// **没有自己的入口。**
+  ///
+  /// 给「已经由某个独立设置页承载」的 key 用：那个设置页有自己的侧栏项，
+  /// 再在别处列一遍就是同一个名字指向两个页面。目前只有 `memory`
+  /// （设置弹窗的 `_SettingsTab.memory` → `MemoryPage`）。
+  ///
+  /// 条目本身仍留在 [StudioPageDef.all] 里 —— 这份清单要与 Rust 侧
+  /// `sgit-ffi/src/studio.rs` 的 `PAGES` 逐字对齐（那边有测试守着），
+  /// 数据契约（`StudioPageSpecs.memory`）也以 key 为准。
+  none,
 }
 
 /// 「智能体」子页注册清单 —— 本 feature 的单一真源。
@@ -70,13 +81,17 @@ class StudioPageDef {
       label: _subagent,
       placement: StudioPlacement.settingsDialog,
     ),
-    // 技能留在左栏菜单：设置弹窗里的「技能」指向的是 Customize 那套
-    // 卡片/全量列表，与这页不是同一份 UI，放一起会串味。
+    // 技能**只从设置弹窗进**（`_SettingsTab.skills` → `SkillsSettingsPage`）——
+    // 与记忆同样处理：同一份 `.sgitai/skills` 不该有两个入口。
+    //
+    // 那条设置页原先读的是 Customize 的假数据，现已改成同一个真源
+    // （`StudioPageSpecs.skill` → `sgit_studio_read('skill')`），
+    // 所以这里挪走不会再留下两套内容。
     StudioPageDef(
       key: 'skill',
       icon: Icons.auto_awesome_outlined,
       label: _skill,
-      placement: StudioPlacement.navMenu,
+      placement: StudioPlacement.none,
     ),
     StudioPageDef(
       key: 'mcp',
@@ -90,12 +105,18 @@ class StudioPageDef {
       label: _tools,
       placement: StudioPlacement.settingsDialog,
     ),
-    // 记忆同理：弹窗里的「记忆」是 MemoryPage，与这页的笔记列表不是一回事。
+    // 记忆**只从设置弹窗进**（`_SettingsTab.memory` → `MemoryPage`）——
+    // 悬停菜单里不再列它，否则同一份 `.sgitai/memories` 会有两个入口，
+    // 而弹窗里那个才是带开关、带输入框的完整形态。
+    //
+    // ⚠️ 这条 def 仍要留：`StudioPageSpecs.memory`（读 `.sgitai/memories` 的
+    // 数据契约）与 Rust 侧 `PAGES` 的 key 表都以它为准，删了那张表就对不上。
+    // 它这里的作用只剩「注册」，不再是任何入口的可见性开关。
     StudioPageDef(
       key: 'memory',
       icon: Icons.memory_rounded,
       label: _memory,
-      placement: StudioPlacement.navMenu,
+      placement: StudioPlacement.none,
     ),
     StudioPageDef(
       key: 'knowledge',

@@ -7,6 +7,7 @@ import 'package:sgit_studio_flutter/l10n/generated/app_localizations.dart';
 import 'package:sgit_studio_flutter/ui/components/confirm.dart';
 
 import '../../application/customize_page_controller.dart';
+import 'package:sgit_studio_flutter/features/studio/presentation/pages/studio_page.dart';
 import '../widgets/customize_models.dart';
 import '../widgets/customize_sample_data.dart';
 import '../widgets/customize_section_header.dart';
@@ -14,6 +15,7 @@ import '../widgets/customize_show_all_view.dart';
 import '../widgets/customize_toolbar.dart';
 import '../widgets/pill_tab_bar.dart';
 import '../widgets/skill_card.dart';
+import '../widgets/skill_library.dart';
 import '../widgets/connector_card.dart';
 import '../widgets/connectors_banner.dart';
 import '../widgets/yours_list_item.dart';
@@ -163,7 +165,7 @@ class _CustomizePageState extends ConsumerState<CustomizePage> {
               AppSpacing.md,
             ),
             child: CustomizeToolbar(
-              tabs: PillTabBar(tabs: _buildTabs()),
+              tabs: PillTabBar(tabs: _buildTabs(l10n)),
               searchController: _searchController,
               query: _query,
               onQueryChanged: (v) => setState(() => _query = v),
@@ -177,78 +179,131 @@ class _CustomizePageState extends ConsumerState<CustomizePage> {
     );
   }
 
-  List<PillTab> _buildTabs() {
-    final labels = ['Skills', 'Connectors', 'Plugins'];
-    final tabs = CustomizeTab.values;
+  /// 页签文案。**全部走 l10n**，不写死字面量 —— 这个页面同时显示
+  /// 「自定义」内容（技能/连接器/插件）与 sgcode 的智能体配置页，
+  /// 两套文案各有自己的键。
+  String _tabLabel(CustomizeTab tab, AppLocalizations l10n) => switch (tab) {
+        CustomizeTab.skills => l10n.studioSkill,
+        CustomizeTab.connectors => l10n.customizeTabConnectors,
+        CustomizeTab.plugins => l10n.customizeTabPlugins,
+        CustomizeTab.scenes => l10n.studioScenes,
+        CustomizeTab.subagent => l10n.studioSubagent,
+        CustomizeTab.mcp => l10n.studioMcp,
+        CustomizeTab.tools => l10n.studioTools,
+        CustomizeTab.knowledge => l10n.studioKnowledge,
+        CustomizeTab.llmRelay => l10n.studioLlmRelay,
+        CustomizeTab.apiKey => l10n.studioApiKey,
+      };
+
+  List<PillTab> _buildTabs(AppLocalizations l10n) {
     final selectedTab = ref.watch(customizeTabControllerProvider);
     final tabController = ref.read(customizeTabControllerProvider.notifier);
+
     return [
-      for (var i = 0; i < labels.length; i++)
+      // 自定义内容（LobeChat 那套）
+      for (final tab in CustomizeTab.values.where((t) => t.isCustomizeContent))
         PillTab(
-          label: labels[i],
-          selected: selectedTab == tabs[i],
+          label: _tabLabel(tab, l10n),
+          selected: selectedTab == tab,
           onTap: () {
-            tabController.setTab(tabs[i]);
+            tabController.setTab(tab);
             setState(_exitShowAll);
           },
         ),
-      PillTab(
-        label: 'Yours',
-        selected: _selectedViewIndex == 3,
-        onTap: () => setState(() {
-          _selectedViewIndex = 3;
-          _exitShowAll();
-        }),
-        dividerBefore: true,
-      ),
-      PillTab(
-        label: 'Discover',
-        selected: _selectedViewIndex == 4,
-        onTap: () => setState(() {
-          _selectedViewIndex = 4;
-          _exitShowAll();
-        }),
-      ),
+      // sgcode 智能体配置页。与上面一组之间加一道分隔 ——
+      // 它们读的是完全不同的真源（本地 .sgitai vs 样例数据）。
+      for (final tab in CustomizeTab.values.where((t) => !t.isCustomizeContent))
+        PillTab(
+          label: _tabLabel(tab, l10n),
+          selected: selectedTab == tab,
+          onTap: () {
+            tabController.setTab(tab);
+            setState(_exitShowAll);
+          },
+          dividerBefore: tab == CustomizeTab.scenes,
+        ),
+      // Yours / Discover 只属于「自定义」内容；智能体配置页没有这两个视角。
+      if (selectedTab.isCustomizeContent) ...[
+        PillTab(
+          label: l10n.customizeTabYours,
+          selected: _selectedViewIndex == 3,
+          onTap: () => setState(() {
+            _selectedViewIndex = 3;
+            _exitShowAll();
+          }),
+          dividerBefore: true,
+        ),
+        PillTab(
+          label: l10n.customizeTabDiscover,
+          selected: _selectedViewIndex == 4,
+          onTap: () => setState(() {
+            _selectedViewIndex = 4;
+            _exitShowAll();
+          }),
+        ),
+      ],
     ];
   }
 
   Widget _buildContent(BuildContext context, AppSkin skin, AppLocalizations l10n) {
-    // 判断是 Yours 还是 Discover 视图
-    final isYoursView = _selectedViewIndex == 3;
     final selectedTab = ref.watch(customizeTabControllerProvider);
 
+    // sgcode 智能体配置页：直接复用设置弹窗里那几个页面实现
+    // （`StudioPage` 内部按 key 分派到资源列表 / 中转站 / 工具页）。
+    // 不另写一套：同一份数据、同一套判权，两处实现迟早会对不上。
+    final studioKey = selectedTab.studioPageKey;
+    if (studioKey != null) {
+      return StudioPage(pageKey: studioKey);
+    }
+
+    // 判断是 Yours 还是 Discover 视图
+    final isYoursView = _selectedViewIndex == 3;
+
     if (selectedTab == CustomizeTab.connectors) {
-      // Connectors
       if (isYoursView) {
         return _buildConnectorsYoursContent(context, skin, l10n);
-      } else {
-        return _buildConnectorsDiscoverContent(context, skin, l10n);
       }
-    } else {
-      // Skills / Plugins
-      if (isYoursView) {
-        return _buildSkillsYoursContent(context, skin, l10n);
-      } else {
-        return _buildSkillsDiscoverContent(context, skin, l10n);
-      }
+      return _buildConnectorsDiscoverContent(context, skin, l10n);
     }
+
+    // Skills / Plugins
+    if (isYoursView) {
+      return _buildSkillsYoursContent(context, skin, l10n);
+    }
+    return _buildSkillsDiscoverContent(context, skin, l10n);
   }
 
   // Skills/Plugins + Discover 页面：显示 "For you" + "New" 区域
   Widget _buildSkillsDiscoverContent(BuildContext context, AppSkin skin, AppLocalizations l10n) {
     final isPlugins = ref.watch(customizeTabControllerProvider) == CustomizeTab.plugins;
+
+    // Skills 视图 = 与设置弹窗里的技能页**同一份数据**（`SkillLibraryGrid`）。
+    // Plugins 仍是 LobeChat 那套样例数据 —— 它没有对应的本地真源。
+    //
+    // 这里不再套「For you」标题 + 固定高度：技能本身就是这一页的全部内容，
+    // 用 Column 让它吃满剩余高度（200+ 条得能在整页里滚），
+    // 而不是塞进一个 560px 高的框再套一层外部滚动。
+    if (!isPlugins && _showAllTitle == null) {
+      return Padding(
+        padding: const EdgeInsets.all(AppSpacing.md),
+        child: SkillLibraryGrid(query: _query),
+      );
+    }
+
     // 全量列表：Skills 用 buildAllNewSkills，Plugins 用 buildAllNewPlugins。
     if (_showAllTitle != null) {
       final source = isPlugins ? buildAllNewPlugins() : buildAllNewSkills();
       final filtered = _filterShowAll(source, (s) => s.title);
       return CustomizeShowAllView.skills(
         title: _showAllTitle!,
-        tabLabel: isPlugins ? 'Plugins' : 'Skills',
+        tabLabel: isPlugins ? l10n.customizeTabPlugins : l10n.studioSkill,
         skin: skin,
         l10n: l10n,
         searchController: _showAllSearchController,
         query: _showAllQuery,
-        searchHint: isPlugins ? 'Search plugins...' : 'Search skills...',
+        searchHint: isPlugins
+            ? l10n.customizeSearchPluginsHint
+            : l10n.customizeSearchSkillsHint,
         onQueryChanged: (v) => setState(() => _showAllQuery = v),
         onBack: () => setState(_exitShowAll),
         onTune: () => _notWired(context, l10n, 'category'),
@@ -262,12 +317,12 @@ class _CustomizePageState extends ConsumerState<CustomizePage> {
     return ListView(
       padding: const EdgeInsets.all(AppSpacing.md),
       children: [
-        CustomizeSectionHeader('For you'),
+        CustomizeSectionHeader(l10n.customizeTabForYou),
         const SizedBox(height: AppSpacing.md),
         _buildSkillsGrid(context, skin, l10n),
         const SizedBox(height: AppSpacing.md),
         CustomizeSectionHeader(
-          'New',
+          l10n.customizeTabNew,
           showSeeAll: true,
           onSeeAll: () => _openShowAll(isPlugins ? 'New plugins' : 'New skills'),
         ),
@@ -279,6 +334,12 @@ class _CustomizePageState extends ConsumerState<CustomizePage> {
 
   // Skills/Plugins + Yours 页面：显示列表样式
   Widget _buildSkillsYoursContent(BuildContext context, AppSkin skin, AppLocalizations l10n) {
+    // Skills 的 Yours 与设置弹窗里的技能页**共用同一个空态**：用户自建技能
+    // 目前还没有创建入口，列表恒空。Plugins 仍走 LobeChat 那套样例（无本地真源）。
+    if (ref.watch(customizeTabControllerProvider) == CustomizeTab.skills) {
+      return const SkillsYoursEmpty();
+    }
+
     final filtered = _filterBy(_yoursSkills, (s) => s['title'] as String);
 
     return Column(
@@ -344,7 +405,7 @@ class _CustomizePageState extends ConsumerState<CustomizePage> {
       final filtered = _filterShowAll(buildAllConnectors(), (c) => c.title);
       return CustomizeShowAllView.connectors(
         title: _showAllTitle!,
-        tabLabel: 'Connectors',
+        tabLabel: l10n.customizeTabConnectors,
         skin: skin,
         l10n: l10n,
         searchController: _showAllSearchController,

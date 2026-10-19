@@ -96,8 +96,10 @@ class SgitRequestFfi {
     final decoded = jsonDecode(out.toDart);
     if (decoded is! Map) throw StateError('业务响应格式异常');
     final data = Map<String, dynamic>.from(decoded);
-    // Rust 侧把任何失败都归一成 {"error": "..."}。
-    if (data['error'] != null) throw StateError(data['error'].toString());
+    // Rust 侧把任何失败都归一成 {"error":..,"code":..}。
+    // 抛 FfiFailure 而不是 StateError：`code` 是「令牌失效」的结构化判据。
+    final failure = parseFfiError(data);
+    if (failure != null) throw failure;
     return data;
   }
 
