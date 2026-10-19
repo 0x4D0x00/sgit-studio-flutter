@@ -250,9 +250,11 @@ class _CustomizePageState extends ConsumerState<CustomizePage> {
     // sgcode 智能体配置页：直接复用设置弹窗里那几个页面实现
     // （`StudioPage` 内部按 key 分派到资源列表 / 中转站 / 工具页）。
     // 不另写一套：同一份数据、同一套判权，两处实现迟早会对不上。
+    // 顶部的搜索框对左边**每一个** Tab 都生效：搜索词原样传进去，
+    // 由各页按自己的字段过滤（资源列表 / 工具 / 中转站形状不同）。
     final studioKey = selectedTab.studioPageKey;
     if (studioKey != null) {
-      return StudioPage(pageKey: studioKey);
+      return StudioPage(pageKey: studioKey, query: _query);
     }
 
     // 判断是 Yours 还是 Discover 视图
@@ -318,12 +320,25 @@ class _CustomizePageState extends ConsumerState<CustomizePage> {
       );
     }
 
+    // Plugins 是样例数据，搜索后「为你推荐」和「最新」可能一起落空。
+    // 先算一次，空就整页给空态 —— 否则只剩两个组头和一片空白。
+    final forYou = _filterBy(buildForYouSkills(), (s) => s.title);
+    final newSkills = _filterBy(buildNewSkills(), (s) => s.title);
+    if (forYou.isEmpty && newSkills.isEmpty) {
+      return Center(
+        child: Text(
+          l10n.studioEmpty,
+          style: TextStyle(fontSize: 13, color: skin.textTertiary),
+        ),
+      );
+    }
+
     return ListView(
       padding: const EdgeInsets.all(AppSpacing.md),
       children: [
         CustomizeSectionHeader(l10n.customizeTabForYou),
         const SizedBox(height: AppSpacing.md),
-        _buildSkillsGrid(context, skin, l10n),
+        _buildSkillsWrap(context, forYou, skin, l10n),
         const SizedBox(height: AppSpacing.md),
         CustomizeSectionHeader(
           l10n.customizeTabNew,
@@ -332,7 +347,7 @@ class _CustomizePageState extends ConsumerState<CustomizePage> {
               _openShowAll(isPlugins ? 'New plugins' : 'New skills'),
         ),
         const SizedBox(height: AppSpacing.md),
-        _buildNewSkillsRow(context, skin, l10n),
+        _buildSkillsWrap(context, newSkills, skin, l10n),
       ],
     );
   }
@@ -373,9 +388,11 @@ class _CustomizePageState extends ConsumerState<CustomizePage> {
         ),
         Expanded(
           child: filtered.isEmpty
+              // 搜索未命中与其他子页同一句「暂无内容」—— 同一个搜索框
+              // 在不同 Tab 下不该给出两种空态文案。
               ? Center(
                   child: Text(
-                    'No skills found',
+                    l10n.studioEmpty,
                     style: TextStyle(fontSize: 14, color: skin.textSecondary),
                   ),
                 )
@@ -429,6 +446,17 @@ class _CustomizePageState extends ConsumerState<CustomizePage> {
     final connectors = buildConnectors();
     final filtered = _filterBy(connectors, (c) => c.title);
 
+    // 搜不到时不要把横幅和组头留在页面上 —— 整页就是一句「暂无内容」，
+    // 与技能页/各智能体子页同一副样子。
+    if (filtered.isEmpty) {
+      return Center(
+        child: Text(
+          l10n.studioEmpty,
+          style: TextStyle(fontSize: 13, color: skin.textTertiary),
+        ),
+      );
+    }
+
     return ListView(
       padding: const EdgeInsets.all(AppSpacing.md),
       children: [
@@ -462,7 +490,7 @@ class _CustomizePageState extends ConsumerState<CustomizePage> {
       child: filtered.isEmpty
           ? Center(
               child: Text(
-                'No connectors found',
+                l10n.studioEmpty,
                 style: TextStyle(fontSize: 14, color: skin.textSecondary),
               ),
             )
@@ -495,15 +523,6 @@ class _CustomizePageState extends ConsumerState<CustomizePage> {
     );
   }
 
-  Widget _buildSkillsGrid(
-    BuildContext context,
-    AppSkin skin,
-    AppLocalizations l10n,
-  ) {
-    final filtered = _filterBy(buildForYouSkills(), (s) => s.title);
-    return _buildSkillsWrap(context, filtered, skin, l10n);
-  }
-
   Widget _buildSkillsWrap(
     BuildContext context,
     List<SkillItem> items,
@@ -522,14 +541,5 @@ class _CustomizePageState extends ConsumerState<CustomizePage> {
           ),
       ],
     );
-  }
-
-  Widget _buildNewSkillsRow(
-    BuildContext context,
-    AppSkin skin,
-    AppLocalizations l10n,
-  ) {
-    final filtered = _filterBy(buildNewSkills(), (s) => s.title);
-    return _buildSkillsWrap(context, filtered, skin, l10n);
   }
 }

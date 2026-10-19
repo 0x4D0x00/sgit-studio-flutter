@@ -196,9 +196,10 @@ class CustomizeShowAllView extends StatelessWidget {
   }
 
   Widget _buildEmpty() {
+    // 与 Discover / 各智能体子页同一句空态文案。
     return Center(
       child: Text(
-        l10n.commonEmpty,
+        l10n.studioEmpty,
         style: TextStyle(fontSize: 14, color: skin.textSecondary),
       ),
     );

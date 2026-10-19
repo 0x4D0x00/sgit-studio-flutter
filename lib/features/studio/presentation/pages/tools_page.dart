@@ -19,9 +19,36 @@ import 'package:sgit_studio_flutter/ui/components/hover_lift.dart';
 /// - **按需** —— 已注册但首轮不直接给模型，靠 `tool_search` 发现。
 ///   这与"被关掉了"完全不同，混在一起用户会以为工具坏了。
 class ToolsPage extends ConsumerWidget {
-  const ToolsPage({super.key, required this.title});
+  const ToolsPage({super.key, required this.title, this.query = ''});
 
   final String title;
+
+  /// 页面顶部搜索框的词。空串表示不过滤。
+  final String query;
+
+  /// 按名称 / 技术名 / 描述 / 类别名过滤。
+  ///
+  /// 过滤掉的行直接从所在分组里拿掉；整组空了就不画那个组头 ——
+  /// 否则搜索后满屏是「X · 0」。
+  List<ToolGroup> _filter(List<ToolGroup> groups) {
+    if (query.isEmpty) return groups;
+    final q = query.toLowerCase();
+    bool hit(ToolRow r) =>
+        r.def.label.toLowerCase().contains(q) ||
+        r.def.id.toLowerCase().contains(q) ||
+        r.def.desc.toLowerCase().contains(q);
+
+    return [
+      for (final g in groups)
+        if (g.name.toLowerCase().contains(q))
+          g
+        else if (g.rows.any(hit))
+          ToolGroup(
+            name: g.name,
+            rows: g.rows.where(hit).toList(growable: false),
+          ),
+    ];
+  }
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -29,18 +56,28 @@ class ToolsPage extends ConsumerWidget {
     final skin = AppSkin.of(context);
     final s = ref.watch(toolsProvider);
     final ctrl = ref.read(toolsProvider.notifier);
+    final groups = _filter(s.groups);
+    final count = groups.fold<int>(0, (n, g) => n + g.rows.length);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        _header(skin, l10n, s, ctrl),
+        _header(skin, l10n, count, ctrl),
         if (s.error != null)
           Padding(
             padding: const EdgeInsets.fromLTRB(
-                AppSpacing.md, 0, AppSpacing.md, AppSpacing.xs),
-            child: Text(s.error!,
+              AppSpacing.md,
+              0,
+              AppSpacing.md,
+              AppSpacing.xs,
+            ),
+            child: Text(
+              s.error!,
               style: TextStyle(
-                    fontSize: 12, color: Theme.of(context).colorScheme.error)),
+                fontSize: 12,
+                color: Theme.of(context).colorScheme.error,
+              ),
+            ),
           ),
         Expanded(
           child: AsyncView<ToolRow>(
@@ -49,7 +86,7 @@ class ToolsPage extends ConsumerWidget {
             // 把用户正在看的清单换成一句报错。
             error: null,
             stale: s.stale,
-            isEmpty: s.groups.isEmpty,
+            isEmpty: groups.isEmpty,
             emptyText: l10n.studioEmpty,
             retryText: l10n.commonRetry,
             onRetry: ctrl.reload,
@@ -57,7 +94,7 @@ class ToolsPage extends ConsumerWidget {
               padding: const EdgeInsets.fromLTRB(
                   AppSpacing.md, 0, AppSpacing.md, AppSpacing.lg),
               children: [
-                for (final g in s.groups) ...[
+                for (final g in groups) ...[
                   Padding(
                     padding: const EdgeInsets.fromLTRB(
                         0, AppSpacing.sm, 0, AppSpacing.xs),
@@ -90,9 +127,12 @@ class ToolsPage extends ConsumerWidget {
     );
   }
 
-  Widget _header(AppSkin skin, AppLocalizations l10n, ToolsState s,
-          ToolsController ctrl) =>
-      Padding(
+  Widget _header(
+    AppSkin skin,
+    AppLocalizations l10n,
+    int count,
+    ToolsController ctrl,
+  ) => Padding(
     padding: const EdgeInsets.fromLTRB(
             AppSpacing.md, AppSpacing.md, AppSpacing.md, AppSpacing.xs),
     child: Row(
@@ -106,8 +146,10 @@ class ToolsPage extends ConsumerWidget {
           ),
         ),
         const SizedBox(width: AppSpacing.xs),
-            Text('${s.total}',
-                style: TextStyle(fontSize: 12, color: skin.textTertiary)),
+        Text(
+          '$count',
+          style: TextStyle(fontSize: 12, color: skin.textTertiary),
+        ),
         const Spacer(),
         IconButton(
           iconSize: 18,

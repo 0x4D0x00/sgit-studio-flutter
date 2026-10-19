@@ -1574,7 +1574,7 @@ class AppLocalizationsEn extends AppLocalizations {
       'Skills pushed from the master library live in Discover';
 
   @override
-  String get customizeSearchHint => 'Search skills...';
+  String get customizeSearchHint => 'Search...';
 
   @override
   String get capabilitiesToolAccessMode => 'Tool access mode';

@@ -3011,7 +3011,7 @@ abstract class AppLocalizations {
   /// No description provided for @customizeSearchHint.
   ///
   /// In zh, this message translates to:
-  /// **'搜索技能...'**
+  /// **'搜索...'**
   String get customizeSearchHint;
 
   /// No description provided for @capabilitiesToolAccessMode.

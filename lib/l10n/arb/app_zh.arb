@@ -686,7 +686,7 @@
   "customizeSearchPluginsHint": "搜索插件…",
   "skillsYoursEmptyTitle": "你还没有自建技能",
   "skillsYoursEmptyHint": "母版下发的技能在 Discover 里",
-  "customizeSearchHint": "搜索技能...",
+  "customizeSearchHint": "搜索...",
   "capabilitiesToolAccessMode": "工具访问模式",
   "capabilitiesToolAccessModeDesc": "控制连接器工具在新对话中的加载方式。",
   "capabilitiesToolAccessLoadWhenNeeded": "按需加载工具",

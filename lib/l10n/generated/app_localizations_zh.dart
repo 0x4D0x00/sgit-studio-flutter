@@ -1535,7 +1535,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get skillsYoursEmptyHint => '母版下发的技能在 Discover 里';
 
   @override
-  String get customizeSearchHint => '搜索技能...';
+  String get customizeSearchHint => '搜索...';
 
   @override
   String get capabilitiesToolAccessMode => '工具访问模式';

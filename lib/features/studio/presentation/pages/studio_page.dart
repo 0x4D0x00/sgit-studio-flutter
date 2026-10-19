@@ -18,9 +18,15 @@ import 'package:sgit_studio_flutter/l10n/generated/app_localizations.dart';
 /// 页面分派：7 页走通用 [ResourceListPage]（各页只是一份 spec），
 /// 中转站走 [RelayPage]（三级页，形状差太远，硬套只会更难懂）。
 class StudioPage extends ConsumerWidget {
-  const StudioPage({super.key, required this.pageKey});
+  const StudioPage({super.key, required this.pageKey, this.query = ''});
 
   final String pageKey;
+
+  /// 顶部搜索框的词，原样交给各子页自己过滤。
+  ///
+  /// 在子页过滤而不是在这里过滤：各页的数据形状不同（资源列表 /
+  /// 工具开关组 / 中转站三级页），只有页面自己知道哪些字段该搜。
+  final String query;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -40,7 +46,8 @@ class StudioPage extends ConsumerWidget {
             ? const SizedBox(
                 width: 20,
                 height: 20,
-                child: CircularProgressIndicator(strokeWidth: 2))
+                child: CircularProgressIndicator(strokeWidth: 2),
+              )
             : _hint(
                 icon: Icons.lock_outline_rounded,
                 iconColor: skin.textTertiary,
@@ -53,15 +60,17 @@ class StudioPage extends ConsumerWidget {
     final title = page.label(l10n);
 
     // 中转站单独一页。
-    if (pageKey == 'llm-relay') return RelayPage(title: title);
+    if (pageKey == 'llm-relay') return RelayPage(title: title, query: query);
 
     // 工具是**开关组**而不是列表（config.toml 的 [features]），
     // 套通用列表页得为每项编一套假 id 与分组，更难懂 —— 单独一页。
-    if (pageKey == 'tools') return ToolsPage(title: title);
+    if (pageKey == 'tools') return ToolsPage(title: title, query: query);
 
     // 其余：有 spec 就是通用列表页（分组卡片网格）。
     final spec = StudioPageSpecs.of(pageKey);
-    if (spec != null) return ResourceListPage(spec: spec, title: title);
+    if (spec != null) {
+      return ResourceListPage(spec: spec, title: title, query: query);
+    }
 
     // 兜底：菜单里有、但这里还没接的页。正常不该走到。
     return Center(
@@ -79,13 +88,12 @@ class StudioPage extends ConsumerWidget {
     required Color iconColor,
     required String text,
     required TextStyle textStyle,
-  }) =>
-      Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(icon, size: 32, color: iconColor),
-          const SizedBox(height: 12),
-          Text(text, style: textStyle),
-        ],
-      );
+  }) => Column(
+    mainAxisSize: MainAxisSize.min,
+    children: [
+      Icon(icon, size: 32, color: iconColor),
+      const SizedBox(height: 12),
+      Text(text, style: textStyle),
+    ],
+  );
 }

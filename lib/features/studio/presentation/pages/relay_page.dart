@@ -22,9 +22,18 @@ import 'package:sgit_studio_flutter/ui/components/confirm.dart';
 /// 做成下钻会让人以为"每个模型一池"（我最初就是这么错的，还把模型名当 key 传，
 /// 结果永远查不到密钥）。弹窗从 L2 打开，语义上就挂在厂商上。
 class RelayPage extends ConsumerWidget {
-  const RelayPage({super.key, required this.title});
+  const RelayPage({super.key, required this.title, this.query = ''});
 
   final String title;
+
+  /// 页面顶部搜索框的词。空串表示不过滤。
+  ///
+  /// L1 搜厂商（标签 / code / baseUrl），L2 搜模型（显示名 / 模型名）。
+  /// **不跨层搜**：在下钻状态下展示另一层的命中项会让人搞不清自己在哪一层。
+  final String query;
+
+  bool _matches(String q, Iterable<String?> fields) =>
+      fields.any((f) => (f ?? '').toLowerCase().contains(q));
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -34,6 +43,18 @@ class RelayPage extends ConsumerWidget {
     final ctrl = ref.read(relayProvider.notifier);
 
     final inL2 = s.selectedProvider != null;
+    final q = query.toLowerCase();
+
+    final providers = q.isEmpty
+        ? s.providers
+        : s.providers
+              .where((p) => _matches(q, [p.label, p.code, p.baseUrl]))
+              .toList(growable: false);
+    final models = q.isEmpty
+        ? s.models
+        : s.models
+              .where((m) => _matches(q, [m.displayName, m.name]))
+              .toList(growable: false);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -41,8 +62,8 @@ class RelayPage extends ConsumerWidget {
         _toolbar(context, ref, skin, l10n, s, ctrl, inL2),
         Expanded(
           child: inL2
-              ? _models(context, ref, skin, l10n, s, ctrl)
-              : _providers(context, ref, skin, l10n, s, ctrl),
+              ? _models(context, ref, skin, l10n, s, ctrl, models)
+              : _providers(context, ref, skin, l10n, s, ctrl, providers),
         ),
       ],
     );
@@ -68,7 +89,11 @@ class RelayPage extends ConsumerWidget {
 
     return Padding(
       padding: const EdgeInsets.fromLTRB(
-          AppSpacing.md, AppSpacing.sm, AppSpacing.md, AppSpacing.xs),
+        AppSpacing.md,
+        AppSpacing.sm,
+        AppSpacing.md,
+        AppSpacing.xs,
+      ),
       child: LayoutBuilder(
         builder: (_, c) {
           // ⚠️ 窄屏下**丢掉冗余元素**，而不是硬挤：「个人（本地）」这个标记
@@ -91,9 +116,10 @@ class RelayPage extends ConsumerWidget {
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                      color: skin.text),
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                    color: skin.text,
+                  ),
                 ),
               ),
               // 个人版加个标记，免得用户以为自己在改全平台配置。
@@ -101,11 +127,12 @@ class RelayPage extends ConsumerWidget {
                 Flexible(
                   child: Padding(
                     padding: const EdgeInsets.only(right: AppSpacing.xs),
-                    child: Text(l10n.relayLocalBadge,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style:
-                            TextStyle(fontSize: 11, color: skin.textTertiary)),
+                    child: Text(
+                      l10n.relayLocalBadge,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(fontSize: 11, color: skin.textTertiary),
+                    ),
                   ),
                 ),
               IconButton(
@@ -116,7 +143,8 @@ class RelayPage extends ConsumerWidget {
                 // L2 是下钻视图，重拉该厂商即可；L1 走整页刷新。
                 // 两条都标成用户主动触发，不能被合并窗口吞掉。
                 onPressed: inL2
-                    ? () => ctrl.openProvider(s.selectedProvider!, refetch: true)
+                    ? () =>
+                          ctrl.openProvider(s.selectedProvider!, refetch: true)
                     : () => ctrl.loadProviders(force: true),
               ),
             ],
@@ -124,11 +152,13 @@ class RelayPage extends ConsumerWidget {
 
           // 1200 是实测出来的：L2 全铺开约需 1230px，留点余量。
           if (c.maxWidth >= 1200) {
-            return Row(children: [
-              Expanded(child: title),
-              const SizedBox(width: AppSpacing.xs),
-              ...actions,
-            ]);
+            return Row(
+              children: [
+                Expanded(child: title),
+                const SizedBox(width: AppSpacing.xs),
+                ...actions,
+              ],
+            );
           }
           return Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -162,8 +192,10 @@ class RelayPage extends ConsumerWidget {
       return [
         FilledButton.icon(
           icon: const Icon(Icons.add_rounded, size: 15),
-          label: Text(l10n.relayAddProvider,
-              style: const TextStyle(fontSize: 12)),
+          label: Text(
+            l10n.relayAddProvider,
+            style: const TextStyle(fontSize: 12),
+          ),
           onPressed: () =>
               _editProvider(context, ctrl, RelayProvider.empty, isNew: true),
         ),
@@ -195,145 +227,161 @@ class RelayPage extends ConsumerWidget {
         icon: const Icon(Icons.add_rounded, size: 15),
         label: Text(l10n.relayAddModel, style: const TextStyle(fontSize: 12)),
         onPressed: () => _editModel(
-            context, ctrl, RelayModel.emptyFor(s.selectedProvider!),
-            isNew: true),
+          context,
+          ctrl,
+          RelayModel.emptyFor(s.selectedProvider!),
+          isNew: true,
+        ),
       ),
     ];
   }
 
   // ---- L1：厂商卡片墙 ----
 
-  Widget _providers(BuildContext context, WidgetRef ref, AppSkin skin,
-          AppLocalizations l10n, RelayState s, RelayController ctrl) =>
-      AsyncView<void>(
-        loading: s.loading,
-        error: s.error,
-        stale: s.stale,
-        isEmpty: s.providers.isEmpty,
-        emptyText: l10n.relayNoProviders,
-        retryText: l10n.commonRetry,
-        onRetry: ctrl.loadProviders,
-        builder: (_) => GridView.builder(
-          padding: const EdgeInsets.all(AppSpacing.md),
-          gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
-            maxCrossAxisExtent: 300,
-            // ⚠️ 高度要容得下开关 + 两行文字 + 操作图标。卡片内的行一律用
-            // Expanded 自适应（见 layout_test：靠算像素迟早再溢出一次）。
-            mainAxisExtent: 112,
-            mainAxisSpacing: AppSpacing.sm,
-            crossAxisSpacing: AppSpacing.sm,
-          ),
-          itemCount: s.providers.length,
-          itemBuilder: (_, i) {
-            final p = s.providers[i];
-            return _providerCard(context, skin, l10n, p, ctrl);
-          },
-        ),
-      );
+  Widget _providers(
+    BuildContext context,
+    WidgetRef ref,
+    AppSkin skin,
+    AppLocalizations l10n,
+    RelayState s,
+    RelayController ctrl,
+    List<RelayProvider> providers,
+  ) => AsyncView<void>(
+    loading: s.loading,
+    error: s.error,
+    stale: s.stale,
+    isEmpty: providers.isEmpty,
+    emptyText: l10n.studioEmpty,
+    retryText: l10n.commonRetry,
+    onRetry: ctrl.loadProviders,
+    builder: (_) => GridView.builder(
+      padding: const EdgeInsets.all(AppSpacing.md),
+      gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
+        maxCrossAxisExtent: 300,
+        // ⚠️ 高度要容得下开关 + 两行文字 + 操作图标。卡片内的行一律用
+        // Expanded 自适应（见 layout_test：靠算像素迟早再溢出一次）。
+        mainAxisExtent: 112,
+        mainAxisSpacing: AppSpacing.sm,
+        crossAxisSpacing: AppSpacing.sm,
+      ),
+      itemCount: providers.length,
+      itemBuilder: (_, i) {
+        final p = providers[i];
+        return _providerCard(context, skin, l10n, p, ctrl);
+      },
+    ),
+  );
 
-  Widget _providerCard(BuildContext context, AppSkin skin,
-          AppLocalizations l10n, RelayProvider p, RelayController ctrl) =>
-      Material(
-        color: skin.containerBgSecondary,
-        borderRadius: BorderRadius.circular(AppRadius.md),
-        clipBehavior: Clip.antiAlias,
-        child: InkWell(
-          // 传 isCustom：同 code 的平台行与自建行并存，只有 tag 能区分点的是哪一行。
-          onTap: () => ctrl.openProvider(p.code, isCustom: p.isCustom),
-          child: Padding(
-            padding: const EdgeInsets.fromLTRB(
-                AppSpacing.sm, AppSpacing.xs, AppSpacing.xxs, AppSpacing.xs),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Expanded(
-                  child: Row(
-                    children: [
-                      Expanded(
-                        child: Text(
-                          p.label,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w600,
-                            color: p.enabled ? skin.text : skin.textTertiary,
-                          ),
-                        ),
-                      ),
-                      if (p.isCustom)
-                        _tag(context, l10n.relayCustom, false)
-                      else
-                        // 平台开放的厂商：标出来并且**全行只读**。个人页的写
-                        // 一律落 tag=custom，改它只会新建一条同名影子行。
-                        _tag(context, l10n.relayPlatform, false),
-                      // 启用开关。缩到 0.75：网格项高度固定，全尺寸会顶出内容。
-                      Transform.scale(
-                        scale: 0.75,
-                        child: Tooltip(
-                          message: p.isCustom
-                              ? (p.enabled
-                                  ? l10n.relayToggleOff
-                                  : l10n.relayToggleOn)
-                              : l10n.relayPlatformReadonly,
-                          child: Switch(
-                            value: p.enabled,
-                            onChanged: p.isCustom
-                                ? (_) => ctrl.toggleProvider(p)
-                                : null,
-                            materialTapTargetSize:
-                                MaterialTapTargetSize.shrinkWrap,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                Expanded(
-                  child: Row(
-                    children: [
-                      Expanded(
-                        child: Text(
-                          p.baseUrl.isEmpty ? p.code : p.baseUrl,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: TextStyle(
-                              fontSize: 11, color: skin.textTertiary),
-                        ),
-                      ),
-                      // 平台行只读：按钮禁用而不是隐藏 —— 隐藏了用户会以为
-                      // 功能没做，禁用 + tooltip 才说得清"为什么不能改"。
-                      IconButton(
-                        iconSize: 15,
-                        visualDensity: VisualDensity.compact,
-                        tooltip: p.isCustom
-                            ? l10n.relayEditProvider
-                            : l10n.relayPlatformReadonly,
-                        color: skin.textSecondary,
-                        icon: const Icon(Icons.edit_outlined),
-                        onPressed: p.isCustom
-                            ? () => _editProvider(context, ctrl, p, isNew: false)
-                            : null,
-                      ),
-                      IconButton(
-                        iconSize: 15,
-                        visualDensity: VisualDensity.compact,
-                        tooltip: p.isCustom
-                            ? l10n.relayDeleteProvider
-                            : l10n.relayPlatformReadonly,
-                        color: Theme.of(context).colorScheme.error,
-                        icon: const Icon(Icons.delete_outline_rounded),
-                        onPressed:
-                            p.isCustom ? () => _deleteProvider(context, ctrl, p) : null,
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          ),
+  Widget _providerCard(
+    BuildContext context,
+    AppSkin skin,
+    AppLocalizations l10n,
+    RelayProvider p,
+    RelayController ctrl,
+  ) => Material(
+    color: skin.containerBgSecondary,
+    borderRadius: BorderRadius.circular(AppRadius.md),
+    clipBehavior: Clip.antiAlias,
+    child: InkWell(
+      // 传 isCustom：同 code 的平台行与自建行并存，只有 tag 能区分点的是哪一行。
+      onTap: () => ctrl.openProvider(p.code, isCustom: p.isCustom),
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(
+          AppSpacing.sm,
+          AppSpacing.xs,
+          AppSpacing.xxs,
+          AppSpacing.xs,
         ),
-      );
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Expanded(
+              child: Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      p.label,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                        color: p.enabled ? skin.text : skin.textTertiary,
+                      ),
+                    ),
+                  ),
+                  if (p.isCustom)
+                    _tag(context, l10n.relayCustom, false)
+                  else
+                    // 平台开放的厂商：标出来并且**全行只读**。个人页的写
+                    // 一律落 tag=custom，改它只会新建一条同名影子行。
+                    _tag(context, l10n.relayPlatform, false),
+                  // 启用开关。缩到 0.75：网格项高度固定，全尺寸会顶出内容。
+                  Transform.scale(
+                    scale: 0.75,
+                    child: Tooltip(
+                      message: p.isCustom
+                          ? (p.enabled
+                                ? l10n.relayToggleOff
+                                : l10n.relayToggleOn)
+                          : l10n.relayPlatformReadonly,
+                      child: Switch(
+                        value: p.enabled,
+                        onChanged: p.isCustom
+                            ? (_) => ctrl.toggleProvider(p)
+                            : null,
+                        materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Expanded(
+              child: Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      p.baseUrl.isEmpty ? p.code : p.baseUrl,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(fontSize: 11, color: skin.textTertiary),
+                    ),
+                  ),
+                  // 平台行只读：按钮禁用而不是隐藏 —— 隐藏了用户会以为
+                  // 功能没做，禁用 + tooltip 才说得清"为什么不能改"。
+                  IconButton(
+                    iconSize: 15,
+                    visualDensity: VisualDensity.compact,
+                    tooltip: p.isCustom
+                        ? l10n.relayEditProvider
+                        : l10n.relayPlatformReadonly,
+                    color: skin.textSecondary,
+                    icon: const Icon(Icons.edit_outlined),
+                    onPressed: p.isCustom
+                        ? () => _editProvider(context, ctrl, p, isNew: false)
+                        : null,
+                  ),
+                  IconButton(
+                    iconSize: 15,
+                    visualDensity: VisualDensity.compact,
+                    tooltip: p.isCustom
+                        ? l10n.relayDeleteProvider
+                        : l10n.relayPlatformReadonly,
+                    color: Theme.of(context).colorScheme.error,
+                    icon: const Icon(Icons.delete_outline_rounded),
+                    onPressed: p.isCustom
+                        ? () => _deleteProvider(context, ctrl, p)
+                        : null,
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    ),
+  );
 
   // ---- L2：模型列表 ----
 
@@ -344,121 +392,133 @@ class RelayPage extends ConsumerWidget {
     AppLocalizations l10n,
     RelayState s,
     RelayController ctrl,
-  ) =>
-      Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          // 只做个人页：数据落本机 per-cid 库，平台开放的行只读。
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
-            child: Text(
-              l10n.relayScopeHintPersonal(s.models.length),
-              style: TextStyle(fontSize: 11, color: skin.textTertiary),
+    List<RelayModel> models,
+  ) => Column(
+    crossAxisAlignment: CrossAxisAlignment.stretch,
+    children: [
+      // 只做个人页：数据落本机 per-cid 库，平台开放的行只读。
+      Padding(
+        padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
+        child: Text(
+          l10n.relayScopeHintPersonal(s.models.length),
+          style: TextStyle(fontSize: 11, color: skin.textTertiary),
+        ),
+      ),
+      Expanded(
+        child: AsyncView<void>(
+          loading: s.loading,
+          error: s.error,
+          stale: s.stale,
+          isEmpty: models.isEmpty,
+          emptyText: l10n.studioEmpty,
+          retryText: l10n.commonRetry,
+          onRetry: () => ctrl.openProvider(s.selectedProvider ?? ''),
+          builder: (_) => ListView.builder(
+            padding: const EdgeInsets.symmetric(
+              horizontal: AppSpacing.md,
+              vertical: AppSpacing.xs,
             ),
+            itemCount: models.length,
+            itemBuilder: (_, i) =>
+                _modelRow(context, skin, l10n, models[i], ctrl),
           ),
-          Expanded(
-            child: AsyncView<void>(
-              loading: s.loading,
-              error: s.error,
-              stale: s.stale,
-              isEmpty: s.models.isEmpty,
-              emptyText: l10n.studioEmpty,
-              retryText: l10n.commonRetry,
-              onRetry: () => ctrl.openProvider(s.selectedProvider ?? ''),
-              builder: (_) => ListView.builder(
-                padding: const EdgeInsets.symmetric(
-                    horizontal: AppSpacing.md, vertical: AppSpacing.xs),
-                itemCount: s.models.length,
-                itemBuilder: (_, i) =>
-                    _modelRow(context, skin, l10n, s.models[i], ctrl),
-              ),
-            ),
-          ),
-        ],
-      );
+        ),
+      ),
+    ],
+  );
 
-  Widget _modelRow(BuildContext context, AppSkin skin, AppLocalizations l10n,
-          RelayModel m, RelayController ctrl) =>
-      Container(
-        margin: const EdgeInsets.only(bottom: AppSpacing.xxs),
-        padding: const EdgeInsets.fromLTRB(
-            AppSpacing.sm, AppSpacing.xxs, AppSpacing.xxs, AppSpacing.xxs),
-        decoration: BoxDecoration(
-          color: skin.containerBgSecondary,
-          borderRadius: BorderRadius.circular(AppRadius.sm),
+  Widget _modelRow(
+    BuildContext context,
+    AppSkin skin,
+    AppLocalizations l10n,
+    RelayModel m,
+    RelayController ctrl,
+  ) => Container(
+    margin: const EdgeInsets.only(bottom: AppSpacing.xxs),
+    padding: const EdgeInsets.fromLTRB(
+      AppSpacing.sm,
+      AppSpacing.xxs,
+      AppSpacing.xxs,
+      AppSpacing.xxs,
+    ),
+    decoration: BoxDecoration(
+      color: skin.containerBgSecondary,
+      borderRadius: BorderRadius.circular(AppRadius.sm),
+    ),
+    child: Row(
+      children: [
+        Transform.scale(
+          scale: 0.75,
+          child: Tooltip(
+            message: m.available ? l10n.relayToggleOff : l10n.relayToggleOn,
+            child: Switch(
+              value: m.available,
+              onChanged: (_) => ctrl.toggleModel(m),
+              materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+            ),
+          ),
         ),
-        child: Row(
-          children: [
-            Transform.scale(
-              scale: 0.75,
-              child: Tooltip(
-                message:
-                    m.available ? l10n.relayToggleOff : l10n.relayToggleOn,
-                child: Switch(
-                  value: m.available,
-                  onChanged: (_) => ctrl.toggleModel(m),
-                  materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+        const SizedBox(width: AppSpacing.xxs),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                m.displayName,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w500,
+                  color: m.available ? skin.text : skin.textTertiary,
                 ),
               ),
-            ),
-            const SizedBox(width: AppSpacing.xxs),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(
-                    m.displayName,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: TextStyle(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w500,
-                      color: m.available ? skin.text : skin.textTertiary,
-                    ),
-                  ),
-                  Text(
-                    m.name,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: TextStyle(
-                        fontSize: 11,
-                        fontFamily: 'monospace',
-                        color: skin.textTertiary),
-                  ),
-                ],
-              ),
-            ),
-            // 窄屏下上下文窗口是最先该省掉的信息（模型名和开关才是主角）。
-            if (m.contextWindow != null)
-              Flexible(
-                child: Padding(
-                  padding: const EdgeInsets.only(left: AppSpacing.xs),
-                  child: Text(l10n.relayContextWindow(m.contextWindow!),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: TextStyle(fontSize: 11, color: skin.textTertiary)),
+              Text(
+                m.name,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                  fontSize: 11,
+                  fontFamily: 'monospace',
+                  color: skin.textTertiary,
                 ),
               ),
-            IconButton(
-              iconSize: 15,
-              visualDensity: VisualDensity.compact,
-              tooltip: l10n.relayEditModel,
-              color: skin.textSecondary,
-              icon: const Icon(Icons.edit_outlined),
-              onPressed: () => _editModel(context, ctrl, m, isNew: false),
-            ),
-            IconButton(
-              iconSize: 15,
-              visualDensity: VisualDensity.compact,
-              tooltip: l10n.relayDeleteModel,
-              color: Theme.of(context).colorScheme.error,
-              icon: const Icon(Icons.delete_outline_rounded),
-              onPressed: () => _deleteModel(context, ctrl, m),
-            ),
-          ],
+            ],
+          ),
         ),
-      );
+        // 窄屏下上下文窗口是最先该省掉的信息（模型名和开关才是主角）。
+        if (m.contextWindow != null)
+          Flexible(
+            child: Padding(
+              padding: const EdgeInsets.only(left: AppSpacing.xs),
+              child: Text(
+                l10n.relayContextWindow(m.contextWindow!),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(fontSize: 11, color: skin.textTertiary),
+              ),
+            ),
+          ),
+        IconButton(
+          iconSize: 15,
+          visualDensity: VisualDensity.compact,
+          tooltip: l10n.relayEditModel,
+          color: skin.textSecondary,
+          icon: const Icon(Icons.edit_outlined),
+          onPressed: () => _editModel(context, ctrl, m, isNew: false),
+        ),
+        IconButton(
+          iconSize: 15,
+          visualDensity: VisualDensity.compact,
+          tooltip: l10n.relayDeleteModel,
+          color: Theme.of(context).colorScheme.error,
+          icon: const Icon(Icons.delete_outline_rounded),
+          onPressed: () => _deleteModel(context, ctrl, m),
+        ),
+      ],
+    ),
+  );
 
   // ---- 动作 ----
 
@@ -468,14 +528,18 @@ class RelayPage extends ConsumerWidget {
     RelayProvider draft, {
     required bool isNew,
   }) async {
-    final edited =
-        await showProviderForm(context, draft: draft, isNew: isNew);
+    final edited = await showProviderForm(context, draft: draft, isNew: isNew);
     if (edited == null) return;
-    isNew ? await ctrl.createProvider(edited) : await ctrl.updateProvider(edited);
+    isNew
+        ? await ctrl.createProvider(edited)
+        : await ctrl.updateProvider(edited);
   }
 
   Future<void> _deleteProvider(
-      BuildContext context, RelayController ctrl, RelayProvider p) async {
+    BuildContext context,
+    RelayController ctrl,
+    RelayProvider p,
+  ) async {
     final l10n = AppLocalizations.of(context);
     final ok = await confirmDanger(
       context,
@@ -499,7 +563,10 @@ class RelayPage extends ConsumerWidget {
   }
 
   Future<void> _deleteModel(
-      BuildContext context, RelayController ctrl, RelayModel m) async {
+    BuildContext context,
+    RelayController ctrl,
+    RelayModel m,
+  ) async {
     final l10n = AppLocalizations.of(context);
     final ok = await confirmDanger(
       context,
@@ -510,7 +577,10 @@ class RelayPage extends ConsumerWidget {
   }
 
   Future<void> _sync(
-      BuildContext context, RelayController ctrl, String code) async {
+    BuildContext context,
+    RelayController ctrl,
+    String code,
+  ) async {
     final l10n = AppLocalizations.of(context);
     final ok = await confirmDanger(
       context,
@@ -522,9 +592,8 @@ class RelayPage extends ConsumerWidget {
     if (ok) await ctrl.syncProvider(code);
   }
 
-  RelayProvider? _activeProvider(RelayState s) => s.providers
-      .where((p) => p.code == s.selectedProvider)
-      .firstOrNull;
+  RelayProvider? _activeProvider(RelayState s) =>
+      s.providers.where((p) => p.code == s.selectedProvider).firstOrNull;
 
   Widget _tag(BuildContext context, String text, bool warn) {
     final scheme = Theme.of(context).colorScheme;
