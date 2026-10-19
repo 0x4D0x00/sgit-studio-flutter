@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
@@ -22,6 +23,7 @@ import 'package:sgit_studio_flutter/ui/components/chat/composer/composer_control
 import 'package:sgit_studio_flutter/ui/components/chat/composer/composer_model_label.dart';
 import 'package:sgit_studio_flutter/ui/components/chat/composer/composer_send_button.dart';
 import 'package:sgit_studio_flutter/ui/components/chat/composer/composer_shell.dart';
+import 'package:sgit_studio_flutter/ui/components/chat/composer/orbit_beam.dart';
 import 'package:sgit_studio_flutter/ui/components/chat/composer/composer_token_tag.dart';
 import 'package:sgit_studio_flutter/ui/components/menu/app_menu.dart';
 
@@ -61,6 +63,15 @@ enum ComposerVariant {
 /// 「参数面板」——那些是 lobe 自己的产品概念，存在它的 agent config 里，
 /// **sgcode 没有对应物**，所以一个都不抄。要表达"这轮能做多狠"，sgcode 的答案是
 /// [SandboxMode]；要表达"想多深"，是 [ReasoningEffort]。控制条放的就是这两个。
+/// 回车发送的意图。
+///
+/// 存在的唯一理由：`TextField(maxLines: null)` 的 `textInputAction` 默认是
+/// `newline`，回车会被它吃掉换成换行，`onSubmitted` 不触发。所以自己在
+/// `Shortcuts` 里把 Enter 映射成这个意图，再在 `Actions` 里转去提交。
+class _SendIntent extends Intent {
+  const _SendIntent();
+}
+
 class ChatComposer extends ConsumerStatefulWidget {
   const ChatComposer({super.key, required this.variant});
 
@@ -71,6 +82,9 @@ class ChatComposer extends ConsumerStatefulWidget {
 }
 
 class _ChatComposerState extends ConsumerState<ChatComposer> {
+  /// 发送后沿输入框跑一圈的光。详见 [OrbitBeam]。
+  bool _beamActive = false;
+
   final _ctl = TextEditingController();
   final _focus = FocusNode();
 
@@ -95,6 +109,28 @@ class _ChatComposerState extends ConsumerState<ChatComposer> {
     // 用 controller 监听而不是 TextField.onChanged：`_ctl.clear()` 这种**程序化**改动
     // 也要触发重建，否则 steer 之后按钮不会从「插话」切回「停止」（被 UI 测试抓到过）。
     _ctl.addListener(_onTextChanged);
+  }
+
+  /// 首次挂载时如果**本轮已经在跑**，补一次光。
+  ///
+  /// 对应 studio `Conversation/ChatInput/index.tsx:338-345` 的「挂载时补播」：
+  /// 空态发出首条消息后，`workspace_page` 会把整棵空态子树换成会话态子树，
+  /// 刚起跑的光随 `_beamActive` 一起销毁 —— **最常见的那条路径上反而看不到光**。
+  ///
+  /// 放在 `didChangeDependencies` 而不是 `initState`：要读 `MediaQuery`
+  /// 判断系统"减弱动态效果"，那时 `initState` 里还拿不到。
+  bool _mountBeamChecked = false;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (_mountBeamChecked) return;
+    _mountBeamChecked = true;
+    final animationsOff = MediaQuery.maybeDisableAnimationsOf(context) ?? false;
+    if (animationsOff) return;
+    if (ref.read(chatControllerProvider).busy) {
+      setState(() => _beamActive = true);
+    }
   }
 
   void _onTextChanged() => setState(() {});
@@ -144,7 +180,14 @@ class _ChatComposerState extends ConsumerState<ChatComposer> {
         ?.id;
     final accepted = busy ? ctrl.steer(text) : ctrl.send(text, model: model);
     // ⚠️ **只在受理后才清空**。被拒时保留用户输入，让他改完能直接重发。
-    if (accepted) _ctl.clear();
+    if (accepted) {
+      _ctl.clear();
+      // 一次性装饰反馈：从"消息被受理"这一刻起跑。
+      // 被拒（没模型 / 未连接 / busy）时**不跑** —— 那会给出"已发送"的错误暗示。
+      // 同理，系统关掉动态效果时也不点这一下。
+      final animationsOff = MediaQuery.maybeDisableAnimationsOf(context) ?? false;
+      if (!_beamActive && !animationsOff) setState(() => _beamActive = true);
+    }
     _focus.requestFocus();
   }
 
@@ -154,6 +197,9 @@ class _ChatComposerState extends ConsumerState<ChatComposer> {
     // 只订阅用得到的字段，不整块 watch。
     final busy = ref.watch(chatControllerProvider.select((s) => s.busy));
     final ctrl = ref.read(chatControllerProvider.notifier);
+
+    // 系统的「减弱动态效果」= studio 的 `disableAnimation`。
+    final animationsOff = MediaQuery.maybeDisableAnimationsOf(context) ?? false;
 
     // 引擎设置写失败要让用户知道 —— 静默失败的开关比没有开关更糟（用户以为设上了）。
     ref.listen(composerSettingsProvider.select((s) => s.error), (_, err) {
@@ -175,17 +221,30 @@ class _ChatComposerState extends ConsumerState<ChatComposer> {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             _statsLine(l10n),
-            ComposerShell(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  if (_attachments.isNotEmpty) _attachmentArea(l10n),
-                  if (widget.variant == ComposerVariant.conversation)
-                    _resizeHandle(),
-                  _editor(l10n, busy, ctrl),
-                  const SizedBox(height: ComposerMetrics.actionBarGapTop),
-                  _actionBar(l10n, busy, ctrl),
-                ],
+            // 发送反馈：受理消息那一刻起跑一圈光，跑完就消失。
+            // 与 studio 的 `OrbitBeam` 同一语义 —— 是**一次性**装饰，
+            // 不表示"正在生成"，所以不跟 busy 绑。
+            OrbitBeam(
+              // 系统关掉动态效果时整道不画（studio 的 `disableAnimation`）。
+              // 只在这里判、不去 setState 清 `_beamActive` —— 开关再打开时
+              // 光还能正常跑，不需要额外状态。
+              active: _beamActive && !animationsOff,
+              borderRadius: ComposerMetrics.shellRadius,
+              onComplete: () {
+                if (mounted) setState(() => _beamActive = false);
+              },
+              child: ComposerShell(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    if (_attachments.isNotEmpty) _attachmentArea(l10n),
+                    if (widget.variant == ComposerVariant.conversation)
+                      _resizeHandle(),
+                    _editor(l10n, busy, ctrl),
+                    const SizedBox(height: ComposerMetrics.actionBarGapTop),
+                    _actionBar(l10n, busy, ctrl),
+                  ],
+                ),
               ),
             ),
             if (widget.variant == ComposerVariant.conversation)
@@ -295,23 +354,49 @@ class _ChatComposerState extends ConsumerState<ChatComposer> {
 
     return ConstrainedBox(
       constraints: BoxConstraints(minHeight: minHeight, maxHeight: maxHeight),
-      child: TextField(
-        controller: _ctl,
-        focusNode: _focus,
-        maxLines: null,
-        onSubmitted: (_) => _submit(ctrl, busy),
-        // ⚠️ 不能用 InputDecoration.collapsed：它不设 filled，会继承全局
-        // inputDecorationTheme 的 filled+fillColor+border，在玻璃框里
-        // 又套出一个灰底输入框。这里逐项显式关掉。
-        decoration: InputDecoration(
-          isCollapsed: true,
-          filled: false,
-          border: InputBorder.none,
-          enabledBorder: InputBorder.none,
-          focusedBorder: InputBorder.none,
-          contentPadding: EdgeInsets.zero,
-          hintText: busy ? l10n.chatSteerHint : l10n.workspaceInputHint,
-          hintStyle: TextStyle(color: skin.textTertiary),
+      // ⚠️ **回车发送必须自己拦键，不能靠 `onSubmitted`。**
+      //
+      // `maxLines: null` 的多行 TextField 在 Flutter 里的 `textInputAction`
+      // 默认是 `newline`，回车被它当场吃掉换成换行，`onSubmitted` **根本不会触发**
+      // —— 表现就是"按回车毫无反应，字还留在框里"。
+      //
+      // 这里用 `Shortcuts` 把 Enter / 小键盘 Enter 映射成一个自有意图，
+      // 再在 `Actions` 里转去 `_submit`。Shift+Enter 仍然保留为换行（多行编辑的
+      // 常规约定），不拦截它。
+      child: Shortcuts(
+        shortcuts: const <ShortcutActivator, Intent>{
+          SingleActivator(LogicalKeyboardKey.enter): _SendIntent(),
+          SingleActivator(LogicalKeyboardKey.numpadEnter): _SendIntent(),
+        },
+        child: Actions(
+          actions: <Type, Action<Intent>>{
+            _SendIntent: CallbackAction<_SendIntent>(
+              onInvoke: (_) {
+                _submit(ctrl, busy);
+                return null;
+              },
+            ),
+          },
+          child: TextField(
+            controller: _ctl,
+            focusNode: _focus,
+            maxLines: null,
+            // 保留它作为兜底（单行输入法 / 无障碍输入会走这条）。
+            onSubmitted: (_) => _submit(ctrl, busy),
+            // ⚠️ 不能用 InputDecoration.collapsed：它不设 filled，会继承全局
+            // inputDecorationTheme 的 filled+fillColor+border，在玻璃框里
+            // 又套出一个灰底输入框。这里逐项显式关掉。
+            decoration: InputDecoration(
+              isCollapsed: true,
+              filled: false,
+              border: InputBorder.none,
+              enabledBorder: InputBorder.none,
+              focusedBorder: InputBorder.none,
+              contentPadding: EdgeInsets.zero,
+              hintText: busy ? l10n.chatSteerHint : l10n.workspaceInputHint,
+              hintStyle: TextStyle(color: skin.textTertiary),
+            ),
+          ),
         ),
       ),
     );

@@ -20,7 +20,7 @@ class ComposerMetrics {
 
   /// 外壳四边内边距。React 是 `padding: 16` 一个值（**四边相同**）。
   /// 旧版 Flutter 写成 `symmetric(horizontal: 16, vertical: 8)`，上下少了一半。
-  static const double shellPadding = 14;
+  static const double shellPadding = 16;
 
   static const double shellBorderWidth = 1;
 
@@ -35,13 +35,14 @@ class ComposerMetrics {
   static const double shellInsetHighlightHeight = 1;
 
   // ---- 编辑区 ----
-  // 出处：Desktop/index.tsx:181-188（会话态）、home/features/InputArea/index.tsx:144-153（空态）
+  // 出处：Desktop/index.tsx:214 `minHeight={36}`（会话态）、
+  //       home/features/InputArea/index.tsx:150 `minHeight: 60`（空态）
 
   /// 会话态最小高度。
-  static const double editorMinHeightConversation = 12;
+  static const double editorMinHeightConversation = 36;
 
   /// 空态最小高度。React 注释：「编辑区最小高度:整框砍掉约 1/3(184→~123)」。
-  static const double editorMinHeightEmpty = 40;
+  static const double editorMinHeightEmpty = 60;
 
   /// 最大高度（两态相同）。超过后内部滚动。
   static const double editorMaxHeight = 320;
