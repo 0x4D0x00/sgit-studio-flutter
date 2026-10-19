@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:sgit_studio_flutter/design/extensions/app_skin.dart';
 import 'package:sgit_studio_flutter/design/tokens/app_spacing.dart';
 
+import '../../data/customize_models.dart';
+
 /// Connectors + Yours 页面的表格样式
 class YoursConnectorTable extends StatelessWidget {
   const YoursConnectorTable({
@@ -88,20 +90,6 @@ class YoursConnectorTable extends StatelessWidget {
       onConnect: () => onConnect(connector),
     );
   }
-}
-
-class YoursConnectorRow {
-  final IconData icon;
-  final String name;
-  final String type;
-  final String status;
-
-  YoursConnectorRow({
-    required this.icon,
-    required this.name,
-    required this.type,
-    required this.status,
-  });
 }
 
 class _YoursConnectorRowWidget extends StatefulWidget {

@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 
 import 'customize_models.dart';
-import 'yours_connector_table.dart';
 
 /// Customize 系页面（顶层 /customize 路由 + 设置弹窗里的 Skills/Connectors/
 /// Plugins 三个子页）共用的演示数据。没有后端，先用同一份 mock 保证三处

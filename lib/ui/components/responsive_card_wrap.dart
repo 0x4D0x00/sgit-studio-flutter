@@ -12,6 +12,7 @@ class ResponsiveCardWrap extends StatelessWidget {
     super.key,
     required this.children,
     this.minWidth = 300,
+    this.maxColumns = 8,
   });
 
   final List<Widget> children;
@@ -19,8 +20,9 @@ class ResponsiveCardWrap extends StatelessWidget {
   /// 卡片宽度下限。窄于此就不再并排，退成单列。
   final double minWidth;
 
-  /// 再宽的窗口也不无限加列：超过这个数卡片会窄得放不下描述。
-  static const int _maxColumns = 8;
+  /// 列数上限。默认 8 —— 再宽的窗口也不无限加列，否则卡片窄得放不下描述。
+  /// 设置弹窗那种嵌在窄容器里的场景传 2，保持与顶层页面不同的疏密。
+  final int maxColumns;
 
   @override
   Widget build(BuildContext context) {
@@ -30,7 +32,7 @@ class ResponsiveCardWrap extends StatelessWidget {
         final avail = constraints.maxWidth;
         final cols = ((avail + AppSpacing.md) / (minWidth + AppSpacing.md))
             .floor()
-            .clamp(1, _maxColumns);
+            .clamp(1, maxColumns);
         final w = (avail - AppSpacing.md * (cols - 1)) / cols;
 
         return Wrap(

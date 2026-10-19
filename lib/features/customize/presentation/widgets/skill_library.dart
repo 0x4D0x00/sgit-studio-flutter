@@ -12,7 +12,7 @@ import 'package:sgit_studio_flutter/l10n/generated/app_localizations.dart';
 import 'package:sgit_studio_flutter/ui/components/async_view.dart';
 import 'package:sgit_studio_flutter/ui/components/hover_lift.dart';
 
-import 'responsive_card_wrap.dart';
+import 'package:sgit_studio_flutter/ui/components/responsive_card_wrap.dart';
 
 /// 技能库 —— **设置弹窗与 Customize 页共用这一份**。
 ///

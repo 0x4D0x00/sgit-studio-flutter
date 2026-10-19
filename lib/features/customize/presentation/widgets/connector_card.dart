@@ -4,7 +4,7 @@ import 'package:sgit_studio_flutter/design/tokens/app_spacing.dart';
 import 'package:sgit_studio_flutter/l10n/generated/app_localizations.dart';
 import 'package:sgit_studio_flutter/ui/components/hover_lift.dart';
 
-import 'customize_models.dart';
+import '../../data/customize_models.dart';
 
 /// 单个连接器卡片。视觉与交互（悬停缩放 + 阴影）对齐 [SkillCard]，
 /// 保证 Skills / Connectors 两个 Tab 下的卡片手感一致 —— 两者共用 [HoverLift]。

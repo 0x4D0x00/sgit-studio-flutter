@@ -39,32 +39,16 @@ class ConnectorItem {
   });
 }
 
-class YourSkillItem {
-  final String name;
-  final String badge;
-  final String description;
-  final String source;
-  final String time;
-
-  YourSkillItem({
-    required this.name,
-    required this.badge,
-    required this.description,
-    required this.source,
-    required this.time,
-  });
-}
-
-class YourConnectorItem {
+/// Yours 页连接器表格的一行。原先定义在 `yours_connector_table.dart` 里，
+/// 挪到模型文件 —— 组件文件里不该藏数据类型。
+class YoursConnectorRow {
   final IconData icon;
-  final Color color;
   final String name;
   final String type;
   final String status;
 
-  YourConnectorItem({
+  YoursConnectorRow({
     required this.icon,
-    required this.color,
     required this.name,
     required this.type,
     required this.status,

@@ -4,13 +4,14 @@ import 'package:sgit_studio_flutter/design/extensions/app_skin.dart';
 import 'package:sgit_studio_flutter/design/tokens/app_spacing.dart';
 import 'package:sgit_studio_flutter/l10n/generated/app_localizations.dart';
 import 'package:sgit_studio_flutter/ui/components/confirm.dart';
+import 'package:sgit_studio_flutter/ui/components/pill_tab_bar.dart';
+import 'package:sgit_studio_flutter/ui/components/responsive_card_wrap.dart';
 
-import 'package:sgit_studio_flutter/features/customize/presentation/widgets/customize_models.dart';
-import 'package:sgit_studio_flutter/features/customize/presentation/widgets/customize_sample_data.dart';
+import 'package:sgit_studio_flutter/features/customize/data/customize_models.dart';
+import 'package:sgit_studio_flutter/features/customize/data/customize_sample_data.dart';
 import 'package:sgit_studio_flutter/features/customize/presentation/widgets/customize_section_header.dart';
 import 'package:sgit_studio_flutter/features/customize/presentation/widgets/customize_show_all_view.dart';
 import 'package:sgit_studio_flutter/features/customize/presentation/widgets/customize_toolbar.dart';
-import 'package:sgit_studio_flutter/features/customize/presentation/widgets/pill_tab_bar.dart';
 import 'package:sgit_studio_flutter/features/customize/presentation/widgets/skill_card.dart';
 import 'package:sgit_studio_flutter/features/customize/presentation/widgets/yours_list_item.dart';
 
@@ -211,34 +212,25 @@ class _PluginsSettingsPageState extends State<PluginsSettingsPage> {
     );
   }
 
-  static const double _minCardWidth = 260;
-
   Widget _buildWrap(
     BuildContext context,
     List<SkillItem> items,
     AppSkin skin,
     AppLocalizations l10n,
   ) {
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        final twoColumns = constraints.maxWidth >= _minCardWidth * 2 + AppSpacing.md;
-        final width = twoColumns ? (constraints.maxWidth - AppSpacing.md) / 2 : constraints.maxWidth;
-        return Wrap(
-          spacing: AppSpacing.md,
-          runSpacing: AppSpacing.md,
-          children: items.map((plugin) {
-            return SizedBox(
-              width: width,
-              child: SkillCard(
-                skill: plugin,
-                skin: skin,
-                l10n: l10n,
-                onTap: () => _notWired(context, l10n, plugin.title),
-              ),
-            );
-          }).toList(),
-        );
-      },
+    // 弹窗比顶层页面窄，最多两列；列数逻辑仍复用同一份组件。
+    return ResponsiveCardWrap(
+      minWidth: 260,
+      maxColumns: 2,
+      children: [
+        for (final plugin in items)
+          SkillCard(
+            skill: plugin,
+            skin: skin,
+            l10n: l10n,
+            onTap: () => _notWired(context, l10n, plugin.title),
+          ),
+      ],
     );
   }
 }
