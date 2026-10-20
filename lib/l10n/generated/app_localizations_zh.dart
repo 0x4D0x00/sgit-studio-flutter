@@ -1593,4 +1593,78 @@ class AppLocalizationsZh extends AppLocalizations {
   String capabilitiesSkillsMoved(String customize) {
     return '技能已移至「$customize」。';
   }
+
+  @override
+  String get searchSectionRecents => '最近';
+
+  @override
+  String get searchSectionActions => '操作';
+
+  @override
+  String get searchTabAll => '全部';
+
+  @override
+  String get searchTabArtifacts => '输出物';
+
+  @override
+  String get searchTabChats => '聊天';
+
+  @override
+  String get searchTabProjects => '项目';
+
+  @override
+  String get searchTabSessions => '会话';
+
+  @override
+  String get searchTabTasks => '任务';
+
+  @override
+  String get searchTabScheduled => '定时';
+
+  @override
+  String searchNoResultsIn(String type) {
+    return '$type 中没有结果';
+  }
+
+  @override
+  String get searchSearchAll => '搜索全部';
+
+  @override
+  String get searchNewChat => '新建对话';
+
+  @override
+  String get searchTimeToday => '今天';
+
+  @override
+  String get searchTimePastWeek => '过去一周';
+
+  @override
+  String get searchTimePastMonth => '过去一月';
+
+  @override
+  String get searchTimePastYear => '过去一年';
+
+  @override
+  String get searchTimeOlder => '更早';
+
+  @override
+  String get searchFooterClose => '关闭';
+
+  @override
+  String get searchFooterChangeType => '切换分类';
+
+  @override
+  String get searchFooterFilters => '筛选';
+
+  @override
+  String get searchFooterActions => '更多';
+
+  @override
+  String get searchFooterCompose => '输入';
+
+  @override
+  String get searchFiltersTitle => '筛选分类';
+
+  @override
+  String get searchOpen => '打开';
 }

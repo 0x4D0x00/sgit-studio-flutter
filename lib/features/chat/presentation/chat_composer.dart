@@ -9,6 +9,7 @@ import 'package:sgit_studio_flutter/design/extensions/app_skin.dart';
 import 'package:sgit_studio_flutter/design/tokens/app_spacing.dart';
 import 'package:sgit_studio_flutter/design/tokens/composer_metrics.dart';
 import 'package:sgit_studio_flutter/domain/models/chat/sgcode_settings.dart';
+import 'package:sgit_studio_flutter/features/chat/application/composer_focus_controller.dart';
 import 'package:sgit_studio_flutter/features/chat/application/composer_settings_controller.dart';
 import 'package:sgit_studio_flutter/features/chat/application/model_list_controller.dart';
 import 'package:sgit_studio_flutter/features/chat/presentation/model_selector.dart';
@@ -200,6 +201,13 @@ class _ChatComposerState extends ConsumerState<ChatComposer> {
 
     // 系统的「减弱动态效果」= studio 的 `disableAnimation`。
     final animationsOff = MediaQuery.maybeDisableAnimationsOf(context) ?? false;
+
+    // 别处（搜索弹窗的 Tab）请求把光标送到输入框。只认计数变化，
+    // 挂载时不会凭空抢一次焦点。
+    ref.listen(composerFocusProvider, (prev, next) {
+      if (prev == null || next <= prev) return;
+      _focus.requestFocus();
+    });
 
     // 引擎设置写失败要让用户知道 —— 静默失败的开关比没有开关更糟（用户以为设上了）。
     ref.listen(composerSettingsProvider.select((s) => s.error), (_, err) {

@@ -715,5 +715,36 @@
         "type": "String"
       }
     }
-  }
+  },
+  "searchSectionRecents": "Recents",
+  "searchSectionActions": "Actions",
+  "searchTabAll": "All",
+  "searchTabArtifacts": "Artifacts",
+  "searchTabChats": "Chats",
+  "searchTabProjects": "Projects",
+  "searchTabSessions": "Sessions",
+  "searchTabTasks": "Tasks",
+  "searchTabScheduled": "Scheduled",
+  "searchNoResultsIn": "No results in {type}",
+  "@searchNoResultsIn": {
+    "placeholders": {
+      "type": {
+        "type": "String"
+      }
+    }
+  },
+  "searchSearchAll": "Search all",
+  "searchNewChat": "New chat",
+  "searchTimeToday": "Today",
+  "searchTimePastWeek": "Past week",
+  "searchTimePastMonth": "Past month",
+  "searchTimePastYear": "Past year",
+  "searchTimeOlder": "Older",
+  "searchFooterClose": "Close",
+  "searchFooterChangeType": "Change type",
+  "searchFooterFilters": "Filters",
+  "searchFooterActions": "Actions",
+  "searchFooterCompose": "Compose",
+  "searchFiltersTitle": "Filter by type",
+  "searchOpen": "Open"
 }

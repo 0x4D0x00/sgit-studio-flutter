@@ -3106,6 +3106,150 @@ abstract class AppLocalizations {
   /// In zh, this message translates to:
   /// **'技能已移至「{customize}」。'**
   String capabilitiesSkillsMoved(String customize);
+
+  /// No description provided for @searchSectionRecents.
+  ///
+  /// In zh, this message translates to:
+  /// **'最近'**
+  String get searchSectionRecents;
+
+  /// No description provided for @searchSectionActions.
+  ///
+  /// In zh, this message translates to:
+  /// **'操作'**
+  String get searchSectionActions;
+
+  /// No description provided for @searchTabAll.
+  ///
+  /// In zh, this message translates to:
+  /// **'全部'**
+  String get searchTabAll;
+
+  /// No description provided for @searchTabArtifacts.
+  ///
+  /// In zh, this message translates to:
+  /// **'输出物'**
+  String get searchTabArtifacts;
+
+  /// No description provided for @searchTabChats.
+  ///
+  /// In zh, this message translates to:
+  /// **'聊天'**
+  String get searchTabChats;
+
+  /// No description provided for @searchTabProjects.
+  ///
+  /// In zh, this message translates to:
+  /// **'项目'**
+  String get searchTabProjects;
+
+  /// No description provided for @searchTabSessions.
+  ///
+  /// In zh, this message translates to:
+  /// **'会话'**
+  String get searchTabSessions;
+
+  /// No description provided for @searchTabTasks.
+  ///
+  /// In zh, this message translates to:
+  /// **'任务'**
+  String get searchTabTasks;
+
+  /// No description provided for @searchTabScheduled.
+  ///
+  /// In zh, this message translates to:
+  /// **'定时'**
+  String get searchTabScheduled;
+
+  /// No description provided for @searchNoResultsIn.
+  ///
+  /// In zh, this message translates to:
+  /// **'{type} 中没有结果'**
+  String searchNoResultsIn(String type);
+
+  /// No description provided for @searchSearchAll.
+  ///
+  /// In zh, this message translates to:
+  /// **'搜索全部'**
+  String get searchSearchAll;
+
+  /// No description provided for @searchNewChat.
+  ///
+  /// In zh, this message translates to:
+  /// **'新建对话'**
+  String get searchNewChat;
+
+  /// No description provided for @searchTimeToday.
+  ///
+  /// In zh, this message translates to:
+  /// **'今天'**
+  String get searchTimeToday;
+
+  /// No description provided for @searchTimePastWeek.
+  ///
+  /// In zh, this message translates to:
+  /// **'过去一周'**
+  String get searchTimePastWeek;
+
+  /// No description provided for @searchTimePastMonth.
+  ///
+  /// In zh, this message translates to:
+  /// **'过去一月'**
+  String get searchTimePastMonth;
+
+  /// No description provided for @searchTimePastYear.
+  ///
+  /// In zh, this message translates to:
+  /// **'过去一年'**
+  String get searchTimePastYear;
+
+  /// No description provided for @searchTimeOlder.
+  ///
+  /// In zh, this message translates to:
+  /// **'更早'**
+  String get searchTimeOlder;
+
+  /// No description provided for @searchFooterClose.
+  ///
+  /// In zh, this message translates to:
+  /// **'关闭'**
+  String get searchFooterClose;
+
+  /// No description provided for @searchFooterChangeType.
+  ///
+  /// In zh, this message translates to:
+  /// **'切换分类'**
+  String get searchFooterChangeType;
+
+  /// No description provided for @searchFooterFilters.
+  ///
+  /// In zh, this message translates to:
+  /// **'筛选'**
+  String get searchFooterFilters;
+
+  /// No description provided for @searchFooterActions.
+  ///
+  /// In zh, this message translates to:
+  /// **'更多'**
+  String get searchFooterActions;
+
+  /// No description provided for @searchFooterCompose.
+  ///
+  /// In zh, this message translates to:
+  /// **'输入'**
+  String get searchFooterCompose;
+
+  /// No description provided for @searchFiltersTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'筛选分类'**
+  String get searchFiltersTitle;
+
+  /// No description provided for @searchOpen.
+  ///
+  /// In zh, this message translates to:
+  /// **'打开'**
+  String get searchOpen;
 }
 
 class _AppLocalizationsDelegate

@@ -4,8 +4,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import 'package:sgit_studio_flutter/features/artifacts/application/artifacts_controller.dart';
 import 'package:sgit_studio_flutter/features/auth/application/auth_controller.dart';
 import 'package:sgit_studio_flutter/domain/models/chat/thread_summary.dart';
+import 'package:sgit_studio_flutter/features/chat/application/composer_focus_controller.dart';
 import 'package:sgit_studio_flutter/features/chat/application/thread_list_controller.dart';
 import 'package:sgit_studio_flutter/features/chat/presentation/thread_actions.dart';
 import 'package:sgit_studio_flutter/features/projects/application/projects_controller.dart';
@@ -69,6 +71,12 @@ class NavPanelContainer
   /// threadId 当 sceneId 用** —— 而 sgcode 两边的 id 都是 UUID 形态，
   /// 不会报错，只会静默走错分支。
   static const String _threadPrefix = 'thread:';
+
+  /// 搜索弹窗里的产物项前缀。点开走右侧产物面板，不进 `_onSelect` 的导航分支。
+  static const String _artifactPrefix = 'artifact:';
+
+  /// 搜索弹窗里的项目项前缀。点开落在 Projects 页。
+  static const String _projectPrefix = 'project:';
 
   @override
   Widget build(
@@ -312,6 +320,28 @@ class NavPanelContainer
             _threadPrefix.length,
           ),
         );
+      case final String
+          a
+          when a.startsWith(
+            _artifactPrefix,
+          ):
+        // 与输出物页的 `_open` 同一条路：先切会话（切会话会关右面板），
+        // 再开面板，最后回工作台。内容已在列表里，不必等会话载完。
+        _onOpenArtifact(
+          context,
+          ref,
+          a.substring(
+            _artifactPrefix.length,
+          ),
+        );
+      case final String
+          p
+          when p.startsWith(
+            _projectPrefix,
+          ):
+        context.go(
+          RouteNames.projects,
+        );
       default:
         context.go(
           RouteNames.studio(
@@ -319,6 +349,39 @@ class NavPanelContainer
           ),
         );
     }
+  }
+
+  /// 从搜索弹窗打开一条产物 —— 跳回它所在的会话，并在右侧面板打开这份文件。
+  ///
+  /// 与输出物页 `_open` 同一套顺序：**先切会话、后开面板**（切会话会关右面板），
+  /// 再把文件卡滚进视野。
+  void _onOpenArtifact(
+    BuildContext context,
+    WidgetRef ref,
+    String artifactId,
+  ) {
+    final artifact = ref
+        .read(artifactsControllerProvider)
+        .items
+        .where((a) => a.id == artifactId)
+        .firstOrNull;
+    if (artifact == null) return;
+
+    final threadId = artifact.threadId;
+    final chat = ref.read(chatControllerProvider.notifier);
+    if (threadId != null &&
+        ref.read(chatControllerProvider).currentThreadId != threadId) {
+      unawaited(chat.openThreadById(threadId));
+    }
+    if (artifact.content.isNotEmpty) {
+      ref
+          .read(layoutControllerProvider.notifier)
+          .showArtifact(artifact.toChatArtifact());
+    }
+    if (threadId != null) {
+      ref.read(artifactFocusProvider.notifier).request(artifact);
+    }
+    context.go(RouteNames.home);
   }
 
   /// Projects 行的 + 按钮：打开创建项目对话框。
@@ -392,30 +455,101 @@ class NavPanelContainer
     >
     threads,
   ) {
+    final l10n = AppLocalizations.of(context);
     showSearchChatsDialog(
       context,
+      // 三类数据一次摊平给弹窗：弹窗自己不碰 provider（`ui/` 层不依赖状态库），
+      // 这里按 category 标好，标签页过滤就只剩一次 where。
       items: [
         for (final t in threads)
-          SearchChatsDialogItem(
+          SearchDialogItem(
             id: '$_threadPrefix${t.id}',
             // 标题的回落（用户改的名字 > 首条消息摘要 > "新对话"）在 Rust 侧
             // `thread_ops::display_title` 算好了，这边不再自己来一套 ——
             // 两边各算各的必然漂。
             label: t.title,
+            category: SearchDialogCategory.chat,
+            updatedAt: t.updatedAt ?? t.createdAt,
+          ),
+        for (final a in ref.read(artifactsControllerProvider).items)
+          SearchDialogItem(
+            id: '$_artifactPrefix${a.id}',
+            label: a.title,
+            category: SearchDialogCategory.artifact,
+            updatedAt: a.updatedAt,
+          ),
+        for (final p in ref.read(projectsControllerProvider))
+          SearchDialogItem(
+            id: '$_projectPrefix${p.id}',
+            label: p.name,
+            category: SearchDialogCategory.project,
+            updatedAt: p.updatedAt,
           ),
       ],
-      onSelect:
-          (
-            id,
-          ) => _onSelect(
-            context,
-            ref,
-            AppLocalizations.of(
-              context,
-            ),
-            id,
-          ),
+      onSelect: (id) => _onSelect(context, ref, l10n, id),
+      onRowAction: (id, action) => _onSearchRowAction(
+        context,
+        ref,
+        l10n,
+        id,
+        action,
+      ),
+      onNewChat: () {
+        ref.read(chatControllerProvider.notifier).newChat();
+        context.go(RouteNames.home);
+      },
+      onCompose: () {
+        context.go(RouteNames.home);
+        ref.read(composerFocusProvider.notifier).requestFocus();
+      },
     );
+  }
+
+  /// 搜索弹窗行尾「⁝」的动作。只有聊天有改名/删除这类真落地能力 ——
+  /// 产物与项目没有对应内核接口，菜单里只给「打开」。
+  Future<void> _onSearchRowAction(
+    BuildContext context,
+    WidgetRef ref,
+    AppLocalizations l10n,
+    String id,
+    SearchDialogRowAction action,
+  ) async {
+    final isThread = id.startsWith(_threadPrefix);
+    final threadId = isThread ? id.substring(_threadPrefix.length) : null;
+    switch (action) {
+      case SearchDialogRowAction.open:
+        _onSelect(context, ref, l10n, id);
+      case SearchDialogRowAction.rename:
+        if (threadId == null) return;
+        final thread = ref
+            .read(threadListProvider)
+            .items
+            .where((t) => t.id == threadId)
+            .firstOrNull;
+        await renameThreadWithDialog(
+          context,
+          ref,
+          threadId,
+          thread?.title ?? '',
+        );
+      case SearchDialogRowAction.delete:
+        if (threadId == null) return;
+        final thread = ref
+            .read(threadListProvider)
+            .items
+            .where((t) => t.id == threadId)
+            .firstOrNull;
+        final deleted = await deleteThreadWithConfirm(
+          context,
+          ref,
+          threadId,
+          thread?.title ?? '',
+        );
+        if (deleted &&
+            ref.read(chatControllerProvider).currentThreadId == threadId) {
+          ref.read(chatControllerProvider.notifier).newChat();
+        }
+    }
   }
 
   /// 历史对话项行尾「⁝」菜单。Rename / Delete 都真落地（`thread/name/set`、

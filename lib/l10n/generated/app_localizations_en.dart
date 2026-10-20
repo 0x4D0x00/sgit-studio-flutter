@@ -1636,4 +1636,78 @@ class AppLocalizationsEn extends AppLocalizations {
   String capabilitiesSkillsMoved(String customize) {
     return 'Skills have moved to $customize.';
   }
+
+  @override
+  String get searchSectionRecents => 'Recents';
+
+  @override
+  String get searchSectionActions => 'Actions';
+
+  @override
+  String get searchTabAll => 'All';
+
+  @override
+  String get searchTabArtifacts => 'Artifacts';
+
+  @override
+  String get searchTabChats => 'Chats';
+
+  @override
+  String get searchTabProjects => 'Projects';
+
+  @override
+  String get searchTabSessions => 'Sessions';
+
+  @override
+  String get searchTabTasks => 'Tasks';
+
+  @override
+  String get searchTabScheduled => 'Scheduled';
+
+  @override
+  String searchNoResultsIn(String type) {
+    return 'No results in $type';
+  }
+
+  @override
+  String get searchSearchAll => 'Search all';
+
+  @override
+  String get searchNewChat => 'New chat';
+
+  @override
+  String get searchTimeToday => 'Today';
+
+  @override
+  String get searchTimePastWeek => 'Past week';
+
+  @override
+  String get searchTimePastMonth => 'Past month';
+
+  @override
+  String get searchTimePastYear => 'Past year';
+
+  @override
+  String get searchTimeOlder => 'Older';
+
+  @override
+  String get searchFooterClose => 'Close';
+
+  @override
+  String get searchFooterChangeType => 'Change type';
+
+  @override
+  String get searchFooterFilters => 'Filters';
+
+  @override
+  String get searchFooterActions => 'Actions';
+
+  @override
+  String get searchFooterCompose => 'Compose';
+
+  @override
+  String get searchFiltersTitle => 'Filter by type';
+
+  @override
+  String get searchOpen => 'Open';
 }
