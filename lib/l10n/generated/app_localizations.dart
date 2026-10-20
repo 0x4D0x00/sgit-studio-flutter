@@ -2726,12 +2726,6 @@ abstract class AppLocalizations {
   /// **'与你共享'**
   String get artifactsTabShared;
 
-  /// No description provided for @artifactsNew.
-  ///
-  /// In zh, this message translates to:
-  /// **'新建产物'**
-  String get artifactsNew;
-
   /// No description provided for @artifactsViewGrid.
   ///
   /// In zh, this message translates to:
@@ -2755,54 +2749,6 @@ abstract class AppLocalizations {
   /// In zh, this message translates to:
   /// **'复制链接'**
   String get artifactsCopyLink;
-
-  /// No description provided for @artifactsNewHeading.
-  ///
-  /// In zh, this message translates to:
-  /// **'开始创作吧！选择一个产物分类，或从零开始构建你的想法。'**
-  String get artifactsNewHeading;
-
-  /// No description provided for @artifactsCategoryApps.
-  ///
-  /// In zh, this message translates to:
-  /// **'应用与网站'**
-  String get artifactsCategoryApps;
-
-  /// No description provided for @artifactsCategoryDocs.
-  ///
-  /// In zh, this message translates to:
-  /// **'文档与模板'**
-  String get artifactsCategoryDocs;
-
-  /// No description provided for @artifactsCategoryGames.
-  ///
-  /// In zh, this message translates to:
-  /// **'游戏'**
-  String get artifactsCategoryGames;
-
-  /// No description provided for @artifactsCategoryProductivity.
-  ///
-  /// In zh, this message translates to:
-  /// **'效率工具'**
-  String get artifactsCategoryProductivity;
-
-  /// No description provided for @artifactsCategoryCreative.
-  ///
-  /// In zh, this message translates to:
-  /// **'创意项目'**
-  String get artifactsCategoryCreative;
-
-  /// No description provided for @artifactsCategoryQuiz.
-  ///
-  /// In zh, this message translates to:
-  /// **'测验与问卷'**
-  String get artifactsCategoryQuiz;
-
-  /// No description provided for @artifactsCategoryScratch.
-  ///
-  /// In zh, this message translates to:
-  /// **'从零开始'**
-  String get artifactsCategoryScratch;
 
   /// 产物卡片上的最后编辑时间。when 已按当前语言格式化
   ///

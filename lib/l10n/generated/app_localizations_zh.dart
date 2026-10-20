@@ -1386,9 +1386,6 @@ class AppLocalizationsZh extends AppLocalizations {
   String get artifactsTabShared => '与你共享';
 
   @override
-  String get artifactsNew => '新建产物';
-
-  @override
   String get artifactsViewGrid => '网格视图';
 
   @override
@@ -1399,30 +1396,6 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get artifactsCopyLink => '复制链接';
-
-  @override
-  String get artifactsNewHeading => '开始创作吧！选择一个产物分类，或从零开始构建你的想法。';
-
-  @override
-  String get artifactsCategoryApps => '应用与网站';
-
-  @override
-  String get artifactsCategoryDocs => '文档与模板';
-
-  @override
-  String get artifactsCategoryGames => '游戏';
-
-  @override
-  String get artifactsCategoryProductivity => '效率工具';
-
-  @override
-  String get artifactsCategoryCreative => '创意项目';
-
-  @override
-  String get artifactsCategoryQuiz => '测验与问卷';
-
-  @override
-  String get artifactsCategoryScratch => '从零开始';
 
   @override
   String artifactsEdited(String when) {

@@ -212,29 +212,6 @@ class _ArtifactsPageState extends ConsumerState<ArtifactsPage> {
                       ),
                       const SizedBox(width: AppSpacing.xs),
                       _typeMenu(l10n, skin, state.typeFilter, ctrl),
-                      const SizedBox(width: AppSpacing.xs),
-                      ElevatedButton(
-                        onPressed: () => context.go(RouteNames.artifactsNew),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.black,
-                          foregroundColor: Colors.white,
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: AppSpacing.md,
-                            vertical: AppSpacing.sm,
-                          ),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(AppRadius.md),
-                          ),
-                          elevation: 0,
-                        ),
-                        child: Text(
-                          l10n.artifactsNew,
-                          style: const TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                      ),
                     ],
                   ),
                   // 当空间不足且搜索打开时，另起一行显示搜索框
