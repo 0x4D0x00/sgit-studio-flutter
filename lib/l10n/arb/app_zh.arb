@@ -149,6 +149,7 @@
   "chatTextTruncated": "内容可能不完整",
   "chatCopy": "复制",
   "chatCopied": "已复制",
+  "chatCopiedAll": "已复制整段会话",
   "chatArtifactOpen": "在右侧打开",
   "chatArtifactDownload": "下载",
   "chatArtifactClose": "关闭",

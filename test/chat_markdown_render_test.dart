@@ -57,7 +57,23 @@ void main() {
         findsNothing,
       );
 
-      expect(find.byType(SelectableText), findsOneWidget);
+      // ⚠️ 正文一律是普通 [Text]。`SelectableText` 自带一套选区，会把
+      // Ctrl+A 锁在"当前这一段"里 —— 见 `ChatTranscript` 里的 SelectionArea。
+      expect(
+        find.descendant(
+          of: find.byType(TextBubble),
+          matching: find.byType(SelectableText),
+        ),
+        findsNothing,
+        reason: '正文不能自带选区，否则无法整块全选',
+      );
+      expect(
+        find.descendant(
+          of: find.byType(TextBubble),
+          matching: find.byType(RichText),
+        ),
+        findsOneWidget,
+      );
     });
 
     testWidgets('代码块 → 出现 Container', (tester) async {
@@ -90,7 +106,7 @@ void main() {
       // 正文内联可见。
       expect(
         tester
-            .widgetList<SelectableText>(find.byType(SelectableText))
+            .widgetList<Text>(find.byType(Text))
             .any((s) => s.data?.contains('nuclei') ?? false),
         isTrue,
         reason: '短块的命令要能直接在聊天里读到',
@@ -109,7 +125,7 @@ void main() {
           reason: '长块应该就地变成一张文件卡');
       expect(
         tester
-            .widgetList<SelectableText>(find.byType(SelectableText))
+            .widgetList<Text>(find.byType(Text))
             .any((s) => s.data?.contains('var x40') ?? false),
         isFalse,
         reason: '长块正文必须移出聊天，只留在右侧面板',
@@ -128,7 +144,7 @@ void main() {
       // 短的 bash 命令仍可读。
       expect(
         tester
-            .widgetList<SelectableText>(find.byType(SelectableText))
+            .widgetList<Text>(find.byType(Text))
             .any((s) => s.data?.contains('nuclei') ?? false),
         isTrue,
       );
@@ -164,9 +180,8 @@ void main() {
         TextItem(id: 3, role: ChatRole.assistant, initial: '普通 **粗体** 普通'),
       ));
 
-      // 找到 SelectableText，提取它的 TextSpan 树，验证其中有 w700。
-      final selectable = tester.widget<SelectableText>(find.byType(SelectableText).first);
-      final spans = _flattenSpans(selectable.textSpan!);
+      // 找到正文 RichText，提取它的 TextSpan 树，验证其中有 w700。
+      final spans = _flattenSpans(_firstRichTextSpan(tester));
       final hasBold = spans.any((s) => s.style?.fontWeight == FontWeight.w700);
       expect(hasBold, true);
     });
@@ -218,12 +233,12 @@ void main() {
       expect(cells, isNot(contains('**办公助理**')));
 
       // 加粗要真的落在样式上，而不只是把定界符删掉。
-      final selectables = tester.widgetList<SelectableText>(find.descendant(
+      final richTexts = tester.widgetList<RichText>(find.descendant(
         of: find.byType(TextBubble),
-        matching: find.byType(SelectableText),
+        matching: find.byType(RichText),
       ));
-      final hasBold = selectables
-          .any((s) => _flattenSpans(s.textSpan!).any(
+      final hasBold = richTexts
+          .any((t) => _flattenSpans(t.text).any(
               (sp) => sp.style?.fontWeight == FontWeight.w700));
       expect(hasBold, true);
     });
@@ -251,9 +266,10 @@ void main() {
         TextItem(id: 7, role: ChatRole.user, initial: '**不加粗**'),
       ));
 
-      final selectable = tester.widget<SelectableText>(find.byType(SelectableText).first);
-      // 用户消息是纯文本，不解析成 TextSpan 树，直接是一个 text。
-      expect(selectable.data, '**不加粗**');
+      final text = tester.widget<Text>(find.byType(Text).first);
+      // 用户消息是纯文本，不解析成 TextSpan 树，直接是一个 data。
+      expect(text.data, '**不加粗**');
+      expect(text.textSpan, isNull);
     });
   });
 
@@ -326,12 +342,25 @@ void main() {
 /// 表格单元格是 [SelectableText]，段落也是 —— 这里按"是不是 `Table` 的后代"
 /// 过滤，避免把段落文字也算进来。
 List<String> _cellTexts(WidgetTester tester) => tester
-    .widgetList<SelectableText>(find.descendant(
+    .widgetList<Text>(find.descendant(
       of: find.byType(Table),
-      matching: find.byType(SelectableText),
+      matching: find.byType(Text),
     ))
-    .map((s) => s.textSpan?.toPlainText() ?? '')
+    .map((t) => t.textSpan?.toPlainText() ?? t.data ?? '')
     .toList();
+
+/// 取气泡里第一个正文 [RichText] 的 span。
+///
+/// 正文已经不再用 `SelectableText`（选区交给外层 `SelectionArea`），
+/// 断言富文本样式时改看它底下那层 `RichText`。
+InlineSpan _firstRichTextSpan(WidgetTester tester) => tester
+    .widget<RichText>(find
+        .descendant(
+          of: find.byType(TextBubble),
+          matching: find.byType(RichText),
+        )
+        .first)
+    .text;
 
 /// 把 TextSpan 树压平成列表。
 List<TextSpan> _flattenSpans(InlineSpan span) {

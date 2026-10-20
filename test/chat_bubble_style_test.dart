@@ -112,7 +112,13 @@ void main() {
     // 量的是**正文底边**而不是 `TextBubble` 自身的高度：外层那个 Column 的
     // `mainAxisSize` 是 max，在 Scaffold 里会被拉满整屏，两种状态量出来一样高，
     // 拿它比等于什么都没验。
-    final textBottom = tester.getBottomLeft(find.byType(SelectableText)).dy;
+    // 正文是普通 [Text]（选区归外层 `SelectionArea`），量它底下的 `RichText`。
+    final textBottom = tester
+        .getBottomLeft(find.descendant(
+          of: find.byType(TextBubble),
+          matching: find.byType(RichText),
+        ))
+        .dy;
 
     // 同一段内容，整轮结束后再看：工具行到位，且确实排在正文**下方**。
     await tester.pumpWidget(

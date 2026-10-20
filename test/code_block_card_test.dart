@@ -48,8 +48,9 @@ void main() {
       expect(find.byIcon(Icons.content_copy), findsOneWidget);
       expect(find.text('下载'), findsNothing);
       expect(find.byIcon(Icons.code), findsNothing);
-      expect(tester.widget<SelectableText>(find.byType(SelectableText)).data,
-          'var x = 1;');
+      // 正文是普通 [Text]（选区归外层 `SelectionArea`）。语言标签也是 Text，
+      // 所以按内容找那一块。
+      expect(find.text('var x = 1;'), findsOneWidget);
     });
   });
 

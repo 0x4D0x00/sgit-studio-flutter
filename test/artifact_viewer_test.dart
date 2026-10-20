@@ -41,10 +41,9 @@ void main() {
         kind: ArtifactKind.code,
       )));
 
-      final selectable = tester.widget<SelectableText>(
-        find.byType(SelectableText).first,
-      );
-      expect(selectable.data, contains('replicas: 2'));
+      // 正文是普通 [Text]，选区由面板的 `SelectionArea` 统一提供。
+      final text = tester.widget<Text>(find.byType(Text).first);
+      expect(text.data, contains('replicas: 2'));
     });
 
     testWidgets('YAML 的 # 注释不变成标题（不能走 Markdown 渲染）', (tester) async {
@@ -80,10 +79,8 @@ void main() {
         kind: ArtifactKind.document,
       )));
 
-      final selectable = tester.widget<SelectableText>(
-        find.byType(SelectableText).first,
-      );
-      expect(selectable.textSpan?.toPlainText(), '加粗');
+      final text = tester.widget<Text>(find.byType(Text).first);
+      expect(text.textSpan?.toPlainText(), '加粗');
     });
   });
 
@@ -111,10 +108,13 @@ void main() {
 
       expect(find.textContaining('无法以图形方式渲染'), findsOneWidget,
           reason: '必须告诉用户这是原文，否则会以为渲染坏了');
-      final selectable = tester.widget<SelectableText>(
-        find.byType(SelectableText).first,
+      // 第一处 Text 是那条提示，原文在它下面。
+      expect(
+        tester
+            .widgetList<Text>(find.byType(Text))
+            .any((t) => t.data?.contains('sequenceDiagram') ?? false),
+        isTrue,
       );
-      expect(selectable.data, contains('sequenceDiagram'));
     });
 
     testWidgets('mermaid 内容为空 → 不抛异常', (tester) async {
@@ -138,10 +138,8 @@ void main() {
         kind: ArtifactKind.tool,
       )));
 
-      final selectable = tester.widget<SelectableText>(
-        find.byType(SelectableText).first,
-      );
-      final text = selectable.textSpan?.toPlainText() ?? selectable.data ?? '';
+      final widget = tester.widget<Text>(find.byType(Text).first);
+      final text = widget.textSpan?.toPlainText() ?? widget.data ?? '';
       expect(text, contains('exit_code'));
       expect(text, contains('stdout'));
     });
@@ -155,10 +153,8 @@ void main() {
       )));
 
       expect(tester.takeException(), isNull);
-      final selectable = tester.widget<SelectableText>(
-        find.byType(SelectableText).first,
-      );
-      expect(selectable.data, contains('drwxr-xr-x'));
+      final text = tester.widget<Text>(find.byType(Text).first);
+      expect(text.data, contains('drwxr-xr-x'));
     });
 
     testWidgets('纯数字文本不被当 JSON 美化（会变失真）', (tester) async {
@@ -169,10 +165,8 @@ void main() {
         kind: ArtifactKind.tool,
       )));
 
-      final selectable = tester.widget<SelectableText>(
-        find.byType(SelectableText).first,
-      );
-      expect(selectable.data, '42');
+      final text = tester.widget<Text>(find.byType(Text).first);
+      expect(text.data, '42');
     });
   });
 

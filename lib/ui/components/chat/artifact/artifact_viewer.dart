@@ -60,17 +60,22 @@ class _ArtifactViewerState extends State<ArtifactViewer> {
 
     return SingleChildScrollView(
       padding: const EdgeInsets.all(AppSpacing.md),
-      child: switch (artifact.kind) {
-        ArtifactKind.code => _monospace(artifact),
-        ArtifactKind.document => _markdown(artifact),
-        ArtifactKind.chart => _chart(artifact),
-        ArtifactKind.tool => _tool(artifact),
-      },
+      // 面板自己的选区。`_markdown` 里的 [MarkdownView] 用的是普通 [Text]
+      // （选区统一交给外层 `SelectionArea`，见 `ChatTranscript`），聊天那边
+      // 已经包了一层；这里不包的话右栏的文档就变成**完全选不中**。
+      child: SelectionArea(
+        child: switch (artifact.kind) {
+          ArtifactKind.code => _monospace(artifact),
+          ArtifactKind.document => _markdown(artifact),
+          ArtifactKind.chart => _chart(artifact),
+          ArtifactKind.tool => _tool(artifact),
+        },
+      ),
     );
   }
 
   /// 代码 / 未知：等宽原文。任何形态的兜底。
-  Widget _monospace(ChatArtifact artifact) => SelectableText(
+  Widget _monospace(ChatArtifact artifact) => Text(
     artifact.content,
     style: TextStyle(
       fontFamily: AppTypography.monospace,
@@ -111,7 +116,7 @@ class _ArtifactViewerState extends State<ArtifactViewer> {
     final decoded = _tryDecode(artifact.content);
 
     if (decoded is Map) {
-      return SelectableText.rich(
+      return Text.rich(
         TextSpan(
           children: [
             for (final entry in decoded.entries)
@@ -144,7 +149,7 @@ class _ArtifactViewerState extends State<ArtifactViewer> {
     final text = decoded == null
         ? artifact.content
         : const JsonEncoder.withIndent('  ').convert(decoded);
-    return SelectableText(
+    return Text(
       text,
       style: TextStyle(
         fontFamily: AppTypography.monospace,

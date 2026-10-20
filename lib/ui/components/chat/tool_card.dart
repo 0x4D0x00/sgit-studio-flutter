@@ -123,7 +123,9 @@ class _ToolCardState extends State<ToolCard> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              SelectableText(
+              // 普通 [Text]：选区归外层 `SelectionArea` 管（见 `ChatTranscript`），
+              // 只有这样 Ctrl+A 才不会被工具输出这一小块截住。
+              Text(
                 item.output ?? '',
                 style: TextStyle(
                     fontSize: 12,

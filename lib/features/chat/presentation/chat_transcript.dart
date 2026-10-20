@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 // `ScrollDirection` 住 rendering 层，material 不转出来。
 import 'package:flutter/rendering.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:sgit_studio_flutter/core/contracts/kernel_client.dart';
@@ -87,6 +88,53 @@ class _ChatTranscriptState extends ConsumerState<ChatTranscript> {
   /// 定位的步数上限。每步都是一次跳转 + 一帧，几千条的会话也在几十步内收敛
   /// （步长按「目标离已建范围多远」自适应），超了说明条目没了/出了岔子，放弃。
   static const _maxRevealSteps = 80;
+
+  /// 选区把手。Ctrl+A 的两种走法都要直接调 `SelectableRegion`（见 [_selectAll]）。
+  final _selectionKey = GlobalKey<SelectionAreaState>();
+
+  /// 短会话按下 Ctrl+A 时临时为 `true`：把列表的缓存区撑到 [_materializePixels]，
+  /// 让**每一条**都建出来并注册进选区，`selectAll()` 才是真的全选。
+  ///
+  /// ⚠️ 常态必须是 `false`。惰性列表是长会话不卡的前提（类注释里的 1500 条预算），
+  /// 只在这一次按键之后、选区消失之前临时付一次代价。
+  bool _materializeAll = false;
+
+  /// 撑大缓存区用的像素数。够长就行 —— 视口只会拿它当"视口外还要建多远"。
+  ///
+  /// ⚠️ 不能给 `double.infinity`：语义树会拿它算一个非有限矩形，
+  /// `SemanticsNode` 断言直接抛（渲染层同样会炸）。
+  static const _materializePixels = 1e7;
+
+  /// 条目数不超过它就「真全选」（把条目全建出来）；超过就走「复制全文」。
+  ///
+  /// 200 是实测拐点：debug 下建齐 200 条约 280ms（可接受的一次性停顿），
+  /// 500 条已到 580ms，而真实长会话动辄上千条 —— 那不该发生在一次 Ctrl+A 上。
+  static const _selectAllLimit = 200;
+
+  /// 长会话按下 Ctrl+A 时留下的**整段会话快照**，随后的 Ctrl+C 直接写它。
+  ///
+  /// ⚠️ 存文本而不是布尔：存布尔就得在复制那一刻重新拼，中间隔着流式 delta、
+  /// 甚至切会话，拼出来的就不一定是用户按下 Ctrl+A 时看到的那段了。
+  ///
+  /// 用 [String] + thread 快照而不是 `ChatItem` 列表：复制是同步的，
+  /// 不能在那一刻去读一个可能已经被替换掉的列表。
+  String? _wholeCopyText;
+
+  /// [_wholeCopyText] 属于哪条会话。切了会话就不再认这份快照。
+  String? _wholeCopyThreadId;
+
+  /// 快照是否已经「生效」。
+  ///
+  /// ⚠️ `selectAll()` 会**同步**回调 `onSelectionChanged`，那次是我们自己引起的，
+  /// 不能当成"用户改了选区"把快照作废。所以先置 `false`、到帧末再置 `true`：
+  /// 之后任何一次选区变化都是用户自己动的，快照随即失效（Ctrl+C 回到正常语义）。
+  bool _wholeCopyArmed = false;
+
+  /// 最近一次选区回调是不是"什么都没选"。
+  ///
+  /// `selectAll()` 先 `clearSelection()` 再建选区，中间会同步报一次空 ——
+  /// 那一帧结束时再看这里就能分辨"真的被清空了"还是"正处于全选的中途"。
+  bool _selectionEmpty = true;
 
   @override
   void initState() {
@@ -336,6 +384,124 @@ class _ChatTranscriptState extends ConsumerState<ChatTranscript> {
     if (_scroll.hasClients) _scroll.jumpTo(_scroll.position.minScrollExtent);
   }
 
+  /// Ctrl+A。短会话真全选，长会话「选中可见部分 + 备好全文」。
+  ///
+  /// 见 [_materializeAll] / [_wholeCopyText] 上的注释。
+  void _handleSelectAll() {
+    final items = ref.read(chatControllerProvider.notifier).items;
+
+    if (items.length > _selectAllLimit) {
+      // ⚠️ 先取证再选。`selectAll()` 会同步回调 `onSelectionChanged`，
+      //    而那条路径在选区落空时会清掉快照。
+      _wholeCopyText = _conversationText(items);
+      _wholeCopyThreadId = ref.read(chatControllerProvider).currentThreadId;
+      _wholeCopyArmed = false;
+      _selectRegionAll();
+      _armWholeCopy();
+      return;
+    }
+
+    // 长会话降级过来的快照不能留到这次：这条路径走的是真选区。
+    _clearWholeCopy();
+
+    if (_materializeAll) {
+      _selectRegionAll();
+      return;
+    }
+    // ⚠️ **要两帧。** 第一帧把缓存区撑大、让条目建出来；但新的 `Text` 是
+    // 在**这一帧结束之后**才向 `SelectionRegistrar` 注册成 `Selectable` 的
+    // （注册发生在 `SelectionContainer` 的帧末回调里）。同一帧里就
+    // `selectAll()`，选到的还是上一帧那几条 —— 正是要修的现象。
+    setState(() => _materializeAll = true);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      // 再排一帧，让注册落地。
+      setState(() {});
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) return;
+        _selectRegionAll();
+      });
+    });
+  }
+
+  /// 快照从下一帧起生效 —— 让 `selectAll()` 自己引起的那次回调先过去。
+  void _armWholeCopy() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      _wholeCopyArmed = _wholeCopyText != null;
+    });
+  }
+
+  void _clearWholeCopy() {
+    _wholeCopyText = null;
+    _wholeCopyThreadId = null;
+    _wholeCopyArmed = false;
+  }
+
+  /// Ctrl+C。长会话的全选快照优先，其余交给选区自己复制。
+  ///
+  /// 返回 `true` 表示已处理 —— 调用方（[_CopyIntentAction]）不再往下传。
+  bool _handleCopyIntent() {
+    final whole = _wholeCopyText;
+    if (whole == null ||
+        !_wholeCopyArmed ||
+        _wholeCopyThreadId !=
+            ref.read(chatControllerProvider).currentThreadId) {
+      return false;
+    }
+    // 一次性：Ctrl+A 之后只有紧跟着的那次 Ctrl+C 拿到整段会话。再按一次
+    // Ctrl+C 就该回到"复制当前选区"的常规语义，否则用户没法复制自己重新选的部分。
+    _clearWholeCopy();
+    Clipboard.setData(ClipboardData(text: whole));
+    final l10n = AppLocalizations.of(context);
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(l10n.chatCopiedAll),
+        duration: const Duration(seconds: 1),
+      ),
+    );
+    return true;
+  }
+
+  void _selectRegionAll() =>
+      _selectionKey.currentState?.selectableRegion.selectAll();
+
+  /// 选区变了：撑大的缓存区和整段会话快照都该跟着作废。
+  ///
+  /// ⚠️ **这里只记账，清理一律延到帧末。** `selectAll()` 的第一件事就是
+  /// `clearSelection()`，会先同步报一次"空选区"，紧接着才建立真正的全选。
+  /// 如果当场就把 [_materializeAll] 放掉，列表会在同一帧里退回惰性、
+  /// 把刚建出来的条目全回收 —— 选区就只剩可见的那几条。
+  ///
+  /// 所以帧末还要再看一眼 [_selectionEmpty]：这一帧结束时选区已经建好，
+  /// 中途那次"空"就不算数。
+  void _onSelectionChanged(SelectedContent? content) {
+    _selectionEmpty = content == null || content.plainText.isEmpty;
+    if (_wholeCopyArmed && _selectionEmpty) _clearWholeCopy();
+    if (_materializeAll && _selectionEmpty) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        // 期间又建起了选区（比如我们自己的全选，它先清再选）—— 不撤。
+        if (!mounted || !_materializeAll || !_selectionEmpty) return;
+        setState(() => _materializeAll = false);
+      });
+    }
+  }
+
+  /// 整段会话的纯文本 —— 用户消息与助手回答按列表顺序用空行隔开。
+  ///
+  /// 与界面上能选中的内容同一份文本（[TextItem.displayText]）：抬头已被剔除，
+  /// 复制出去的不该比看到的更多。工具卡 / 提示条这类**界面外壳**不算正文，
+  /// 不进快照。
+  static String _conversationText(List<ChatItem> items) {
+    final parts = <String>[];
+    for (final it in items) {
+      if (it is! TextItem) continue;
+      final text = it.displayText.trim();
+      if (text.isNotEmpty) parts.add(text);
+    }
+    return parts.join('\n\n');
+  }
+
   @override
   Widget build(BuildContext context) {
     final ref = this.ref;
@@ -414,52 +580,85 @@ class _ChatTranscriptState extends ConsumerState<ChatTranscript> {
               // **无界**，那时才必须遍历全部子项才能算出自身高度。）
               child: Align(
                 alignment: Alignment.topCenter,
-                child: ListView.builder(
-                  controller: _scroll,
-                  // ⚠️ 见类注释：翻过来画，index 0 是**列表末尾**那条。
-                  reverse: true,
-                  shrinkWrap: true,
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: WorkspaceMetrics.contentPaddingInline,
-                        vertical: WorkspaceMetrics.framePadding),
-                  // ⚠️ 思考行是列表的**最后一项**，不是 index 0 的头部 ——
-                  // 它跟着"最新一轮"走，而不是钉在会话顶端。反向列表下它是
-                  // **index 0**（最底部那条）。
-                  //
-                  // 代价是 items 每加一条就让它的索引+1，也就是说**它无法被
-                  // Element 复用**，每轮对话都会重新 mount（Timer 跟着重建，
-                  // 见 ThinkingRow 的 dispose）。换来的是不用在每张卡前面插一刀、
-                  // 也不必管它该排在哪条旁边。这一行一轮只出现一次，重建的代价
-                  // 可以忽略。
-                  itemCount: items.length + (thinking ? 1 : 0),
-                  // 条目身份稳定，给 key 让 Flutter 复用 Element，避免整表重建。
-                  itemBuilder: (context, i) {
-                    if (thinking && i == 0) return const ThinkingRow();
-                    // 反向索引换算：i 越大越靠上（越旧）。
-                    final at = items.length - 1 - (thinking ? i - 1 : i);
-                    final item = items[at];
-                    return KeyedSubtree(
-                      key: ValueKey<int>(item.id),
-                      // 内层 GlobalKey 只服务于「定位到某条」（见 [_reveal]）。
-                      child: KeyedSubtree(
-                        key: _itemKeys.putIfAbsent(item.id, () => GlobalKey()),
-                        child: _card(context, ref, ctrl, l10n, item,
-                            isLastAnswer: item.id == lastAssistantId,
-                            // 这一条的整轮回答跑完了没有 —— 见
-                            // `TextBubble.replyComplete`。
-                            //
-                            // ⚠️ **不能只看 `item.done`**：那是 `itemCompleted`
-                            // 的标记，而一轮回答由**多段**组成（每段一对
-                            // started/completed），所以一轮跑到一半时，前面那些段
-                            // 各自 done 都已经是 true —— 按 done 判定就会在回答中间插出工具行（正是这次要修的现象）。
-                            //
-                            // 真正的问题是「这一条属于哪一轮」。分界线是最后一条
-                            // **用户**消息：在它之前的都跑完了；在它之后的属于本轮，
-                            // 而本轮只要 [busy] 就还没结束。
-                            replyComplete: !busy || at <= lastUserId),
-                      ),
-                    );
+                // ⚠️ **整块会话共用一个 `SelectionArea`**
+                //
+                // `SelectionArea` 往子树里塞一个 `SelectionRegistrar`，普通
+                // [Text] 检测到它就把自己注册成一个 `Selectable`，于是所有
+                // 正文段落（以及被 `ListView` 的 `_ScrollableSelectionHandler`
+                // 收编的已建出条目）共享一个选区：拖选可以跨块，Ctrl+A 一次
+                // 选中整屏，Ctrl+C 一次复制。
+                //
+                // ⚠️ **选区只认得已注册的 `Selectable`**，而列表是惰性的：滚出
+                // 视口的条目连同它的 `Selectable` 一起被回收。所以直接交给默认
+                // 实现，Ctrl+A 只会选中当前构建范围 —— 长会话里就是"只选了一半"。
+                //
+                // 外层 [Actions] 因此把 `SelectAllTextIntent` 接过来按条目数分流
+                // （见 [_handleSelectAll]）：短会话临时把缓存区撑大再真全选；
+                // 长会话不建那几千条，直接把整段文本备好给随后的 Ctrl+C。
+                //
+                // 焦点：`SelectableRegion` 自己持有 `FocusNode`，在正文里点
+                // 一下才拿到焦点，Ctrl+A 才落到它头上。
+                child: Actions(
+                  actions: <Type, Action<Intent>>{
+                    SelectAllTextIntent: _SelectAllIntentAction(_handleSelectAll),
+                    CopySelectionTextIntent:
+                        _CopyIntentAction(_handleCopyIntent),
                   },
+                  child: SelectionArea(
+                    key: _selectionKey,
+                    onSelectionChanged: _onSelectionChanged,
+                    child: ListView.builder(
+                      controller: _scroll,
+                      // ⚠️ 见类注释：翻过来画，index 0 是**列表末尾**那条。
+                      reverse: true,
+                      shrinkWrap: true,
+                      // 短会话按下 Ctrl+A 时临时撑大，让全部条目建出来并注册；
+                      // 常态为 null，逐条回收照旧 —— 平时一条都不会多建。
+                      scrollCacheExtent: _materializeAll
+                          ? const ScrollCacheExtent.pixels(_materializePixels)
+                          : null,
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: WorkspaceMetrics.contentPaddingInline,
+                          vertical: WorkspaceMetrics.framePadding),
+                      // ⚠️ 思考行是列表的**最后一项**，不是 index 0 的头部 ——
+                      // 它跟着"最新一轮"走，而不是钉在会话顶端。反向列表下它是
+                      // **index 0**（最底部那条）。
+                      //
+                      // 代价是 items 每加一条就让它的索引+1，也就是说**它无法被
+                      // Element 复用**，每轮对话都会重新 mount（Timer 跟着重建，
+                      // 见 ThinkingRow 的 dispose）。换来的是不用在每张卡前面插一刀、
+                      // 也不必管它该排在哪条旁边。这一行一轮只出现一次，重建的代价
+                      // 可以忽略。
+                      itemCount: items.length + (thinking ? 1 : 0),
+                      // 条目身份稳定，给 key 让 Flutter 复用 Element，避免整表重建。
+                      itemBuilder: (context, i) {
+                        if (thinking && i == 0) return const ThinkingRow();
+                        // 反向索引换算：i 越大越靠上（越旧）。
+                        final at = items.length - 1 - (thinking ? i - 1 : i);
+                        final item = items[at];
+                        return KeyedSubtree(
+                          key: ValueKey<int>(item.id),
+                          // 内层 GlobalKey 只服务于「定位到某条」（见 [_reveal]）。
+                          child: KeyedSubtree(
+                            key:
+                                _itemKeys.putIfAbsent(item.id, () => GlobalKey()),
+                            child: _card(context, ref, ctrl, l10n, item,
+                                isLastAnswer: item.id == lastAssistantId,
+                                // 这一条的整轮回答跑完了没有 —— 见
+                                // `TextBubble.replyComplete`。
+                                //
+                                // ⚠️ **不能只看 `item.done`**：按 done 判定就会
+                                // 在回答中间插出工具行
+                                //
+                                // 真正的问题是「这一条属于哪一轮」。分界线是最后
+                                // 一条**用户**消息：在它之前的都跑完了；在它之后
+                                // 的属于本轮，而本轮只要 [busy] 就还没结束。
+                                replyComplete: !busy || at <= lastUserId),
+                          ),
+                        );
+                      },
+                    ),
+                  ),
                 ),
               ),
             ),
@@ -469,7 +668,6 @@ class _ChatTranscriptState extends ConsumerState<ChatTranscript> {
       },
     );
   }
-
   /// 「回到最新」浮钮。
   ///
   /// ⚠️ **常驻在树里，靠 opacity + IgnorePointer 控制**，不做条件挂载。
@@ -545,4 +743,37 @@ class _ChatTranscriptState extends ConsumerState<ChatTranscript> {
           ),
         final NoticeItem n => NoticeBar(item: n),
       };
+}
+
+/// Ctrl+A 的入口：交给 [onSelectAll] 自己决定怎么全选。
+///
+/// ⚠️ 必须挂在 `SelectionArea` **外面**。`SelectableRegion` 是用
+/// `Action.overridable` 注册 `SelectAllTextIntent` 的，查找方向只往祖先走 ——
+/// 放在它里面永远拦不到。外层换掉之后，默认动作只剩 `callingAction` 一条路，
+/// 由 [_SelectAllIntentAction] 决定要不要往下传（见 `selectable_region.dart`
+/// 的 `_NonOverrideAction.invoke`）。
+class _SelectAllIntentAction extends Action<SelectAllTextIntent> {
+  _SelectAllIntentAction(this.onSelectAll);
+
+  final VoidCallback onSelectAll;
+
+  @override
+  void invoke(SelectAllTextIntent intent) => onSelectAll();
+}
+
+/// Ctrl+C 的入口：能自己处理就吞掉，否则回落给选区。
+///
+/// 回落走 `callingAction`（`Action.overridable` 在调用我们之前塞进来的默认动作），
+/// 所以"复制当前选区"这套平台行为一点没变，只有长会话的全选快照走我们的分支。
+class _CopyIntentAction extends Action<CopySelectionTextIntent> {
+  _CopyIntentAction(this.onCopy);
+
+  /// 返回 `true` 表示已处理，不要再往下传。
+  final bool Function() onCopy;
+
+  @override
+  void invoke(CopySelectionTextIntent intent) {
+    if (onCopy()) return;
+    callingAction?.invoke(intent);
+  }
 }

@@ -83,7 +83,8 @@ class ApprovalCard extends StatelessWidget {
                 ),
                 const SizedBox(height: AppSpacing.xs),
                 // 显示的是**被审批那条工具卡**的入参（内核不重复带内容）。
-                SelectableText(
+                // 普通 [Text]：选区归外层 `SelectionArea` 管（见 `ChatTranscript`）。
+                Text(
                   item.reason.isNotEmpty ? item.reason : item.detail,
                   style: TextStyle(
                       fontSize: 12,

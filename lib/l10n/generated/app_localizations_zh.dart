@@ -343,6 +343,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get chatCopied => '已复制';
 
   @override
+  String get chatCopiedAll => '已复制整段会话';
+
+  @override
   String get chatArtifactOpen => '在右侧打开';
 
   @override

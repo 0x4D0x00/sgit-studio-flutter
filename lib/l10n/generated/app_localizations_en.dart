@@ -350,6 +350,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get chatCopied => 'Copied';
 
   @override
+  String get chatCopiedAll => 'Whole conversation copied';
+
+  @override
   String get chatArtifactOpen => 'Open in panel';
 
   @override

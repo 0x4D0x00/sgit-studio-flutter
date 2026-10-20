@@ -746,6 +746,12 @@ abstract class AppLocalizations {
   /// **'已复制'**
   String get chatCopied;
 
+  /// No description provided for @chatCopiedAll.
+  ///
+  /// In zh, this message translates to:
+  /// **'已复制整段会话'**
+  String get chatCopiedAll;
+
   /// No description provided for @chatArtifactOpen.
   ///
   /// In zh, this message translates to:

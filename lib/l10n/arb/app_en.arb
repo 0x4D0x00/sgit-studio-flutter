@@ -147,6 +147,7 @@
   "chatTextTruncated": "Content may be incomplete",
   "chatCopy": "Copy",
   "chatCopied": "Copied",
+  "chatCopiedAll": "Whole conversation copied",
   "chatArtifactOpen": "Open in panel",
   "chatArtifactDownload": "Download",
   "chatArtifactClose": "Close",

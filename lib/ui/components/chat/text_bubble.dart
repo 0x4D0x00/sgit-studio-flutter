@@ -244,7 +244,11 @@ class _TextBubbleState extends ConsumerState<TextBubble> {
     _recognizers = <TapGestureRecognizer>[];
 
     final content = isUser
-        ? SelectableText(
+        // ⚠️ 普通 [Text]，不是 `SelectableText` —— 选区由外层的
+        // `SelectionArea` 统一管（见 `ChatTranscript`）。`SelectableText`
+        // 每个实例自带 `EditableText` 和一套独立选区，Ctrl+A 只能选中自己，
+        // 这正是"只能选一行"的成因。
+        ? Text(
             item.displayText,
             style: TextStyle(fontSize: 14, height: 1.6, color: skin.text),
           )

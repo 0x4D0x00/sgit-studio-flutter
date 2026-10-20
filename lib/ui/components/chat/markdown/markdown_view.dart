@@ -119,7 +119,7 @@ class MarkdownView extends StatelessWidget {
       baseStyle: TextStyle(fontSize: 14, height: 1.6, color: skin.text),
     );
 
-    return SelectableText.rich(
+    return Text.rich(
       TextSpan(children: spans),
     );
   }
@@ -140,7 +140,7 @@ class MarkdownView extends StatelessWidget {
       ),
     );
 
-    return SelectableText.rich(
+    return Text.rich(
       TextSpan(children: spans),
     );
   }
@@ -184,7 +184,7 @@ class MarkdownView extends StatelessWidget {
           ),
           const SizedBox(width: ChatBubbleMetrics.listMarkerGap),
           Expanded(
-            child: SelectableText.rich(
+            child: Text.rich(
               TextSpan(children: spans),
             ),
           ),
@@ -229,10 +229,14 @@ class MarkdownView extends StatelessWidget {
   /// `Text(cell)` —— 模型在表格里写 `**办公助理**` 是家常便饭（表格常用来做
   /// 分类罗列，条目名天然带强调），用 `Text` 会把星号原样画出来。
   ///
-  /// 单元格用 [SelectableText] 而不是 [Text]：`IntrinsicColumnWidth` 下
-  /// 两者的 `minIntrinsicWidth` 都等于整行文本宽度，所以表格能正常收缩换行；
-  /// 但表格与段落是同一段回答，选择行为要一致，而且 [MarkdownSpans] 产出的
-  /// 链接 recognizer 本来也只有 Selectable 家族会派发。
+  /// 单元格与段落一样用普通 [Text]（**不是 `SelectableText`**）：选区由
+  /// `ChatTranscript` 那一个 `SelectionArea` 统一管，表格格子也是它的一块
+  /// `Selectable`，所以拖选能跨段落进表格，Ctrl+A 也不会只选中当前那一格。
+  /// `IntrinsicColumnWidth` 下 [Text] 的 `minIntrinsicWidth` 仍是整行文本宽度，
+  /// 表格照常收缩换行。
+  ///
+  /// 链接的点击不受影响：[MarkdownSpans] 产出的 `TextSpan.recognizer` 由
+  /// `RenderParagraph` 自己派发，与有没有 `SelectableText` 无关。
   ///
   /// ⚠️ 列多时表格会超出列宽被裁掉 —— 右侧那几列既看不见也没提示。走
   /// [HorizontalScrollArea] 在表格下方补一道滑块（装得下时它自己不出）。
@@ -278,7 +282,7 @@ class MarkdownView extends StatelessWidget {
 
     return Padding(
       padding: const EdgeInsets.all(AppSpacing.xs),
-      child: SelectableText.rich(TextSpan(children: spans)),
+      child: Text.rich(TextSpan(children: spans)),
     );
   }
 }

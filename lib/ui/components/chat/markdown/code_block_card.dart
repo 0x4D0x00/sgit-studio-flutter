@@ -107,7 +107,9 @@ class _CodeBlockCardState extends State<CodeBlockCard> {
           // 长行被裁掉时右边那截**没有任何提示**，读者会把半截命令当完整的读。
           // 那个组件在正文下方补一道常驻滑块，装得下时它自己不出。
           HorizontalScrollArea(
-            child: SelectableText(
+            // 普通 [Text]：选区归外层 `SelectionArea` 管（见 `ChatTranscript`），
+            // 用 `SelectableText` 的话代码块会自成一个选区，Ctrl+A 到它身上就停。
+            child: Text(
               code,
               style: TextStyle(
                 fontFamily: AppTypography.monospace,
