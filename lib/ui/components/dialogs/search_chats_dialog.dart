@@ -11,14 +11,7 @@ enum SearchDialogCategory { artifact, chat, project }
 
 /// 行尾「⁝」菜单里的一项动作。对话框只回传动作，**不自己执行** ——
 /// 打开 / 改名 / 删除分别由调用方接（`ui/` 层不 import features）。
-enum SearchDialogRowAction {
-  open,
-  pin,
-  rename,
-  editDetails,
-  copyLink,
-  delete,
-}
+enum SearchDialogRowAction { open, pin, rename, editDetails, copyLink, delete }
 
 /// 行动作执行完的结果。弹窗据此就地刷新列表（不关弹窗）。
 @immutable
@@ -59,8 +52,7 @@ extension on _SearchTab {
     _SearchTab.artifacts => const {SearchDialogCategory.artifact},
     _SearchTab.chats => const {SearchDialogCategory.chat},
     _SearchTab.projects => const {SearchDialogCategory.project},
-    _SearchTab.sessions || _SearchTab.tasks || _SearchTab.scheduled =>
-      const {},
+    _SearchTab.sessions || _SearchTab.tasks || _SearchTab.scheduled => const {},
   };
 
   bool get hasDataSource => categories.isNotEmpty;
@@ -458,9 +450,7 @@ class _SearchChatsDialogState extends State<_SearchChatsDialog> {
     final l10n = AppLocalizations.of(context);
     final rows = _rows(l10n);
     // 数据变化（切标签、改查询）后下标可能越界。
-    final selected = _selected < 0 || _selected >= rows.length
-        ? -1
-        : _selected;
+    final selected = _selected < 0 || _selected >= rows.length ? -1 : _selected;
 
     return Dialog(
       backgroundColor: skin.containerBg,
@@ -533,13 +523,15 @@ class _SearchChatsDialogState extends State<_SearchChatsDialog> {
             ),
           ),
         ),
-        ExcludeFocus(child: IconButton(
-          icon: const Icon(Icons.close),
-          iconSize: 20,
-          color: skin.textSecondary,
-          tooltip: l10n.commonClose,
-          onPressed: _close,
-        )),
+        ExcludeFocus(
+          child: IconButton(
+            icon: const Icon(Icons.close),
+            iconSize: 20,
+            color: skin.textSecondary,
+            tooltip: l10n.commonClose,
+            onPressed: _close,
+          ),
+        ),
       ],
     ),
   );
@@ -633,7 +625,11 @@ class _SearchChatsDialogState extends State<_SearchChatsDialog> {
         padding: EdgeInsets.zero,
         itemCount: rows.length,
         itemBuilder: (_, i) => switch (rows[i]) {
-          _SectionRow(:final label) => _sectionHeader(skin, label, first: i == 0),
+          _SectionRow(:final label) => _sectionHeader(
+            skin,
+            label,
+            first: i == 0,
+          ),
           _ItemRow(:final item) => _itemRow(
             skin,
             l10n,
@@ -690,7 +686,10 @@ class _SearchChatsDialogState extends State<_SearchChatsDialog> {
     // 原先它只挂在行尾的「⋯」按钮里，而那个按钮只在行高亮时才渲染 —— 指针一从
     // 行上移到菜单上，`_hovered` 变空 → 按钮连同 `MenuAnchor` 一起被拆掉 →
     // 菜单瞬间消失，根本点不到。锚点常驻后菜单归 `MenuController` 管，鼠标移开行也仍然开着。
-    return MenuAnchor(
+    // 外层 rtl + 内层逐个套回 ltr：面板右边缘贴行右边缘，见 `appMenuKeepLtr`。
+    return Directionality(
+      textDirection: TextDirection.rtl,
+      child: MenuAnchor(
       controller: menu,
       onOpen: () => setState(() {
         _menuOpenId = item.id;
@@ -710,16 +709,20 @@ class _SearchChatsDialogState extends State<_SearchChatsDialog> {
       style: appMenuStyle(
         skin,
         minWidth: 160,
-        // 贴着行的右下角弹出，跟截图一致。
-        alignment: AlignmentDirectional.bottomEnd,
+        // 行的右下角；rtl 下面板右边缘贴上去。
+        alignment: Alignment.bottomRight,
       ),
-      menuChildren: buildAppMenuChildren(
-        context,
-        skin,
-        _rowEntries(l10n, item),
-        maxWidth: 200,
-      ),
-      builder: (_, controller, _) => _rowShell(
+      alignmentOffset: const Offset(0, AppMenuMetrics.gap),
+      menuChildren: [
+        for (final c in buildAppMenuChildren(
+          context,
+          skin,
+          _rowEntries(l10n, item),
+          maxWidth: 200,
+        ))
+          appMenuKeepLtr(c),
+      ],
+      builder: (_, controller, _) => appMenuKeepLtr(_rowShell(
         skin,
         index: index,
         highlighted: highlighted,
@@ -763,6 +766,7 @@ class _SearchChatsDialogState extends State<_SearchChatsDialog> {
             const SizedBox(width: AppSpacing.xxs),
           ],
         ),
+      )),
       ),
     );
   }
@@ -1005,7 +1009,10 @@ class _SearchChatsDialogState extends State<_SearchChatsDialog> {
             // 那会把主题里带 fontFamily / fontFamilyFallback 的按钮文字样式整个
             // 替换掉，中文没了随包 CJK 兜底，直接渲染成方框。
           ),
-          child: Text(l10n.searchSearchAll, style: const TextStyle(fontSize: 13)),
+          child: Text(
+            l10n.searchSearchAll,
+            style: const TextStyle(fontSize: 13),
+          ),
         ),
       ],
     ),

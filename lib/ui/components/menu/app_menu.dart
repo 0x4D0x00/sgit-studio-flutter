@@ -140,11 +140,12 @@ class _AppMenuAnchorState
         minWidth: widget.minWidth,
         maxWidth: widget.maxWidth,
         maxHeight: widget.maxHeight,
-        alignment:
-            widget.align ==
-                AppMenuAlign.end
-            ? Alignment.topRight
-            : null,
+        alignment: switch (widget.align) {
+          AppMenuAlign.end => Alignment.topRight,
+          // 锚点的右下角；面板右边缘靠 [_endAligned] 的 rtl 技巧贴上去。
+          AppMenuAlign.underEnd => Alignment.bottomRight,
+          _ => null,
+        },
       ),
       alignmentOffset: _offset,
       onOpen: () => widget.onOpenChanged?.call(
@@ -156,10 +157,12 @@ class _AppMenuAnchorState
           false,
         );
       },
-      menuChildren: _menuChildren(
-        context,
-        skin,
-      ),
+      menuChildren: _endAligned
+          ? [
+              for (final c in _menuChildren(context, skin))
+                appMenuKeepLtr(c),
+            ]
+          : _menuChildren(context, skin),
       builder:
           (
             context,
@@ -189,7 +192,7 @@ class _AppMenuAnchorState
                 widget.trigger ==
                 AppMenuTrigger.hover;
 
-            return Semantics(
+            final trigger = Semantics(
               label: widget.semanticLabel,
               button: true,
               enabled: widget.enabled,
@@ -208,12 +211,28 @@ class _AppMenuAnchorState
                 child: child,
               ),
             );
+            return _endAligned
+                ? appMenuKeepLtr(trigger)
+                : trigger;
           },
       child: widget.child,
     );
 
-    return anchor;
+    return _endAligned
+        ? Directionality(
+            textDirection: TextDirection.rtl,
+            child: anchor,
+          )
+        : anchor;
   }
+
+  /// `underEnd`：面板右边缘对齐触发器右边缘。
+  ///
+  /// `MenuAnchor` 只能把面板的**左上角**摆到锚点上，面板宽度又是按内容撑的、
+  /// 事先不可知（早先按「估算触发器宽度」算偏移，必然错位）。但它在 rtl 下会把
+  /// 面板**右上角**摆到锚点上 —— 所以锚点外面套 rtl，面板内容与触发器再逐个套回 ltr。
+  bool get _endAligned =>
+      widget.align == AppMenuAlign.underEnd;
 
   /// 触发器上的进出。进 → 开；出 → 延时关（除非钉住）。
   void _onTriggerHover(
@@ -277,8 +296,9 @@ class _AppMenuAnchorState
       maxWidth: widget.maxWidth,
     );
     if (widget.trigger !=
-        AppMenuTrigger.hover)
+        AppMenuTrigger.hover) {
       return children;
+    }
     return [
       for (final c in children)
         _hoverMenuGuard(
@@ -295,16 +315,8 @@ class _AppMenuAnchorState
       case AppMenuAlign.under:
         return const Offset(0,AppMenuMetrics.gap,);
       case AppMenuAlign.underEnd:
-        // 菜单**右**边缘对齐触发器**右**边缘。
-        //
-        // ⚠️ 暂时用估算触发器宽度（筛选框约 90-110px），等验证对了再改成实测。
-        const estimatedTriggerWidth = 100.0;
-        return const Offset(
-          estimatedTriggerWidth -
-              AppMenuMetrics.minWidth +
-              AppMenuMetrics.gap,
-          AppMenuMetrics.gap,
-        );
+        // 水平对齐由 rtl 技巧完成，见 [_endAligned]。
+        return const Offset(0, AppMenuMetrics.gap);
       case AppMenuAlign.above:
         return const Offset(0, -AppMenuMetrics.gap);
       case AppMenuAlign.end:
@@ -315,6 +327,13 @@ class _AppMenuAnchorState
     }
   }
 }
+
+/// 把子树的文字方向恢复成 ltr。配合外层 rtl 的 `MenuAnchor` 使用，见
+/// `_AppMenuAnchorState._endAligned`。
+Widget appMenuKeepLtr(Widget child) => Directionality(
+  textDirection: TextDirection.ltr,
+  child: child,
+);
 
 /// 菜单面板样式（底色 / 描边 / 圆角 / 定宽 / 限高）。
 ///
