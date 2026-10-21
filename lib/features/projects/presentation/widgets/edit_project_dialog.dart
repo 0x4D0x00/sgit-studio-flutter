@@ -71,12 +71,12 @@ class _EditProjectDialogState extends State<_EditProjectDialog> {
     return Dialog(
       backgroundColor: skin.containerBg,
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(AppRadius.lg),
+        borderRadius: BorderRadius.circular(AppRadius.md),
       ),
       child: ConstrainedBox(
-        constraints: const BoxConstraints(maxWidth: 480),
+        constraints: const BoxConstraints(maxWidth: 460),
         child: Padding(
-          padding: const EdgeInsets.all(AppSpacing.xl),
+          padding: const EdgeInsets.all(AppSpacing.md),
           child: Form(
             key: _formKey,
             child: Column(
@@ -88,7 +88,7 @@ class _EditProjectDialogState extends State<_EditProjectDialog> {
                     Text(
                       l10n.projectsEditDialogTitle,
                       style: TextStyle(
-                        fontSize: 20,
+                        fontSize: 16,
                         fontWeight: FontWeight.w600,
                         color: skin.text,
                       ),
@@ -102,7 +102,7 @@ class _EditProjectDialogState extends State<_EditProjectDialog> {
                     ),
                   ],
                 ),
-                const SizedBox(height: AppSpacing.lg),
+                const SizedBox(height: AppSpacing.md),
                 Text(
                   l10n.projectsEditDialogName,
                   style: TextStyle(
@@ -140,7 +140,7 @@ class _EditProjectDialogState extends State<_EditProjectDialog> {
                     return null;
                   },
                 ),
-                const SizedBox(height: AppSpacing.lg),
+                const SizedBox(height: AppSpacing.md),
                 Text(
                   l10n.projectsEditDialogDescription,
                   style: TextStyle(
@@ -170,7 +170,7 @@ class _EditProjectDialogState extends State<_EditProjectDialog> {
                     alignLabelWithHint: true,
                   ),
                 ),
-                const SizedBox(height: AppSpacing.lg),
+                const SizedBox(height: AppSpacing.md),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.end,
                   children: [

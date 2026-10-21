@@ -13,7 +13,12 @@ class ResponsiveCardWrap extends StatelessWidget {
     required this.children,
     this.minWidth = 300,
     this.maxColumns = 8,
+    this.equalRowHeight = false,
   });
+
+  /// 为 true 时按行分组，同一行卡片高度一致（取该行最高者）。
+  /// 卡片需自行在 stretch 的高度下填满（如内部用 Spacer 把页脚压底）。
+  final bool equalRowHeight;
 
   final List<Widget> children;
 
@@ -34,6 +39,37 @@ class ResponsiveCardWrap extends StatelessWidget {
             .floor()
             .clamp(1, maxColumns);
         final w = (avail - AppSpacing.md * (cols - 1)) / cols;
+
+        if (equalRowHeight) {
+          final rows = <Widget>[];
+          for (var i = 0; i < children.length; i += cols) {
+            final end = (i + cols).clamp(0, children.length);
+            rows.add(
+              IntrinsicHeight(
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    for (var j = i; j < i + cols; j++) ...[
+                      if (j > i) const SizedBox(width: AppSpacing.md),
+                      SizedBox(
+                        width: w,
+                        child: j < end ? children[j] : null,
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+            );
+          }
+          return Column(
+            children: [
+              for (var i = 0; i < rows.length; i++) ...[
+                if (i > 0) const SizedBox(height: AppSpacing.md),
+                rows[i],
+              ],
+            ],
+          );
+        }
 
         return Wrap(
           spacing: AppSpacing.md,

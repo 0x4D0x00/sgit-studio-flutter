@@ -10,6 +10,7 @@ import 'package:sgit_studio_flutter/features/projects/presentation/widgets/edit_
 import 'package:sgit_studio_flutter/l10n/generated/app_localizations.dart';
 import 'package:sgit_studio_flutter/ui/components/confirm.dart';
 import 'package:sgit_studio_flutter/ui/components/menu/app_menu.dart';
+import 'package:sgit_studio_flutter/ui/components/responsive_card_wrap.dart';
 
 /// Projects 页面 - 显示项目列表和创建新项目功能
 class ProjectsPage extends ConsumerStatefulWidget {
@@ -239,68 +240,25 @@ class _ProjectsPageState extends ConsumerState<ProjectsPage> {
       );
     }
 
-    // 卡片高度：同一行内的所有卡片高度一致（由该行最高的卡片决定）；宽度足够时两列，否则单列。
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        final twoColumns =
-            constraints.maxWidth >= _minCardWidth * 2 + AppSpacing.md;
-        final crossAxisCount = twoColumns ? 2 : 1;
-
-        // 将项目分组成行
-        final rows = <List<ProjectItem>>[];
-        for (var i = 0; i < projects.length; i += crossAxisCount) {
-          rows.add(
-            projects.sublist(
-              i,
-              (i + crossAxisCount).clamp(0, projects.length),
+    // 列数由 [ResponsiveCardWrap] 按可用宽度算 —— 与 Skills/连接器/插件页同一份逻辑。
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(AppSpacing.lg),
+      child: ResponsiveCardWrap(
+        equalRowHeight: true,
+        children: [
+          for (final project in projects)
+            ProjectCard(
+              project: project,
+              onTap: () => _notWired(l10n.commonNotWired('点击跳转')),
+              // TODO: 置顶功能暂未实现
+              onPin: () => _notWired(l10n.projectsPin),
+              onEditDetails: () => _showEditProjectDialog(project),
+              onDelete: () => _deleteProject(project),
             ),
-          );
-        }
-
-        return ListView.separated(
-          padding: const EdgeInsets.all(AppSpacing.lg),
-          itemCount: rows.length,
-          separatorBuilder: (_, _) => const SizedBox(height: AppSpacing.md),
-          itemBuilder: (context, rowIndex) {
-            final rowProjects = rows[rowIndex];
-            return IntrinsicHeight(
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  for (var i = 0; i < rowProjects.length; i++) ...[
-                    if (i > 0) const SizedBox(width: AppSpacing.md),
-                    Expanded(
-                      child: ProjectCard(
-                        project: rowProjects[i],
-                        onTap: () => _notWired(l10n.commonNotWired('点击跳转')),
-                        // TODO: 置顶功能暂未实现
-                        onPin: () => _notWired(l10n.projectsPin),
-                        onEditDetails: () =>
-                            _showEditProjectDialog(rowProjects[i]),
-                        onDelete: () => _deleteProject(rowProjects[i]),
-                      ),
-                    ),
-                  ],
-                  // 最后一行可能不足 crossAxisCount 个，填充空白以保持对齐
-                  if (rowProjects.length < crossAxisCount)
-                    ...List.generate(
-                      crossAxisCount - rowProjects.length,
-                      (_) => const Expanded(child: SizedBox()),
-                    ).expand((widget) => [
-                          const SizedBox(width: AppSpacing.md),
-                          widget,
-                        ]),
-                ],
-              ),
-            );
-          },
-        );
-      },
+        ],
+      ),
     );
   }
-
-  /// 一张卡片最少需要这么宽才不显得拥挤，窄于此就退成单列。
-  static const double _minCardWidth = 280;
 }
 
 class ProjectCard extends StatefulWidget {
