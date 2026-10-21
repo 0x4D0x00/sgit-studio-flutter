@@ -203,6 +203,45 @@ class NavPanelContainer
           label: l10n.settingsLanguage,
           onTap: () => showLanguageDialog(context),
         ),
+        AppMenuAction(
+          icon: Icons.help_outline,
+          label: l10n.navGetHelp,
+          onTap: () => _notWired(context, l10n, 'get-help'),
+        ),
+        const AppMenuDivider(),
+        AppMenuSubmenu(
+          icon: Icons.info_outline,
+          label: l10n.navLearnMore,
+          entries: [
+            AppMenuAction(
+              label: l10n.navAboutBrand(BrandConfig.instance.name),
+              onTap: () => _notWired(context, l10n, 'about'),
+            ),
+            const AppMenuDivider(),
+            AppMenuAction(
+              label: l10n.navUsagePolicy,
+              onTap: () => _notWired(context, l10n, 'usage-policy'),
+            ),
+            AppMenuAction(
+              label: l10n.navPrivacyPolicy,
+              onTap: () => _notWired(context, l10n, 'privacy-policy'),
+            ),
+            AppMenuAction(
+              label: l10n.navTermsOfService,
+              onTap: () => _notWired(context, l10n, 'terms'),
+            ),
+            AppMenuAction(
+              label: l10n.navPrivacyChoices,
+              onTap: () => _notWired(context, l10n, 'privacy-choices'),
+            ),
+            const AppMenuDivider(),
+            AppMenuAction(
+              label: l10n.navKeyboardShortcuts,
+              shortcut: 'Ctrl+/',
+              onTap: () => _notWired(context, l10n, 'shortcuts'),
+            ),
+          ],
+        ),
         const AppMenuDivider(),
         AppMenuAction(
           icon: Icons.logout,

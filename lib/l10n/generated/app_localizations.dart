@@ -236,6 +236,54 @@ abstract class AppLocalizations {
   /// **'智能体'**
   String get navStudioGroup;
 
+  /// No description provided for @navGetHelp.
+  ///
+  /// In zh, this message translates to:
+  /// **'寻求帮助'**
+  String get navGetHelp;
+
+  /// No description provided for @navLearnMore.
+  ///
+  /// In zh, this message translates to:
+  /// **'了解更多'**
+  String get navLearnMore;
+
+  /// No description provided for @navAboutBrand.
+  ///
+  /// In zh, this message translates to:
+  /// **'关于 {brand}'**
+  String navAboutBrand(String brand);
+
+  /// No description provided for @navUsagePolicy.
+  ///
+  /// In zh, this message translates to:
+  /// **'使用政策'**
+  String get navUsagePolicy;
+
+  /// No description provided for @navPrivacyPolicy.
+  ///
+  /// In zh, this message translates to:
+  /// **'隐私政策'**
+  String get navPrivacyPolicy;
+
+  /// No description provided for @navTermsOfService.
+  ///
+  /// In zh, this message translates to:
+  /// **'服务条款'**
+  String get navTermsOfService;
+
+  /// No description provided for @navPrivacyChoices.
+  ///
+  /// In zh, this message translates to:
+  /// **'您的隐私设置'**
+  String get navPrivacyChoices;
+
+  /// No description provided for @navKeyboardShortcuts.
+  ///
+  /// In zh, this message translates to:
+  /// **'键盘快捷键'**
+  String get navKeyboardShortcuts;
+
   /// No description provided for @navSettings.
   ///
   /// In zh, this message translates to:

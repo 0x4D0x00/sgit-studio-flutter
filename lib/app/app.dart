@@ -51,11 +51,45 @@ class SgitStudioApp extends ConsumerWidget {
           child: MediaQuery.withClampedTextScaling(
             minScaleFactor: theme.fontScale,
             maxScaleFactor: theme.fontScale,
-            child: child ?? const SizedBox.shrink(),
+            child: Theme(
+              data: _withToastStyle(context),
+              child: child ?? const SizedBox.shrink(),
+            ),
           ),
         );
       },
       routerConfig: router,
     );
   }
+}
+
+/// 全局提示条(SnackBar)样式：圆角卡片，浮在右下角，而非整行黑条；颜色跟随深浅主题。
+/// 右对齐靠 margin 的 left 随窗口宽度算出(SnackBar 自身不支持对齐)。
+ThemeData _withToastStyle(BuildContext context) {
+  const maxWidth = 360.0;
+  const gap = 16.0;
+  final base = Theme.of(context);
+  final scheme = base.colorScheme;
+  final screenW = MediaQuery.sizeOf(context).width;
+  final left = (screenW - maxWidth - gap).clamp(gap, double.infinity);
+  return base.copyWith(
+    snackBarTheme: SnackBarThemeData(
+      behavior: SnackBarBehavior.floating,
+      backgroundColor: scheme.surface,
+      elevation: 6,
+      showCloseIcon: true,
+      closeIconColor: scheme.onSurfaceVariant,
+      // 必须基于 textTheme，裸 TextStyle 没有全局字体，缺字回退会造成粗细不一。
+      contentTextStyle: base.textTheme.bodyMedium?.copyWith(
+        color: scheme.onSurface,
+        fontSize: 14,
+        fontWeight: FontWeight.w500,
+      ),
+      insetPadding: EdgeInsets.fromLTRB(left, gap, gap, gap),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(16),
+        side: BorderSide(color: scheme.outlineVariant),
+      ),
+    ),
+  );
 }

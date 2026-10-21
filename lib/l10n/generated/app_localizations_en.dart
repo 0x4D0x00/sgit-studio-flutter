@@ -80,6 +80,32 @@ class AppLocalizationsEn extends AppLocalizations {
   String get navStudioGroup => 'Studio';
 
   @override
+  String get navGetHelp => 'Get help';
+
+  @override
+  String get navLearnMore => 'Learn more';
+
+  @override
+  String navAboutBrand(String brand) {
+    return 'About $brand';
+  }
+
+  @override
+  String get navUsagePolicy => 'Usage policy';
+
+  @override
+  String get navPrivacyPolicy => 'Privacy policy';
+
+  @override
+  String get navTermsOfService => 'Terms of service';
+
+  @override
+  String get navPrivacyChoices => 'Your privacy choices';
+
+  @override
+  String get navKeyboardShortcuts => 'Keyboard shortcuts';
+
+  @override
   String get navSettings => 'Settings';
 
   @override

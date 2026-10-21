@@ -80,6 +80,32 @@ class AppLocalizationsZh extends AppLocalizations {
   String get navStudioGroup => '智能体';
 
   @override
+  String get navGetHelp => '寻求帮助';
+
+  @override
+  String get navLearnMore => '了解更多';
+
+  @override
+  String navAboutBrand(String brand) {
+    return '关于 $brand';
+  }
+
+  @override
+  String get navUsagePolicy => '使用政策';
+
+  @override
+  String get navPrivacyPolicy => '隐私政策';
+
+  @override
+  String get navTermsOfService => '服务条款';
+
+  @override
+  String get navPrivacyChoices => '您的隐私设置';
+
+  @override
+  String get navKeyboardShortcuts => '键盘快捷键';
+
+  @override
   String get navSettings => '设置';
 
   @override

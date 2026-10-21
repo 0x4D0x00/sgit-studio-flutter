@@ -153,6 +153,7 @@ class _AppMenuAnchorState
       ),
       onClose: () {
         _pinned = false;
+        _submenuPinned.value = false;
         widget.onOpenChanged?.call(
           false,
         );
@@ -335,6 +336,12 @@ Widget appMenuKeepLtr(Widget child) => Directionality(
   child: child,
 );
 
+/// 子菜单是否被点击「钉住」。钉住后悬停同级项不再收起子菜单。
+///
+/// 同一时刻只会开一个菜单，所以用模块级单例；菜单关闭时在
+/// [_AppMenuAnchorState] 的 `onClose` 里复位。
+final ValueNotifier<bool> _submenuPinned = ValueNotifier<bool>(false);
+
 /// 菜单面板样式（底色 / 描边 / 圆角 / 定宽 / 限高）。
 ///
 /// 子菜单复用同一份，这样父菜单和子菜单看起来是一套东西。
@@ -413,10 +420,14 @@ buildAppMenuChildren(
     switch (e) {
       case AppMenuAction():
         out.add(
-          _action(
-            skin,
-            e,
-            maxWidth: maxWidth,
+          ValueListenableBuilder<bool>(
+            valueListenable: _submenuPinned,
+            builder: (_, pinned, _) => _action(
+              skin,
+              e,
+              maxWidth: maxWidth,
+              requestFocusOnHover: !pinned,
+            ),
           ),
         );
       case AppMenuSubmenu():
@@ -478,6 +489,7 @@ _action(
   AppSkin skin,
   AppMenuAction e, {
   double? maxWidth,
+  bool requestFocusOnHover = true,
 }) {
   final scheme = ThemeData().colorScheme;
   final fg = e.danger
@@ -510,6 +522,9 @@ _action(
       skin,
       minHeight: AppMenuMetrics.itemHeight,
     ),
+    // 默认悬停同级项会夺走焦点并收起已展开的子菜单（悬停展开 → 移开即收）。
+    // 子菜单被点击钉住后传 false，同级项悬停就不再收起它。
+    requestFocusOnHover: requestFocusOnHover,
     onPressed: e.enabled? e.onTap: null,
     leadingIcon:
         e.icon ==null
@@ -591,7 +606,10 @@ _submenu(
   AppSkin skin,
   AppMenuSubmenu e,
 ) {
-  return SubmenuButton(
+  // 悬停展开、移开即收；点击后「钉住」（见 [_submenuPinned]）。
+  return Listener(
+    onPointerDown: (_) => _submenuPinned.value = true,
+    child: SubmenuButton(
     style: _itemStyle(
       skin,
       minHeight: AppMenuMetrics.itemHeight,
@@ -656,6 +674,7 @@ _submenu(
           ),
         ),
       ],
+    ),
     ),
   );
 }
