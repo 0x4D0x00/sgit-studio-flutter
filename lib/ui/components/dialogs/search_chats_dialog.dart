@@ -11,7 +11,14 @@ enum SearchDialogCategory { artifact, chat, project }
 
 /// 行尾「⁝」菜单里的一项动作。对话框只回传动作，**不自己执行** ——
 /// 打开 / 改名 / 删除分别由调用方接（`ui/` 层不 import features）。
-enum SearchDialogRowAction { open, rename, delete }
+enum SearchDialogRowAction {
+  open,
+  pin,
+  rename,
+  editDetails,
+  copyLink,
+  delete,
+}
 
 /// 搜索弹窗里的一行 —— 展示用，选中后回传 [id] 给调用方。
 @immutable
@@ -47,6 +54,13 @@ extension on _SearchTab {
   };
 
   bool get hasDataSource => categories.isNotEmpty;
+
+  /// 无搜索词时最多展示多少条（最近的）。null = 不限。
+  int? get recentLimit => switch (this) {
+    _SearchTab.all => 8,
+    _SearchTab.chats => 25,
+    _ => null,
+  };
 }
 
 /// 居中命令面板：搜索框 + 分类标签 + 结果列表 + 底栏快捷键。
@@ -147,6 +161,10 @@ class _SearchChatsDialogState extends State<_SearchChatsDialog> {
   /// 每条目一个菜单控制器（按 id），供 `Alt+↵` 直接展开、也供「⋯」按钮开合。
   final Map<String, MenuController> _menuControllers = {};
 
+  /// 当前展开着菜单的条目 id。
+  ///菜单开着的期间由它把灰底锁住；菜单关闭（选项被点、点到外面的空白、按 Esc）时 `onClose` 会把它清掉，锁定随之解除。
+  String? _menuOpenId;
+
   /// 滚动到选中行用。
   final Map<int, GlobalKey> _rowKeys = {};
 
@@ -191,6 +209,11 @@ class _SearchChatsDialogState extends State<_SearchChatsDialog> {
       if (y == null) return -1;
       return y.compareTo(x);
     });
+    // 无搜索词时只展示最近的若干条；有搜索词则返回全部匹配。
+    final limit = _tab.recentLimit;
+    if (q.isEmpty && limit != null && list.length > limit) {
+      return list.sublist(0, limit);
+    }
     return list;
   }
 
@@ -615,9 +638,13 @@ class _SearchChatsDialogState extends State<_SearchChatsDialog> {
     required int index,
     required bool selected,
   }) {
-    // 键盘选中的那行只在键盘模式下才涂灰 —— 刚打开时它只是「按 ↵ 会打开哪条」
-    // 的预备状态，不是视觉上的选中。
-    final highlighted = _hovered == index || (_keyboardMode && selected);
+    // 键盘选中的那行只在键盘模式下才涂灰 —— 刚打开时它只是「按 ↵ 会打开哪条」 的预备状态，不是视觉上的选中。
+    //
+    // 菜单开着时无条件涂灰：指针这时在浮层上，行本身收不到 hover。
+    final highlighted =
+        _menuOpenId == item.id ||
+        _hovered == index ||
+        (_keyboardMode && selected);
     // 按条目 id 持有控制器，而不是按下标 —— 过滤后下标会重排，按下标存会让
     // "打开着的菜单"漂到另一条不相干的条目上。
     final menu = _menuControllers.putIfAbsent(item.id, MenuController.new);
@@ -626,10 +653,24 @@ class _SearchChatsDialogState extends State<_SearchChatsDialog> {
     //
     // 原先它只挂在行尾的「⋯」按钮里，而那个按钮只在行高亮时才渲染 —— 指针一从
     // 行上移到菜单上，`_hovered` 变空 → 按钮连同 `MenuAnchor` 一起被拆掉 →
-    // 菜单瞬间消失，根本点不到。锚点常驻后菜单归 `MenuController` 管，鼠标
-    // 移开行也仍然开着。
+    // 菜单瞬间消失，根本点不到。锚点常驻后菜单归 `MenuController` 管，鼠标移开行也仍然开着。
     return MenuAnchor(
       controller: menu,
+      onOpen: () => setState(() {
+        _menuOpenId = item.id;
+        // 不碰 `_keyboardMode`：点「⋯」打开的菜单，关闭后灰底必须跟着消失；
+        // 键盘（Alt+↵）打开的路径在 [_openRowMenu] 里已经自己置过了。
+        _selected = index;
+      }),
+      // 菜单无论怎么关的（点了选项、点到外面、Esc、再点一次「⋯」）都会走到这里，
+      // 灰底锁随之解除。指针若已经不在这一行上，就顺便把悬停态也清掉。
+      onClose: () {
+        if (!mounted || _menuOpenId != item.id) return;
+        setState(() {
+          _menuOpenId = null;
+          if (_hovered == index) _hovered = null;
+        });
+      },
       style: appMenuStyle(
         skin,
         minWidth: 160,
@@ -696,26 +737,55 @@ class _SearchChatsDialogState extends State<_SearchChatsDialog> {
       widget.onRowAction(item.id, action);
     }
 
-    return [
-      AppMenuAction(
-        icon: Icons.open_in_new,
-        label: l10n.searchOpen,
-        onTap: () => fire(SearchDialogRowAction.open),
-      ),
-      if (item.category == SearchDialogCategory.chat) ...[
+    AppMenuAction open() => AppMenuAction(
+      icon: Icons.open_in_new,
+      label: l10n.searchOpen,
+      onTap: () => fire(SearchDialogRowAction.open),
+    );
+    AppMenuAction pin(String label) => AppMenuAction(
+      icon: Icons.push_pin_outlined,
+      label: label,
+      onTap: () => fire(SearchDialogRowAction.pin),
+    );
+    final delete = AppMenuAction(
+      icon: Icons.delete_outline,
+      label: l10n.commonDelete,
+      danger: true,
+      onTap: () => fire(SearchDialogRowAction.delete),
+    );
+
+    // 三类的动作集合各不一样：产物只有开关与复制链接；项目/聊天多一个置顶，
+    // 但项目走「编辑细节」、聊天走「重命名」。
+    return switch (item.category) {
+      SearchDialogCategory.artifact => [
+        open(),
+        AppMenuAction(
+          icon: Icons.link,
+          label: l10n.artifactsCopyLink,
+          onTap: () => fire(SearchDialogRowAction.copyLink),
+        ),
+      ],
+      SearchDialogCategory.project => [
+        open(),
+        pin(l10n.projectsPin),
+        AppMenuAction(
+          icon: Icons.edit_outlined,
+          label: l10n.projectsEditDetails,
+          onTap: () => fire(SearchDialogRowAction.editDetails),
+        ),
+        delete,
+      ],
+      SearchDialogCategory.chat => [
+        open(),
+        pin(l10n.navChatPin),
         AppMenuAction(
           icon: Icons.edit_outlined,
           label: l10n.navChatRename,
           onTap: () => fire(SearchDialogRowAction.rename),
         ),
-        AppMenuAction(
-          icon: Icons.delete_outline,
-          label: l10n.commonDelete,
-          danger: true,
-          onTap: () => fire(SearchDialogRowAction.delete),
-        ),
+        delete,
       ],
-    ];
+    };
   }
 
   Widget _actionRow(
@@ -914,7 +984,7 @@ class _SearchChatsDialogState extends State<_SearchChatsDialog> {
     ),
   );
 
-  /// 「Filters /」—— 键帽同时是筛选菜单的锚点，点它和按 `/` 等价。
+  /// 「Filters /」—— 键帽仅作提示（不可点击），同时是筛选菜单的锚点，按 `/` 打开。
   Widget _filtersHint(AppSkin skin, AppLocalizations l10n) => Padding(
     padding: const EdgeInsets.only(right: AppSpacing.md),
     child: Row(
@@ -944,11 +1014,7 @@ class _SearchChatsDialogState extends State<_SearchChatsDialog> {
                 },
               ),
           ]),
-          builder: (_, controller, _) => InkWell(
-            borderRadius: BorderRadius.circular(4),
-            onTap: controller.isOpen ? controller.close : controller.open,
-            child: _keycap(skin, '/'),
-          ),
+          builder: (_, _, _) => _keycap(skin, '/'),
         ),
       ],
     ),

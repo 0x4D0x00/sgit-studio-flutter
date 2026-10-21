@@ -519,6 +519,12 @@ class NavPanelContainer
     switch (action) {
       case SearchDialogRowAction.open:
         _onSelect(context, ref, l10n, id);
+      case SearchDialogRowAction.pin:
+        _notWired(context, l10n, 'pin');
+      case SearchDialogRowAction.editDetails:
+        _notWired(context, l10n, 'editDetails');
+      case SearchDialogRowAction.copyLink:
+        _notWired(context, l10n, 'copyLink');
       case SearchDialogRowAction.rename:
         if (threadId == null) return;
         final thread = ref
@@ -533,7 +539,10 @@ class NavPanelContainer
           thread?.title ?? '',
         );
       case SearchDialogRowAction.delete:
-        if (threadId == null) return;
+        if (threadId == null) {
+          _notWired(context, l10n, 'delete');
+          return;
+        }
         final thread = ref
             .read(threadListProvider)
             .items
