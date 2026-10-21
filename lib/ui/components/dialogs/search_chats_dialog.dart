@@ -20,6 +20,16 @@ enum SearchDialogRowAction {
   delete,
 }
 
+/// 行动作执行完的结果。弹窗据此就地刷新列表（不关弹窗）。
+@immutable
+class SearchRowResult {
+  const SearchRowResult.removed() : removed = true, newLabel = null;
+  const SearchRowResult.renamed(String this.newLabel) : removed = false;
+
+  final bool removed;
+  final String? newLabel;
+}
+
 /// 搜索弹窗里的一行 —— 展示用，选中后回传 [id] 给调用方。
 @immutable
 class SearchDialogItem {
@@ -74,7 +84,11 @@ Future<void> showSearchChatsDialog(
   BuildContext context, {
   required List<SearchDialogItem> items,
   required ValueChanged<String> onSelect,
-  required void Function(String id, SearchDialogRowAction action) onRowAction,
+  required Future<SearchRowResult?> Function(
+    String id,
+    SearchDialogRowAction action,
+  )
+  onRowAction,
   required VoidCallback onNewChat,
   required VoidCallback onCompose,
 }) {
@@ -125,7 +139,11 @@ class _SearchChatsDialog extends StatefulWidget {
 
   final List<SearchDialogItem> items;
   final ValueChanged<String> onSelect;
-  final void Function(String id, SearchDialogRowAction action) onRowAction;
+  final Future<SearchRowResult?> Function(
+    String id,
+    SearchDialogRowAction action,
+  )
+  onRowAction;
   final VoidCallback onNewChat;
   final VoidCallback onCompose;
 
@@ -165,6 +183,10 @@ class _SearchChatsDialogState extends State<_SearchChatsDialog> {
   ///菜单开着的期间由它把灰底锁住；菜单关闭（选项被点、点到外面的空白、按 Esc）时 `onClose` 会把它清掉，锁定随之解除。
   String? _menuOpenId;
 
+  /// 行动作（改名 / 删除…）不关弹窗，结果就地叠在传入的 `items` 上。
+  final Set<String> _removed = {};
+  final Map<String, String> _labels = {};
+
   /// 滚动到选中行用。
   final Map<int, GlobalKey> _rowKeys = {};
 
@@ -197,6 +219,17 @@ class _SearchChatsDialogState extends State<_SearchChatsDialog> {
     final q = _query.toLowerCase();
     final cats = _tab.categories;
     final list = widget.items
+        .where((e) => !_removed.contains(e.id))
+        .map(
+          (e) => _labels.containsKey(e.id)
+              ? SearchDialogItem(
+                  id: e.id,
+                  label: _labels[e.id]!,
+                  category: e.category,
+                  updatedAt: e.updatedAt,
+                )
+              : e,
+        )
         .where((e) => cats.contains(e.category))
         .where((e) => q.isEmpty || e.label.toLowerCase().contains(q))
         .toList();
@@ -365,6 +398,8 @@ class _SearchChatsDialogState extends State<_SearchChatsDialog> {
     // 按住不放的重复事件也要认，长按方向键才能连续移动。
     if (event is! KeyDownEvent && event is! KeyRepeatEvent) return false;
     if (!mounted) return false;
+    // 改名 / 删除等对话框叠在上面时，键盘归它们，搜索弹窗不抢。
+    if (ModalRoute.of(context)?.isCurrent == false) return false;
     final key = event.logicalKey;
     final rows = _rows(AppLocalizations.of(context));
 
@@ -732,9 +767,25 @@ class _SearchChatsDialogState extends State<_SearchChatsDialog> {
   }
 
   List<AppMenuEntry> _rowEntries(AppLocalizations l10n, SearchDialogItem item) {
-    void fire(SearchDialogRowAction action) {
-      _close();
-      widget.onRowAction(item.id, action);
+    // 只有「打开」会关弹窗；其余动作的对话框直接叠在搜索弹窗之上。
+    Future<void> fire(SearchDialogRowAction action) async {
+      if (action == SearchDialogRowAction.open) {
+        _close();
+        widget.onRowAction(item.id, action);
+        return;
+      }
+      final result = await widget.onRowAction(item.id, action);
+      if (!mounted || result == null) return;
+      setState(() {
+        if (result.removed) {
+          _removed.add(item.id);
+          _menuControllers.remove(item.id);
+          final last = _rows(AppLocalizations.of(context)).length - 1;
+          if (_selected > last) _selected = last;
+        } else if (result.newLabel != null) {
+          _labels[item.id] = result.newLabel!;
+        }
+      });
     }
 
     AppMenuAction open() => AppMenuAction(

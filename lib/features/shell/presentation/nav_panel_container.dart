@@ -12,6 +12,8 @@ import 'package:sgit_studio_flutter/features/chat/application/thread_list_contro
 import 'package:sgit_studio_flutter/features/chat/presentation/thread_actions.dart';
 import 'package:sgit_studio_flutter/features/projects/application/projects_controller.dart';
 import 'package:sgit_studio_flutter/features/projects/presentation/widgets/create_project_dialog.dart';
+import 'package:sgit_studio_flutter/features/projects/presentation/widgets/edit_project_dialog.dart';
+import 'package:sgit_studio_flutter/ui/components/confirm.dart';
 import 'package:sgit_studio_flutter/l10n/generated/app_localizations.dart';
 import 'package:sgit_studio_flutter/layout/panels/models/nav_entry.dart';
 import 'package:sgit_studio_flutter/layout/panels/nav_panel.dart';
@@ -505,9 +507,9 @@ class NavPanelContainer
     );
   }
 
-  /// 搜索弹窗行尾「⁝」的动作。只有聊天有改名/删除这类真落地能力 ——
-  /// 产物与项目没有对应内核接口，菜单里只给「打开」。
-  Future<void> _onSearchRowAction(
+  /// 搜索弹窗行尾「⁝」的动作。改名 / 删除 / 编辑细节的对话框直接叠在搜索弹窗之上，
+  /// 结果回给弹窗就地刷新；置顶 / 复制链接没有对应内核接口，只弹「未接入」。
+  Future<SearchRowResult?> _onSearchRowAction(
     BuildContext context,
     WidgetRef ref,
     AppLocalizations l10n,
@@ -516,32 +518,70 @@ class NavPanelContainer
   ) async {
     final isThread = id.startsWith(_threadPrefix);
     final threadId = isThread ? id.substring(_threadPrefix.length) : null;
+    final projectId = id.startsWith(_projectPrefix)
+        ? id.substring(_projectPrefix.length)
+        : null;
     switch (action) {
       case SearchDialogRowAction.open:
         _onSelect(context, ref, l10n, id);
+        return null;
       case SearchDialogRowAction.pin:
         _notWired(context, l10n, 'pin');
-      case SearchDialogRowAction.editDetails:
-        _notWired(context, l10n, 'editDetails');
+        return null;
       case SearchDialogRowAction.copyLink:
         _notWired(context, l10n, 'copyLink');
+        return null;
+      case SearchDialogRowAction.editDetails:
+        if (projectId == null) return null;
+        final project = ref
+            .read(projectsControllerProvider)
+            .where((p) => p.id == projectId)
+            .firstOrNull;
+        if (project == null) return null;
+        final edit = await showEditProjectDialog(
+          context,
+          name: project.name,
+          description: project.description,
+        );
+        if (edit == null || edit.name.isEmpty) return null;
+        ref
+            .read(projectsControllerProvider.notifier)
+            .updateProject(projectId, edit.name, edit.description);
+        return SearchRowResult.renamed(edit.name);
       case SearchDialogRowAction.rename:
-        if (threadId == null) return;
+        if (threadId == null) return null;
         final thread = ref
             .read(threadListProvider)
             .items
             .where((t) => t.id == threadId)
             .firstOrNull;
-        await renameThreadWithDialog(
+        final name = await renameThreadWithDialog(
           context,
           ref,
           threadId,
           thread?.title ?? '',
         );
+        // 空串会回落成首条消息摘要，弹窗里拿不到那个值，就先保持原样。
+        if (name == null || name.isEmpty) return null;
+        return SearchRowResult.renamed(name);
       case SearchDialogRowAction.delete:
+        if (projectId != null) {
+          final project = ref
+              .read(projectsControllerProvider)
+              .where((p) => p.id == projectId)
+              .firstOrNull;
+          final ok = await confirmDanger(
+            context,
+            title: l10n.studioRemoveConfirm(project?.name ?? ''),
+            confirmText: l10n.commonDelete,
+          );
+          if (!ok) return null;
+          ref.read(projectsControllerProvider.notifier).deleteProject(projectId);
+          return const SearchRowResult.removed();
+        }
         if (threadId == null) {
           _notWired(context, l10n, 'delete');
-          return;
+          return null;
         }
         final thread = ref
             .read(threadListProvider)
@@ -558,6 +598,7 @@ class NavPanelContainer
             ref.read(chatControllerProvider).currentThreadId == threadId) {
           ref.read(chatControllerProvider.notifier).newChat();
         }
+        return deleted ? const SearchRowResult.removed() : null;
     }
   }
 

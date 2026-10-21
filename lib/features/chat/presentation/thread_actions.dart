@@ -10,8 +10,8 @@ import 'package:sgit_studio_flutter/ui/components/confirm.dart';
 /// 左栏历史条目的「⋯」菜单和中栏顶部的标题下拉菜单是**同一批动作**，
 /// 放在一处，两边的对话框、回落规则就不会各写一份然后漂开。
 
-/// 弹改名框并提交。取消则什么都不做。
-Future<void> renameThreadWithDialog(
+/// 弹改名框并提交。取消则什么都不做。返回提交的新名字（取消为 null）。
+Future<String?> renameThreadWithDialog(
   BuildContext context,
   WidgetRef ref,
   String threadId,
@@ -23,8 +23,9 @@ Future<void> renameThreadWithDialog(
   );
   // null = 取消。空串是"用户真的清空了"，交给 controller 回落到 preview，
   // 与"没点确认"是两回事，不能合并判断。
-  if (name == null) return;
+  if (name == null) return null;
   await ref.read(threadListProvider.notifier).rename(threadId, name.trim());
+  return name.trim();
 }
 
 /// 危险确认后删除。返回是否真的删了。
