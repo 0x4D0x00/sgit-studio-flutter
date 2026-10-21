@@ -471,7 +471,7 @@ class _SearchChatsDialogState extends State<_SearchChatsDialog> {
         side: BorderSide(color: skin.border),
       ),
       child: ConstrainedBox(
-        constraints: const BoxConstraints(maxWidth: 640, maxHeight: 560),
+        constraints: const BoxConstraints(maxWidth: 600, maxHeight: 540),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -533,13 +533,13 @@ class _SearchChatsDialogState extends State<_SearchChatsDialog> {
             ),
           ),
         ),
-        IconButton(
+        ExcludeFocus(child: IconButton(
           icon: const Icon(Icons.close),
           iconSize: 20,
           color: skin.textSecondary,
           tooltip: l10n.commonClose,
           onPressed: _close,
-        ),
+        )),
       ],
     ),
   );
@@ -571,6 +571,8 @@ class _SearchChatsDialogState extends State<_SearchChatsDialog> {
   Widget _tabPill(AppSkin skin, AppLocalizations l10n, _SearchTab tab) {
     final selected = tab == _tab;
     return InkWell(
+      // 不接管焦点：否则方向键会被焦点遍历拿去，把某一行画成焦点灰底。
+      canRequestFocus: false,
       borderRadius: BorderRadius.circular(AppRadius.sm),
       onTap: () {
         setState(() {
@@ -678,8 +680,7 @@ class _SearchChatsDialogState extends State<_SearchChatsDialog> {
     // 菜单开着时无条件涂灰：指针这时在浮层上，行本身收不到 hover。
     final highlighted =
         _menuOpenId == item.id ||
-        _hovered == index ||
-        (_keyboardMode && selected);
+        (_keyboardMode ? selected : _hovered == index);
     // 按条目 id 持有控制器，而不是按下标 —— 过滤后下标会重排，按下标存会让
     // "打开着的菜单"漂到另一条不相干的条目上。
     final menu = _menuControllers.putIfAbsent(item.id, MenuController.new);
@@ -847,7 +848,7 @@ class _SearchChatsDialogState extends State<_SearchChatsDialog> {
     required int index,
     required bool selected,
   }) {
-    final highlighted = _hovered == index || (_keyboardMode && selected);
+    final highlighted = _keyboardMode ? selected : _hovered == index;
     return _rowShell(
       skin,
       index: index,
@@ -894,7 +895,8 @@ class _SearchChatsDialogState extends State<_SearchChatsDialog> {
     return KeyedSubtree(
       key: key,
       child: MouseRegion(
-        onEnter: (_) => onHover(true),
+        // onHover 而非 onEnter：键盘滚动时行从静止的指针下滑过会误触发 onEnter，抢走键盘选中。
+        onHover: (_) => onHover(true),
         onExit: (_) => onHover(false),
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xs),
@@ -904,6 +906,9 @@ class _SearchChatsDialogState extends State<_SearchChatsDialog> {
                 : Colors.transparent,
             borderRadius: BorderRadius.circular(AppRadius.sm),
             child: InkWell(
+              canRequestFocus: false,
+              // 行底色由 [highlighted] 单独控制；InkWell 自带的 hover / focus / highlight / splash 蒙层一律关掉，避免叠出第二层灰。
+              overlayColor: const WidgetStatePropertyAll(Colors.transparent),
               borderRadius: BorderRadius.circular(AppRadius.sm),
               hoverColor: Colors.transparent,
               onTap: onTap,
