@@ -120,6 +120,40 @@ class _ActionRow extends _Row {
   final IconData icon;
 }
 
+/// 输入 `/` 后列出的筛选项，或选完筛选键后列出的候选值。选中即回调 [onPick]。
+class _SuggestionRow extends _Row {
+  const _SuggestionRow({
+    required this.text,
+    required this.onPick,
+    this.pill,
+    this.icon,
+  });
+  final String text;
+
+  /// 文字后面的小药丸（「按 [所有者] 筛选」里的所有者）。
+  final String? pill;
+  final IconData? icon;
+  final VoidCallback onPick;
+}
+
+/// 筛选键。`owner` / `date` / `type` 要再选一个值；`archived` / `actions` 直接生效。
+enum _FilterKind { owner, date, type, archived, actions }
+
+extension on _FilterKind {
+  bool get hasValues =>
+      this == _FilterKind.owner ||
+      this == _FilterKind.date ||
+      this == _FilterKind.type;
+}
+
+/// 已生效的筛选（搜索框左侧的小标签）。[value] 是候选值的下标。
+@immutable
+class _AppliedFilter {
+  const _AppliedFilter(this.kind, [this.value]);
+  final _FilterKind kind;
+  final int? value;
+}
+
 class _SearchChatsDialog extends StatefulWidget {
   const _SearchChatsDialog({
     required this.items,
@@ -146,7 +180,7 @@ class _SearchChatsDialog extends StatefulWidget {
 class _SearchChatsDialogState extends State<_SearchChatsDialog> {
   final _ctl = TextEditingController();
   final _scroll = ScrollController();
-  final _filtersController = MenuController();
+  final List<_AppliedFilter> _filters = [];
   String _query = '';
   _SearchTab _tab = _SearchTab.all;
 
@@ -224,6 +258,7 @@ class _SearchChatsDialogState extends State<_SearchChatsDialog> {
         )
         .where((e) => cats.contains(e.category))
         .where((e) => q.isEmpty || e.label.toLowerCase().contains(q))
+        .where(_matchesFilters)
         .toList();
     // 有时间戳的排前面并按时间倒序；缺时间戳的沉到末尾且保持原顺序。
     list.sort((a, b) {
@@ -242,8 +277,48 @@ class _SearchChatsDialogState extends State<_SearchChatsDialog> {
     return list;
   }
 
+  bool _has(_FilterKind kind) => _filters.any((f) => f.kind == kind);
+
+  /// 已生效的筛选是否放行该条目。
+  ///
+  /// 目前没有「所有者」「归档」的数据源：条目全是自己的、没有归档项，
+  /// 所以「我」放行全部，「与我共享」和「已归档」一条都不放行。
+  bool _matchesFilters(SearchDialogItem e) {
+    for (final f in _filters) {
+      switch (f.kind) {
+        case _FilterKind.owner:
+          if (f.value != 0) return false;
+        case _FilterKind.archived:
+          return false;
+        case _FilterKind.date:
+          final at = e.updatedAt;
+          if (at == null) return false;
+          // 与 [_timeLabel] 同一分档：只留下行尾显示该标签的条目，互不重叠。
+          final days = DateTime.now().difference(at).inDays;
+          final inBucket = switch (f.value!) {
+            0 => days < 1,
+            1 => days >= 1 && days < 7,
+            _ => days >= 7 && days < 30,
+          };
+          if (!inBucket) return false;
+        case _FilterKind.type || _FilterKind.actions:
+          break;
+      }
+    }
+    return true;
+  }
+
   /// 当前标签下摊平后的行（含分组标题）。
   List<_Row> _rows(AppLocalizations l10n) {
+    final suggestions = _suggestionRows(l10n);
+    if (suggestions != null) return suggestions;
+    if (_has(_FilterKind.actions)) {
+      final q = _query.trim().toLowerCase();
+      return [
+        if (q.isEmpty || l10n.searchNewChat.toLowerCase().contains(q))
+          _ActionRow(label: l10n.searchNewChat, icon: Icons.add_circle_outline),
+      ];
+    }
     final items = _visibleItems;
     if (_tab != _SearchTab.all) {
       return [for (final i in items) _ItemRow(i)];
@@ -253,9 +328,148 @@ class _SearchChatsDialogState extends State<_SearchChatsDialog> {
         _SectionRow(l10n.searchSectionRecents),
         for (final i in items) _ItemRow(i),
       ],
-      _SectionRow(l10n.searchSectionActions),
-      _ActionRow(label: l10n.searchNewChat, icon: Icons.add_circle_outline),
+      // 带着筛选时只看筛选结果，不再夹带命令。
+      if (_filters.isEmpty) ...[
+        _SectionRow(l10n.searchSectionActions),
+        _ActionRow(label: l10n.searchNewChat, icon: Icons.add_circle_outline),
+      ],
     ];
+  }
+
+  String _kindLabel(AppLocalizations l10n, _FilterKind kind) => switch (kind) {
+    _FilterKind.owner => l10n.searchFilterOwner,
+    _FilterKind.date => l10n.searchFilterDate,
+    _FilterKind.type => l10n.searchFilterType,
+    _FilterKind.archived => l10n.searchFilterArchived,
+    _FilterKind.actions => l10n.searchFilterActions,
+  };
+
+  /// 某个筛选键的候选值（文案）。
+  List<String> _valueLabels(AppLocalizations l10n, _FilterKind kind) =>
+      switch (kind) {
+        _FilterKind.owner => [l10n.searchOwnerMe, l10n.searchOwnerShared],
+        _FilterKind.date => [
+          l10n.searchTimeToday,
+          l10n.searchTimePastWeek,
+          l10n.searchTimePastMonth,
+        ],
+        // 「全部」不是类型。下标对应 `_SearchTab.values[i + 1]`。
+        _FilterKind.type => [
+          for (final t in _SearchTab.values.skip(1)) _tabLabel(l10n, t),
+        ],
+        _ => const [],
+      };
+
+  /// 输入框里的筛选语法对应的候选行；不在筛选语法里时返回 null。
+  ///
+  /// - `/` 开头、没有冒号：列出筛选键（可按已输入的字过滤）
+  /// - `键:`（可带 `/`）：列出该键的候选值（可按冒号后的字过滤）
+  List<_Row>? _suggestionRows(AppLocalizations l10n) {
+    if (_has(_FilterKind.actions)) return null;
+    final slash = _query.startsWith('/');
+    final body = (slash ? _query.substring(1) : _query).toLowerCase();
+    final colon = body.indexOf(':');
+
+    if (colon >= 0) {
+      final key = body.substring(0, colon).trim();
+      final kind = _FilterKind.values
+          .where((k) => k.hasValues)
+          .where(
+            (k) => k.name == key || _kindLabel(l10n, k).toLowerCase() == key,
+          )
+          .firstOrNull;
+      if (kind == null) return null;
+      final text = body.substring(colon + 1).trim();
+      final labels = _valueLabels(l10n, kind);
+      return [
+        _SectionRow(_kindLabel(l10n, kind)),
+        for (var i = 0; i < labels.length; i++)
+          if (text.isEmpty || labels[i].toLowerCase().contains(text))
+            _SuggestionRow(
+              text: labels[i],
+              onPick: () => _applyFilter(kind, i),
+            ),
+      ];
+    }
+
+    if (!slash) return null;
+    final text = body.trim();
+    return [
+      for (final kind in _FilterKind.values)
+        if (!_has(kind) || kind == _FilterKind.type)
+          if (text.isEmpty ||
+              kind.name.contains(text) ||
+              _kindLabel(l10n, kind).toLowerCase().contains(text))
+            _SuggestionRow(
+              text: l10n.searchFilterBy,
+              pill: _kindLabel(l10n, kind),
+              icon: _kindIcon(kind),
+              onPick: () => _pickKind(kind),
+            ),
+    ];
+  }
+
+  IconData _kindIcon(_FilterKind kind) => switch (kind) {
+    _FilterKind.owner => Icons.person_outline,
+    _FilterKind.date => Icons.schedule,
+    _FilterKind.type => Icons.category_outlined,
+    _FilterKind.archived => Icons.archive_outlined,
+    _FilterKind.actions => Icons.keyboard_command_key,
+  };
+
+  /// 选中筛选键：要选值的把输入框改成 `键:` 接着列候选，其余直接生效。
+  void _pickKind(_FilterKind kind) {
+    if (!kind.hasValues) {
+      _applyFilter(kind, null);
+      return;
+    }
+    final text = '${kind.name}:';
+    _ctl.value = TextEditingValue(
+      text: text,
+      selection: TextSelection.collapsed(offset: text.length),
+    );
+    _onQueryChanged(text);
+  }
+
+  /// 让筛选生效，并清空输入框。「类型」等价于切标签，不留小标签。
+  void _applyFilter(_FilterKind kind, int? value) {
+    _ctl.clear();
+    setState(() {
+      _query = '';
+      _hovered = null;
+      _keyboardMode = false;
+      if (kind == _FilterKind.type) {
+        _tab = _SearchTab.values[value! + 1];
+      } else {
+        _filters.removeWhere((f) => f.kind == kind);
+        _filters.add(_AppliedFilter(kind, value));
+      }
+    });
+    _resetSelection();
+  }
+
+  void _removeFilter(_AppliedFilter filter) {
+    setState(() {
+      _filters.remove(filter);
+      _hovered = null;
+    });
+    _resetSelection();
+  }
+
+  void _onQueryChanged(String v) {
+    // 打字期间不点亮第一行：结果列表在跟着变，灰底跳来跳去很吵。
+    // 筛选候选例外 —— 那是要用 ↵ 直接选的菜单，首项需要看得见。
+    setState(() {
+      _query = v;
+      _hovered = null;
+      _keyboardMode = false;
+    });
+    if (!mounted) return;
+    setState(
+      () =>
+          _keyboardMode = _suggestionRows(AppLocalizations.of(context)) != null,
+    );
+    _resetSelection();
   }
 
   /// 下标列表里第一条可选项。分组标题不参与键盘选择。
@@ -357,6 +571,8 @@ class _SearchChatsDialogState extends State<_SearchChatsDialog> {
       case _ActionRow():
         _close();
         widget.onNewChat();
+      case _SuggestionRow(:final onPick):
+        onPick();
       case _SectionRow():
         break;
     }
@@ -420,13 +636,11 @@ class _SearchChatsDialogState extends State<_SearchChatsDialog> {
       widget.onCompose();
       return true;
     }
-    // `/` 只在搜索框为空时当命令用，否则它就是用户要输入的字符。
-    if (key == LogicalKeyboardKey.slash &&
+    // 输入框已空时再按退格：撤掉最后一个筛选小标签。
+    if (key == LogicalKeyboardKey.backspace &&
         _query.isEmpty &&
-        !HardwareKeyboard.instance.isShiftPressed) {
-      _filtersController.isOpen
-          ? _filtersController.close()
-          : _filtersController.open();
+        _filters.isNotEmpty) {
+      _removeFilter(_filters.last);
       return true;
     }
     if (key == LogicalKeyboardKey.enter ||
@@ -490,20 +704,13 @@ class _SearchChatsDialogState extends State<_SearchChatsDialog> {
     ),
     child: Row(
       children: [
+        for (final f in _filters) _filterChip(skin, l10n, f),
         Expanded(
           child: TextField(
             controller: _ctl,
             autofocus: true,
             cursorColor: skin.textSecondary,
-            onChanged: (v) {
-              // 打字期间不点亮第一行：结果列表在跟着变，灰底跳来跳去很吵。
-              setState(() {
-                _query = v;
-                _hovered = null;
-                _keyboardMode = false;
-              });
-              _resetSelection();
-            },
+            onChanged: _onQueryChanged,
             style: TextStyle(fontSize: 16, color: skin.text),
             decoration: InputDecoration(
               isDense: true,
@@ -518,7 +725,9 @@ class _SearchChatsDialogState extends State<_SearchChatsDialog> {
                 horizontal: AppSpacing.xxs,
                 vertical: AppSpacing.xs,
               ),
-              hintText: l10n.navSearch,
+              hintText: _has(_FilterKind.actions)
+                  ? l10n.searchActionsHint
+                  : l10n.navSearch,
               hintStyle: TextStyle(fontSize: 16, color: skin.textTertiary),
             ),
           ),
@@ -535,6 +744,36 @@ class _SearchChatsDialogState extends State<_SearchChatsDialog> {
       ],
     ),
   );
+
+  /// 搜索框左侧的已生效筛选，点 × 或在空输入框里退格即可撤掉。
+  Widget _filterChip(AppSkin skin, AppLocalizations l10n, _AppliedFilter f) {
+    final value = f.value;
+    final label = value == null
+        ? _kindLabel(l10n, f.kind)
+        : '${_kindLabel(l10n, f.kind)}: ${_valueLabels(l10n, f.kind)[value]}';
+    return Container(
+      margin: const EdgeInsets.only(right: AppSpacing.xxs),
+      padding: const EdgeInsets.only(left: AppSpacing.xs),
+      decoration: BoxDecoration(
+        color: skin.textSecondary.withValues(alpha: 0.08),
+        borderRadius: BorderRadius.circular(AppRadius.sm),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(label, style: TextStyle(fontSize: 13, color: skin.text)),
+          InkWell(
+            canRequestFocus: false,
+            onTap: () => _removeFilter(f),
+            child: Padding(
+              padding: const EdgeInsets.all(4),
+              child: Icon(Icons.close, size: 12, color: skin.textSecondary),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 
   /// 分类标签行。视觉与 [PillTabBar] 同一套（选中 = 8% 描底色 + w600），
   /// 但这里要响应键盘切换并用滚动容器定位，所以不复用那个纯渲染组件。
@@ -613,8 +852,11 @@ class _SearchChatsDialogState extends State<_SearchChatsDialog> {
     List<_Row> rows,
     int selected,
   ) {
-    final hasItems = rows.any((r) => r is _ItemRow);
-    if (!hasItems && _tab != _SearchTab.all) return _empty(skin, l10n);
+    // 筛选候选行无命中时（如输入 `/zzz`）也走空态。
+    final hasRows = rows.any((r) => r is! _SectionRow);
+    if (!hasRows && (_tab != _SearchTab.all || _filters.isNotEmpty)) {
+      return _empty(skin, l10n);
+    }
 
     return Scrollbar(
       controller: _scroll,
@@ -642,6 +884,12 @@ class _SearchChatsDialogState extends State<_SearchChatsDialog> {
             l10n,
             label: label,
             icon: icon,
+            index: i,
+            selected: i == selected,
+          ),
+          final _SuggestionRow row => _suggestionRow(
+            skin,
+            row,
             index: i,
             selected: i == selected,
           ),
@@ -690,83 +938,85 @@ class _SearchChatsDialogState extends State<_SearchChatsDialog> {
     return Directionality(
       textDirection: TextDirection.rtl,
       child: MenuAnchor(
-      controller: menu,
-      onOpen: () => setState(() {
-        _menuOpenId = item.id;
-        // 不碰 `_keyboardMode`：点「⋯」打开的菜单，关闭后灰底必须跟着消失；
-        // 键盘（Alt+↵）打开的路径在 [_openRowMenu] 里已经自己置过了。
-        _selected = index;
-      }),
-      // 菜单无论怎么关的（点了选项、点到外面、Esc、再点一次「⋯」）都会走到这里，
-      // 灰底锁随之解除。指针若已经不在这一行上，就顺便把悬停态也清掉。
-      onClose: () {
-        if (!mounted || _menuOpenId != item.id) return;
-        setState(() {
-          _menuOpenId = null;
-          if (_hovered == index) _hovered = null;
-        });
-      },
-      style: appMenuStyle(
-        skin,
-        minWidth: 160,
-        // 行的右下角；rtl 下面板右边缘贴上去。
-        alignment: Alignment.bottomRight,
-      ),
-      alignmentOffset: const Offset(0, AppMenuMetrics.gap),
-      menuChildren: [
-        for (final c in buildAppMenuChildren(
-          context,
+        controller: menu,
+        onOpen: () => setState(() {
+          _menuOpenId = item.id;
+          // 不碰 `_keyboardMode`：点「⋯」打开的菜单，关闭后灰底必须跟着消失；
+          // 键盘（Alt+↵）打开的路径在 [_openRowMenu] 里已经自己置过了。
+          _selected = index;
+        }),
+        // 菜单无论怎么关的（点了选项、点到外面、Esc、再点一次「⋯」）都会走到这里，
+        // 灰底锁随之解除。指针若已经不在这一行上，就顺便把悬停态也清掉。
+        onClose: () {
+          if (!mounted || _menuOpenId != item.id) return;
+          setState(() {
+            _menuOpenId = null;
+            if (_hovered == index) _hovered = null;
+          });
+        },
+        style: appMenuStyle(
           skin,
-          _rowEntries(l10n, item),
-          maxWidth: 200,
-        ))
-          appMenuKeepLtr(c),
-      ],
-      builder: (_, controller, _) => appMenuKeepLtr(_rowShell(
-        skin,
-        index: index,
-        highlighted: highlighted,
-        onTap: () => _activate(_ItemRow(item)),
-        onHover: (v) => _hoverRow(index, v),
-        child: Row(
-          children: [
-            Icon(
-              _categoryIcon(item.category),
-              size: 16,
-              color: skin.textSecondary,
-            ),
-            const SizedBox(width: AppSpacing.xs),
-            Expanded(
-              child: Text(
-                item.label,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: TextStyle(fontSize: 14, color: skin.text),
-              ),
-            ),
-            if (highlighted) ...[
-              _rowTrailingButton(
-                icon: Icons.more_vert,
-                skin: skin,
-                tooltip: l10n.searchFooterActions,
-                onPressed: controller.isOpen
-                    ? controller.close
-                    : controller.open,
-              ),
-              _rowTrailingButton(
-                icon: Icons.keyboard_return,
-                skin: skin,
-                onPressed: () => _activate(_ItemRow(item)),
-              ),
-            ] else if (item.updatedAt != null)
-              Text(
-                _timeLabel(l10n, item.updatedAt!),
-                style: TextStyle(fontSize: 12, color: skin.textTertiary),
-              ),
-            const SizedBox(width: AppSpacing.xxs),
-          ],
+          minWidth: 160,
+          // 行的右下角；rtl 下面板右边缘贴上去。
+          alignment: Alignment.bottomRight,
         ),
-      )),
+        alignmentOffset: const Offset(0, AppMenuMetrics.gap),
+        menuChildren: [
+          for (final c in buildAppMenuChildren(
+            context,
+            skin,
+            _rowEntries(l10n, item),
+            maxWidth: 200,
+          ))
+            appMenuKeepLtr(c),
+        ],
+        builder: (_, controller, _) => appMenuKeepLtr(
+          _rowShell(
+            skin,
+            index: index,
+            highlighted: highlighted,
+            onTap: () => _activate(_ItemRow(item)),
+            onHover: (v) => _hoverRow(index, v),
+            child: Row(
+              children: [
+                Icon(
+                  _categoryIcon(item.category),
+                  size: 16,
+                  color: skin.textSecondary,
+                ),
+                const SizedBox(width: AppSpacing.xs),
+                Expanded(
+                  child: Text(
+                    item.label,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(fontSize: 14, color: skin.text),
+                  ),
+                ),
+                if (highlighted) ...[
+                  _rowTrailingButton(
+                    icon: Icons.more_vert,
+                    skin: skin,
+                    tooltip: l10n.searchFooterActions,
+                    onPressed: controller.isOpen
+                        ? controller.close
+                        : controller.open,
+                  ),
+                  _rowTrailingButton(
+                    icon: Icons.keyboard_return,
+                    skin: skin,
+                    onPressed: () => _activate(_ItemRow(item)),
+                  ),
+                ] else if (item.updatedAt != null)
+                  Text(
+                    _timeLabel(l10n, item.updatedAt!),
+                    style: TextStyle(fontSize: 12, color: skin.textTertiary),
+                  ),
+                const SizedBox(width: AppSpacing.xxs),
+              ],
+            ),
+          ),
+        ),
       ),
     );
   }
@@ -886,6 +1136,57 @@ class _SearchChatsDialogState extends State<_SearchChatsDialog> {
     );
   }
 
+  /// 筛选候选行：`[图标] 筛选 [药丸]`，或只有文字的候选值。
+  Widget _suggestionRow(
+    AppSkin skin,
+    _SuggestionRow row, {
+    required int index,
+    required bool selected,
+  }) {
+    final highlighted = _keyboardMode ? selected : _hovered == index;
+    return _rowShell(
+      skin,
+      index: index,
+      highlighted: highlighted,
+      onTap: row.onPick,
+      onHover: (v) => _hoverRow(index, v),
+      child: Row(
+        children: [
+          if (row.icon != null) ...[
+            Icon(row.icon, size: 16, color: skin.textSecondary),
+            const SizedBox(width: AppSpacing.xs),
+          ],
+          Text(row.text, style: TextStyle(fontSize: 14, color: skin.text)),
+          if (row.pill != null) ...[
+            const SizedBox(width: AppSpacing.xs),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
+              decoration: BoxDecoration(
+                color: skin.textSecondary.withValues(alpha: 0.08),
+                borderRadius: BorderRadius.circular(4),
+              ),
+              child: Text(
+                row.pill!,
+                style: TextStyle(fontSize: 12, color: skin.textSecondary),
+              ),
+            ),
+          ],
+          const Spacer(),
+          if (highlighted)
+            Padding(
+              padding: const EdgeInsets.only(right: AppSpacing.xs),
+              child: Icon(
+                Icons.keyboard_return,
+                size: 14,
+                color: skin.textTertiary,
+              ),
+            ),
+          const SizedBox(width: AppSpacing.xxs),
+        ],
+      ),
+    );
+  }
+
   /// 行外壳：悬停/选中底色、圆角、键盘滚动锚点。
   Widget _rowShell(
     AppSkin skin, {
@@ -989,6 +1290,7 @@ class _SearchChatsDialogState extends State<_SearchChatsDialog> {
           onPressed: () {
             setState(() {
               _tab = _SearchTab.all;
+              _filters.clear();
               _selected = -1;
               _hovered = null;
             });
@@ -1047,7 +1349,7 @@ class _SearchChatsDialogState extends State<_SearchChatsDialog> {
     ),
   );
 
-  /// 「Filters /」—— 键帽仅作提示（不可点击），同时是筛选菜单的锚点，按 `/` 打开。
+  /// 「Filters /」—— 键帽仅作提示，不可点击；在搜索框里输入 `/` 才会列出筛选项。
   Widget _filtersHint(AppSkin skin, AppLocalizations l10n) => Padding(
     padding: const EdgeInsets.only(right: AppSpacing.md),
     child: Row(
@@ -1058,27 +1360,7 @@ class _SearchChatsDialogState extends State<_SearchChatsDialog> {
           style: TextStyle(fontSize: 12, color: skin.textTertiary),
         ),
         const SizedBox(width: AppSpacing.xxs),
-        MenuAnchor(
-          controller: _filtersController,
-          style: appMenuStyle(skin, minWidth: 180),
-          menuChildren: buildAppMenuChildren(context, skin, [
-            AppMenuLabel(l10n.searchFiltersTitle),
-            for (final tab in _SearchTab.values)
-              AppMenuAction(
-                label: _tabLabel(l10n, tab),
-                checked: tab == _tab,
-                onTap: () {
-                  setState(() {
-                    _tab = tab;
-                    _selected = -1;
-                    _hovered = null;
-                  });
-                  _resetSelection();
-                },
-              ),
-          ]),
-          builder: (_, _, _) => _keycap(skin, '/'),
-        ),
+        _keycap(skin, '/'),
       ],
     ),
   );

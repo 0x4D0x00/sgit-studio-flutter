@@ -761,5 +761,14 @@
   "searchFooterActions": "更多",
   "searchFooterCompose": "输入",
   "searchFiltersTitle": "筛选分类",
-  "searchOpen": "打开"
+  "searchOpen": "打开",
+  "searchFilterBy": "筛选",
+  "searchFilterOwner": "所有者",
+  "searchFilterDate": "日期",
+  "searchFilterType": "类型",
+  "searchFilterArchived": "已归档",
+  "searchFilterActions": "操作",
+  "searchOwnerMe": "我",
+  "searchOwnerShared": "与我共享",
+  "searchActionsHint": "搜索操作"
 }

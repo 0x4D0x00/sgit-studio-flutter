@@ -3316,6 +3316,60 @@ abstract class AppLocalizations {
   /// In zh, this message translates to:
   /// **'打开'**
   String get searchOpen;
+
+  /// No description provided for @searchFilterBy.
+  ///
+  /// In zh, this message translates to:
+  /// **'筛选'**
+  String get searchFilterBy;
+
+  /// No description provided for @searchFilterOwner.
+  ///
+  /// In zh, this message translates to:
+  /// **'所有者'**
+  String get searchFilterOwner;
+
+  /// No description provided for @searchFilterDate.
+  ///
+  /// In zh, this message translates to:
+  /// **'日期'**
+  String get searchFilterDate;
+
+  /// No description provided for @searchFilterType.
+  ///
+  /// In zh, this message translates to:
+  /// **'类型'**
+  String get searchFilterType;
+
+  /// No description provided for @searchFilterArchived.
+  ///
+  /// In zh, this message translates to:
+  /// **'已归档'**
+  String get searchFilterArchived;
+
+  /// No description provided for @searchFilterActions.
+  ///
+  /// In zh, this message translates to:
+  /// **'操作'**
+  String get searchFilterActions;
+
+  /// No description provided for @searchOwnerMe.
+  ///
+  /// In zh, this message translates to:
+  /// **'我'**
+  String get searchOwnerMe;
+
+  /// No description provided for @searchOwnerShared.
+  ///
+  /// In zh, this message translates to:
+  /// **'与我共享'**
+  String get searchOwnerShared;
+
+  /// No description provided for @searchActionsHint.
+  ///
+  /// In zh, this message translates to:
+  /// **'搜索操作'**
+  String get searchActionsHint;
 }
 
 class _AppLocalizationsDelegate

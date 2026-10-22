@@ -758,5 +758,14 @@
   "searchFooterActions": "Actions",
   "searchFooterCompose": "Compose",
   "searchFiltersTitle": "Filter by type",
-  "searchOpen": "Open"
+  "searchOpen": "Open",
+  "searchFilterBy": "Filter by",
+  "searchFilterOwner": "Owner",
+  "searchFilterDate": "Date",
+  "searchFilterType": "Type",
+  "searchFilterArchived": "Archived",
+  "searchFilterActions": "Actions",
+  "searchOwnerMe": "Me",
+  "searchOwnerShared": "Shared with me",
+  "searchActionsHint": "Search actions"
 }

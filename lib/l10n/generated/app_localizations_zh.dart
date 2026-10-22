@@ -1702,4 +1702,31 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get searchOpen => '打开';
+
+  @override
+  String get searchFilterBy => '筛选';
+
+  @override
+  String get searchFilterOwner => '所有者';
+
+  @override
+  String get searchFilterDate => '日期';
+
+  @override
+  String get searchFilterType => '类型';
+
+  @override
+  String get searchFilterArchived => '已归档';
+
+  @override
+  String get searchFilterActions => '操作';
+
+  @override
+  String get searchOwnerMe => '我';
+
+  @override
+  String get searchOwnerShared => '与我共享';
+
+  @override
+  String get searchActionsHint => '搜索操作';
 }

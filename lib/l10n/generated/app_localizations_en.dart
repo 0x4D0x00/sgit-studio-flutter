@@ -1745,4 +1745,31 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get searchOpen => 'Open';
+
+  @override
+  String get searchFilterBy => 'Filter by';
+
+  @override
+  String get searchFilterOwner => 'Owner';
+
+  @override
+  String get searchFilterDate => 'Date';
+
+  @override
+  String get searchFilterType => 'Type';
+
+  @override
+  String get searchFilterArchived => 'Archived';
+
+  @override
+  String get searchFilterActions => 'Actions';
+
+  @override
+  String get searchOwnerMe => 'Me';
+
+  @override
+  String get searchOwnerShared => 'Shared with me';
+
+  @override
+  String get searchActionsHint => 'Search actions';
 }
