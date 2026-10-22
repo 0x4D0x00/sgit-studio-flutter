@@ -174,6 +174,36 @@ class AppLocalizationsZh extends AppLocalizations {
   String get workspaceInputHint => '有什么可以帮你的？';
 
   @override
+  String get workspaceInputHintDocs => '这份文档是关于什么的？';
+
+  @override
+  String get workspaceInputHintSlides => '这份演示文稿是关于什么的？';
+
+  @override
+  String get workspaceInputHintDesign => '这个设计要展示什么？';
+
+  @override
+  String get workspaceModeDocs => '文档';
+
+  @override
+  String get workspaceModeSlides => '幻灯片';
+
+  @override
+  String get workspaceModeDesign => '设计';
+
+  @override
+  String get workspaceDesignSystem => '设计系统';
+
+  @override
+  String get workspaceModeRemoveDocs => '移除文档';
+
+  @override
+  String get workspaceModeRemoveSlides => '移除幻灯片';
+
+  @override
+  String get workspaceModeRemoveDesign => '移除设计';
+
+  @override
   String get workspaceSend => '发送';
 
   @override
@@ -1395,6 +1425,21 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get artifactsTitle => '输出产物';
+
+  @override
+  String get artifactsMakeNew => '新建内容';
+
+  @override
+  String get artifactsCreateDocs => '文档';
+
+  @override
+  String get artifactsCreateSlides => '幻灯片';
+
+  @override
+  String get artifactsCreateDesign => '设计';
+
+  @override
+  String get artifactsNewBadge => '新';
 
   @override
   String get artifactsEmpty => '暂无产物';

@@ -12,6 +12,7 @@ import 'package:sgit_studio_flutter/features/artifacts/application/artifacts_con
 import 'package:sgit_studio_flutter/l10n/generated/app_localizations.dart';
 import 'package:sgit_studio_flutter/router/route_names.dart';
 import 'package:sgit_studio_flutter/services/chat/chat_controller.dart';
+import 'package:sgit_studio_flutter/services/chat/workspace_mode.dart';
 import 'package:sgit_studio_flutter/services/layout/layout_controller.dart';
 import 'package:sgit_studio_flutter/ui/components/menu/app_menu.dart';
 
@@ -55,6 +56,7 @@ class _ArtifactsPageState extends ConsumerState<ArtifactsPage> {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         _header(context, l10n, skin, state, ctrl),
+        _createSection(l10n, skin),
         Expanded(
           child: state.filtered.isEmpty
               ? _emptyState(l10n, skin)
@@ -90,12 +92,64 @@ class _ArtifactsPageState extends ConsumerState<ArtifactsPage> {
     context.go(RouteNames.home);
   }
 
+  /// 开一轮新对话并切到对应创作模式。
+  ///
+  /// 顺序：`newChat` 会把模式复位成 chat，所以必须**先开新对话、后设模式**。
+  void _startCreate(WorkspaceMode mode) {
+    ref.read(chatControllerProvider.notifier).newChat();
+    ref.read(workspaceModeProvider.notifier).set(mode);
+    context.go(RouteNames.home);
+  }
+
   void _notWired(String what) {
     final l10n = AppLocalizations.of(context);
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(l10n.commonNotWired(what)),
         duration: const Duration(seconds: 1),
+      ),
+    );
+  }
+
+  /// 「新建内容」区：Docs / Slides / Design 三个入口，点后进工作台空态对应模式。
+  Widget _createSection(AppLocalizations l10n, AppSkin skin) {
+    final entries = [
+      (l10n.artifactsCreateDocs, Icons.description_outlined, WorkspaceMode.docs),
+      (l10n.artifactsCreateSlides, Icons.slideshow_outlined, WorkspaceMode.slides),
+      (l10n.artifactsCreateDesign, Icons.phone_iphone_outlined, WorkspaceMode.design),
+    ];
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(
+        AppSpacing.md,
+        AppSpacing.xs,
+        AppSpacing.md,
+        AppSpacing.sm,
+      ),
+      child: Align(
+        alignment: Alignment.topLeft,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              l10n.artifactsMakeNew,
+              style: TextStyle(fontSize: 12, color: skin.textSecondary),
+            ),
+            const SizedBox(height: AppSpacing.xs),
+            Wrap(
+              spacing: AppSpacing.md,
+              runSpacing: AppSpacing.md,
+              children: [
+                for (final (label, icon, mode) in entries)
+                  _CreateCard(
+                    label: label,
+                    icon: icon,
+                    badge: l10n.artifactsNewBadge,
+                    onTap: () => _startCreate(mode),
+                  ),
+              ],
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -727,6 +781,92 @@ class _ArtifactListRowState extends State<ArtifactListRow> {
                     color: skin.textSecondary,
                   ),
                 ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// 「新建内容」入口卡片 —— 上方缩略预览 + 下方名称与"新"徽标。
+class _CreateCard extends StatefulWidget {
+  const _CreateCard({
+    required this.label,
+    required this.icon,
+    required this.badge,
+    required this.onTap,
+  });
+
+  final String label;
+  final IconData icon;
+  final String badge;
+  final VoidCallback onTap;
+
+  @override
+  State<_CreateCard> createState() => _CreateCardState();
+}
+
+class _CreateCardState extends State<_CreateCard> {
+  bool _hovering = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final skin = AppSkin.of(context);
+    return MouseRegion(
+      onEnter: (_) => setState(() => _hovering = true),
+      onExit: (_) => setState(() => _hovering = false),
+      child: InkWell(
+        onTap: widget.onTap,
+        borderRadius: BorderRadius.circular(AppRadius.md),
+        child: SizedBox(
+          width: 120,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              AnimatedContainer(
+                duration: const Duration(milliseconds: 150),
+                height: 72,
+                decoration: BoxDecoration(
+                  color: skin.containerBgSecondary,
+                  borderRadius: BorderRadius.circular(AppRadius.md),
+                  border: Border.all(
+                    color: _hovering ? skin.border : skin.borderSecondary,
+                  ),
+                ),
+                child: Center(
+                  child: Icon(widget.icon, size: 28, color: skin.textSecondary),
+                ),
+              ),
+              const SizedBox(height: AppSpacing.xxs),
+              Row(
+                children: [
+                  Flexible(
+                    child: Text(
+                      widget.label,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w500,
+                        color: skin.text,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: AppSpacing.xxs),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 4),
+                    decoration: BoxDecoration(
+                      color: skin.textSecondary.withValues(alpha: 0.12),
+                      borderRadius: BorderRadius.circular(AppRadius.sm),
+                    ),
+                    child: Text(
+                      widget.badge,
+                      style: TextStyle(fontSize: 10, color: skin.textSecondary),
+                    ),
+                  ),
+                ],
               ),
             ],
           ),

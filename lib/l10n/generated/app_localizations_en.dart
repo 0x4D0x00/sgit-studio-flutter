@@ -174,6 +174,36 @@ class AppLocalizationsEn extends AppLocalizations {
   String get workspaceInputHint => 'How can I help?';
 
   @override
+  String get workspaceInputHintDocs => 'What should this document be about?';
+
+  @override
+  String get workspaceInputHintSlides => 'What should this deck be about?';
+
+  @override
+  String get workspaceInputHintDesign => 'What should this design show?';
+
+  @override
+  String get workspaceModeDocs => 'Docs';
+
+  @override
+  String get workspaceModeSlides => 'Slides';
+
+  @override
+  String get workspaceModeDesign => 'Design';
+
+  @override
+  String get workspaceDesignSystem => 'system';
+
+  @override
+  String get workspaceModeRemoveDocs => 'Remove document';
+
+  @override
+  String get workspaceModeRemoveSlides => 'Remove deck';
+
+  @override
+  String get workspaceModeRemoveDesign => 'Remove design';
+
+  @override
   String get workspaceSend => 'Send';
 
   @override
@@ -1430,6 +1460,21 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get artifactsTitle => 'Artifacts';
+
+  @override
+  String get artifactsMakeNew => 'Make something new';
+
+  @override
+  String get artifactsCreateDocs => 'Docs';
+
+  @override
+  String get artifactsCreateSlides => 'Slides';
+
+  @override
+  String get artifactsCreateDesign => 'Design';
+
+  @override
+  String get artifactsNewBadge => 'New';
 
   @override
   String get artifactsEmpty => 'No artifacts yet';

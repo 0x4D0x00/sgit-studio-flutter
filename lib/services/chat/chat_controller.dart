@@ -21,6 +21,7 @@ import 'package:sgit_studio_flutter/features/chat/application/composer_settings_
 import 'package:sgit_studio_flutter/features/chat/application/session_sync_controller.dart';
 import 'package:sgit_studio_flutter/features/chat/application/thread_list_controller.dart';
 import 'package:sgit_studio_flutter/services/layout/layout_controller.dart';
+import 'package:sgit_studio_flutter/services/chat/workspace_mode.dart';
 
 /// 会话控制器 —— 内核帧流的唯一消费者。
 ///
@@ -329,6 +330,7 @@ class ChatController extends Notifier<ChatSessionState> {
   /// 不重连 —— 连接是按用户建的，换会话不需要重握手。
   void newChat() {
     _closeOutputPanel();
+    ref.read(workspaceModeProvider.notifier).set(WorkspaceMode.chat);
     if (state.busy) interrupt();
     for (final i in _items) {
       i.dispose();

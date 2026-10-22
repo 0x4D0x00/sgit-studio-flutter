@@ -416,6 +416,66 @@ abstract class AppLocalizations {
   /// **'有什么可以帮你的？'**
   String get workspaceInputHint;
 
+  /// No description provided for @workspaceInputHintDocs.
+  ///
+  /// In zh, this message translates to:
+  /// **'这份文档是关于什么的？'**
+  String get workspaceInputHintDocs;
+
+  /// No description provided for @workspaceInputHintSlides.
+  ///
+  /// In zh, this message translates to:
+  /// **'这份演示文稿是关于什么的？'**
+  String get workspaceInputHintSlides;
+
+  /// No description provided for @workspaceInputHintDesign.
+  ///
+  /// In zh, this message translates to:
+  /// **'这个设计要展示什么？'**
+  String get workspaceInputHintDesign;
+
+  /// No description provided for @workspaceModeDocs.
+  ///
+  /// In zh, this message translates to:
+  /// **'文档'**
+  String get workspaceModeDocs;
+
+  /// No description provided for @workspaceModeSlides.
+  ///
+  /// In zh, this message translates to:
+  /// **'幻灯片'**
+  String get workspaceModeSlides;
+
+  /// No description provided for @workspaceModeDesign.
+  ///
+  /// In zh, this message translates to:
+  /// **'设计'**
+  String get workspaceModeDesign;
+
+  /// No description provided for @workspaceDesignSystem.
+  ///
+  /// In zh, this message translates to:
+  /// **'设计系统'**
+  String get workspaceDesignSystem;
+
+  /// No description provided for @workspaceModeRemoveDocs.
+  ///
+  /// In zh, this message translates to:
+  /// **'移除文档'**
+  String get workspaceModeRemoveDocs;
+
+  /// No description provided for @workspaceModeRemoveSlides.
+  ///
+  /// In zh, this message translates to:
+  /// **'移除幻灯片'**
+  String get workspaceModeRemoveSlides;
+
+  /// No description provided for @workspaceModeRemoveDesign.
+  ///
+  /// In zh, this message translates to:
+  /// **'移除设计'**
+  String get workspaceModeRemoveDesign;
+
   /// No description provided for @workspaceSend.
   ///
   /// In zh, this message translates to:
@@ -2743,6 +2803,36 @@ abstract class AppLocalizations {
   /// In zh, this message translates to:
   /// **'输出产物'**
   String get artifactsTitle;
+
+  /// No description provided for @artifactsMakeNew.
+  ///
+  /// In zh, this message translates to:
+  /// **'新建内容'**
+  String get artifactsMakeNew;
+
+  /// No description provided for @artifactsCreateDocs.
+  ///
+  /// In zh, this message translates to:
+  /// **'文档'**
+  String get artifactsCreateDocs;
+
+  /// No description provided for @artifactsCreateSlides.
+  ///
+  /// In zh, this message translates to:
+  /// **'幻灯片'**
+  String get artifactsCreateSlides;
+
+  /// No description provided for @artifactsCreateDesign.
+  ///
+  /// In zh, this message translates to:
+  /// **'设计'**
+  String get artifactsCreateDesign;
+
+  /// No description provided for @artifactsNewBadge.
+  ///
+  /// In zh, this message translates to:
+  /// **'新'**
+  String get artifactsNewBadge;
 
   /// No description provided for @artifactsEmpty.
   ///

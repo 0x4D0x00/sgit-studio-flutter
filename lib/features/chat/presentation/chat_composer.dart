@@ -31,6 +31,7 @@ import 'package:sgit_studio_flutter/ui/components/chat/composer/composer_shell.d
 import 'package:sgit_studio_flutter/ui/components/chat/composer/orbit_beam.dart';
 import 'package:sgit_studio_flutter/ui/components/chat/composer/composer_token_tag.dart';
 import 'package:sgit_studio_flutter/ui/components/menu/app_menu.dart';
+import 'package:sgit_studio_flutter/services/chat/workspace_mode.dart';
 
 /// 输入框所处的形态。
 ///
@@ -268,8 +269,98 @@ class _ChatComposerState extends ConsumerState<ChatComposer> {
             ),
             if (widget.variant == ComposerVariant.conversation)
               _bottomRow(l10n),
+            if (widget.variant == ComposerVariant.empty) _modeChips(l10n),
           ],
         ),
+      ),
+    );
+  }
+
+  /// 输入框下方的创作模式标签：模式名，Slides / Design 另带「设计系统」。
+  /// 由输出产物页的入口设置，普通对话模式下不显示。
+  Widget _modeChips(AppLocalizations l10n) {
+    final mode = ref.watch(workspaceModeProvider);
+    if (mode == WorkspaceMode.chat) return const SizedBox.shrink();
+    final skin = AppSkin.of(context);
+    final (label, removeLabel, color) = switch (mode) {
+      WorkspaceMode.docs => (
+          l10n.workspaceModeDocs,
+          l10n.workspaceModeRemoveDocs,
+          const Color(0xFF3B82F6),
+        ),
+      WorkspaceMode.slides => (
+          l10n.workspaceModeSlides,
+          l10n.workspaceModeRemoveSlides,
+          const Color(0xFFE08A3C),
+        ),
+      _ => (
+          l10n.workspaceModeDesign,
+          l10n.workspaceModeRemoveDesign,
+          const Color(0xFF8B5CF6),
+        ),
+    };
+    return Padding(
+      padding: const EdgeInsets.only(top: AppSpacing.xs),
+      child: Row(
+        children: [
+          // 点标签弹出「移除」，移除后标签与「设计系统」一起消失。
+          AppMenuAnchor(
+            align: AppMenuAlign.under,
+            trigger: AppMenuTrigger.tap,
+            semanticLabel: label,
+            entries: [
+              AppMenuAction(
+                icon: Icons.close,
+                label: removeLabel,
+                onTap: () => ref
+                    .read(workspaceModeProvider.notifier)
+                    .set(WorkspaceMode.chat),
+              ),
+            ],
+            child: Container(
+              padding: const EdgeInsets.symmetric(
+                horizontal: AppSpacing.xs,
+                vertical: AppSpacing.xxs,
+              ),
+              decoration: BoxDecoration(
+                color: color.withValues(alpha: 0.15),
+                borderRadius: BorderRadius.circular(AppRadius.sm),
+              ),
+              child: Text(label, style: TextStyle(fontSize: 12, color: color)),
+            ),
+          ),
+          if (mode != WorkspaceMode.docs) ...[
+            const SizedBox(width: AppSpacing.xs),
+            InkWell(
+              borderRadius: BorderRadius.circular(AppRadius.sm),
+              onTap: () => ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text(
+                      l10n.commonNotWired(l10n.workspaceDesignSystem)),
+                  duration: const Duration(seconds: 1),
+                ),
+              ),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: AppSpacing.xxs,
+                  vertical: AppSpacing.xxs,
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(Icons.palette_outlined,
+                        size: 14, color: skin.textSecondary),
+                    const SizedBox(width: AppSpacing.xxs),
+                    Text(
+                      l10n.workspaceDesignSystem,
+                      style: TextStyle(fontSize: 12, color: skin.text),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ],
       ),
     );
   }
@@ -420,7 +511,14 @@ class _ChatComposerState extends ConsumerState<ChatComposer> {
               enabledBorder: InputBorder.none,
               focusedBorder: InputBorder.none,
               contentPadding: EdgeInsets.zero,
-              hintText: busy ? l10n.chatSteerHint : l10n.workspaceInputHint,
+              hintText: busy
+                  ? l10n.chatSteerHint
+                  : switch (ref.watch(workspaceModeProvider)) {
+                      WorkspaceMode.chat => l10n.workspaceInputHint,
+                      WorkspaceMode.docs => l10n.workspaceInputHintDocs,
+                      WorkspaceMode.slides => l10n.workspaceInputHintSlides,
+                      WorkspaceMode.design => l10n.workspaceInputHintDesign,
+                    },
               hintStyle: TextStyle(color: skin.textTertiary),
             ),
           ),
