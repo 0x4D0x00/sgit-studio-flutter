@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import 'package:sgit_studio_flutter/domain/models/chat/chat_artifact.dart';
 import 'package:sgit_studio_flutter/features/chat/presentation/thread_title_bar.dart';
 import 'package:sgit_studio_flutter/features/shell/presentation/nav_panel_container.dart';
 import 'package:sgit_studio_flutter/l10n/generated/app_localizations.dart';
@@ -9,7 +8,6 @@ import 'package:sgit_studio_flutter/layout/metrics/workspace_metrics.dart';
 import 'package:sgit_studio_flutter/layout/panels/artifact_output_panel.dart';
 import 'package:sgit_studio_flutter/layout/panels/output_panel.dart';
 import 'package:sgit_studio_flutter/layout/shell/app_shell.dart';
-import 'package:sgit_studio_flutter/services/export/artifact_exporter.dart';
 import 'package:sgit_studio_flutter/services/layout/layout_controller.dart';
 import 'package:sgit_studio_flutter/services/layout/transcript_width.dart';
 import 'package:sgit_studio_flutter/ui/components/chat/artifact/artifact_viewer.dart';
@@ -81,11 +79,9 @@ class _AppShellContainerState extends ConsumerState<AppShellContainer> {
         ? ArtifactOutputPanel(
             artifact: artifact,
             copyLabel: l10n.chatCopy,
-            downloadLabel: l10n.chatArtifactDownload,
             closeLabel: l10n.chatArtifactClose,
             onClose: ctrl.closeOutput,
             onCopy: () => copyArtifact(context, artifact, l10n.chatCopied),
-            onDownload: () => _download(context, artifact),
             child: ArtifactViewer(artifact: artifact),
           )
         : OutputPanel(
@@ -129,28 +125,6 @@ class _AppShellContainerState extends ConsumerState<AppShellContainer> {
           child: widget.child,
         );
       },
-    );
-  }
-
-  /// 面板里的 Download。与卡片上的 Download 走同一个 exporter ——
-  /// 两个入口落出来的文件必须一模一样。
-  Future<void> _download(BuildContext context, ChatArtifact artifact) async {
-    final l10n = AppLocalizations.of(context);
-    final messenger = ScaffoldMessenger.of(context);
-    final outcome = await ArtifactExporter.save(
-      artifact,
-      dialogTitle: l10n.chatArtifactDownload,
-    );
-    if (outcome == SaveOutcome.cancelled) return;
-    messenger.showSnackBar(
-      SnackBar(
-        content: Text(
-          outcome == SaveOutcome.saved
-              ? l10n.chatArtifactSaved
-              : l10n.chatArtifactSaveFailed,
-        ),
-        duration: const Duration(seconds: 2),
-      ),
     );
   }
 }

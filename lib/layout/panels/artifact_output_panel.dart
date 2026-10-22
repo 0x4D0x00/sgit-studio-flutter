@@ -8,7 +8,7 @@ import 'package:sgit_studio_flutter/ui/components/chat/artifact_kind_icon.dart';
 
 /// 右侧产物面板 —— 显示从对话中提取的代码/文档/图表/工具产出。
 ///
-/// 顶栏：类型图标 + 标题（左）+ Copy / Download / 全屏 / 关闭（右）
+/// 顶栏：类型图标 + 标题（左）+ Copy / 关闭（右）
 /// 主区：[child] —— 正文**不由本组件决定**。
 ///
 /// ⚠️ 正文渲染下沉到 `ArtifactViewer`（`ui/`）是有意的：按类型分派要复用
@@ -21,11 +21,9 @@ class ArtifactOutputPanel extends StatelessWidget {
     required this.artifact,
     required this.child,
     required this.copyLabel,
-    required this.downloadLabel,
     required this.closeLabel,
     required this.onClose,
     required this.onCopy,
-    this.onDownload,
   });
 
   final ChatArtifact artifact;
@@ -34,12 +32,10 @@ class ArtifactOutputPanel extends StatelessWidget {
   final Widget child;
 
   final String copyLabel;
-  final String downloadLabel;
   final String closeLabel;
 
   final VoidCallback onClose;
   final VoidCallback onCopy;
-  final VoidCallback? onDownload;
 
   @override
   Widget build(BuildContext context) {
@@ -98,14 +94,6 @@ class ArtifactOutputPanel extends StatelessWidget {
             icon: Icons.content_copy,
             onPressed: onCopy,
           ),
-          if (onDownload != null) ...[
-            const SizedBox(width: AppSpacing.xxs),
-            _HeaderButton(
-              label: downloadLabel,
-              icon: Icons.download_outlined,
-              onPressed: onDownload!,
-            ),
-          ],
           const SizedBox(width: AppSpacing.xxs),
           _HeaderButton(
             label: closeLabel,

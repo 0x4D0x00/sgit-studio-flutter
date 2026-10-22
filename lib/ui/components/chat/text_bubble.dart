@@ -211,7 +211,7 @@ class _TextBubbleState extends ConsumerState<TextBubble> {
           for (final q in quotes)
             ComposerQuoteCard(
               text: q,
-              size: 160,
+              size: 100,
               onTap: () => ref.read(layoutControllerProvider.notifier).showArtifact(
                     ChatArtifact(
                       title: title,
