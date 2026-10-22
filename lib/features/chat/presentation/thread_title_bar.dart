@@ -38,7 +38,7 @@ class ThreadTitleBar extends ConsumerWidget {
       child: Align(
         alignment: Alignment.centerLeft,
         child: AppMenuAnchor(
-          align: AppMenuAlign.under,
+          align: AppMenuAlign.underEnd,
           semanticLabel: thread.title,
           entries: [
             AppMenuAction(

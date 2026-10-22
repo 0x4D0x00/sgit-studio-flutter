@@ -1,5 +1,7 @@
 import 'package:flutter/foundation.dart';
 
+import 'package:sgit_studio_flutter/domain/models/chat/message_quotes.dart';
+
 /// 一条会话（sgcode 的 thread）在列表里的摘要。
 ///
 /// ## 时间字段：在这一层一次性转成 `DateTime`
@@ -50,12 +52,23 @@ class ThreadSummary {
   /// 从 FFI / gateway 的 JSON 解出来。两条路形状一致（Rust 侧同一个 `brief()`）。
   static ThreadSummary fromJson(Map<String, Object?> j) => ThreadSummary(
         id: (j['id'] ?? '').toString(),
-        title: (j['title'] ?? '').toString(),
-        preview: (j['preview'] ?? '').toString(),
+        title: _oneLine((j['title'] ?? '').toString()),
+        preview: _oneLine((j['preview'] ?? '').toString()),
         createdAt: _fromUnixSeconds(j['createdAt']),
         updatedAt: _fromUnixSeconds(j['updatedAt']),
         cwd: (j['cwd'] ?? '').toString(),
       );
+
+  /// 标题 / 摘要压成单行文本。
+  ///
+  /// 首条消息带引用时，Rust 侧摘要是原文 `<quote>\n…\n</quote>\n\n正文`。
+  /// 去掉开头的引用块（只剩引用时退回引用文字），再把空白折叠成一个空格。
+  static String _oneLine(String raw) {
+    final split = MessageQuotes.split(raw);
+    var text = split.body.trim();
+    if (text.isEmpty && split.quotes.isNotEmpty) text = split.quotes.first;
+    return text.replaceAll(RegExp(r'\s+'), ' ').trim();
+  }
 
   /// Unix **秒** → `DateTime`。
   ///

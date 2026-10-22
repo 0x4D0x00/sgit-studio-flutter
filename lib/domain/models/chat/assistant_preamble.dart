@@ -86,8 +86,14 @@ abstract final class AssistantPreamble {
   /// 那说明这一行已经进正文了，不能连正文一起吞。
   static final RegExp _trailingName = RegExp(r'^[A-Za-z0-9_.\- ]+$');
 
-  /// 路径段的固定前缀。
-  static const String _filePrefix = 'file:';
+  /// 路径段：`file: x` / `(file: x)` / `[path: "x"]` 等写法。
+  ///
+  /// 外层括号、引号都容忍 —— 模型每次包装都不一样，按「键 + 值」认，不按字面认。
+  /// group(2) 是路径本身。
+  static final RegExp _pathLine = RegExp(
+    r'''^[(\[<]?\s*(file|path)\s*[:=]\s*["'`]?([^\n]*?)["'`]?\s*[)\]>]?\s*$''',
+    caseSensitive: false,
+  );
 
   /// `_segmentEnd` 的返回：这一段还没收尾，调用方应「先藏」。
   static const int _unterminated = -1;
@@ -161,7 +167,7 @@ abstract final class AssistantPreamble {
   /// [closed] 是此前已经收尾的段数 —— 引号段拿它决定「先藏还是放弃」。
   static int _segmentEnd(
       String text, int lineStart, String trimmed, int closed) {
-    if (trimmed.startsWith(_filePrefix)) {
+    if (_pathLine.hasMatch(trimmed)) {
       return _pathSegment(text, lineStart, trimmed);
     }
     if (trimmed.startsWith('"')) {
@@ -195,7 +201,8 @@ abstract final class AssistantPreamble {
   /// 路径段：`file: <路径>`。必须像路径（有分隔符、不含空白），
   /// 挡掉「file: 说明」这类普通句子。
   static int _pathSegment(String text, int lineStart, String trimmed) {
-    final path = trimmed.substring(_filePrefix.length).trim();
+    final m = _pathLine.firstMatch(trimmed);
+    final path = m?.group(2) ?? '';
     if (path.isEmpty ||
         path.contains(RegExp(r'\s')) ||
         (!path.contains('/') && !path.contains(r'\'))) {

@@ -25,6 +25,21 @@ void main() {
       expect(AssistantPreamble.strip(raw), '正文第一行\n');
     });
 
+    test('路径被括号 / 引号 / 方括号包着也认得出', () {
+      for (final line in [
+        '(file: r1/skill-creator/SKILL.md)',
+        '[file: r1/skill-creator/SKILL.md]',
+        '(path: "r1/skill-creator/SKILL.md")',
+        'File: `r1/skill-creator/SKILL.md`',
+      ]) {
+        expect(
+          AssistantPreamble.strip('skill-creator\n$line\n很抱歉，我无法访问。\n'),
+          '很抱歉，我无法访问。\n',
+          reason: line,
+        );
+      }
+    });
+
     test('抬头与正文之间夹空行一并吃掉', () {
       const raw = 'mcp__server__tool\nfile: /tmp/a/SKILL.md\n\n\n正文\n';
       expect(AssistantPreamble.strip(raw), '正文\n');
