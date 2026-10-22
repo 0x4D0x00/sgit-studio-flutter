@@ -17,7 +17,11 @@ class CustomizeTagChip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 10),
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+      decoration: BoxDecoration(
+        color: skin.borderSecondary,
+        borderRadius: BorderRadius.circular(6),
+      ),
       child: Text(
         label,
         style: TextStyle(

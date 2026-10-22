@@ -218,10 +218,8 @@ class _PluginsSettingsPageState extends State<PluginsSettingsPage> {
     AppSkin skin,
     AppLocalizations l10n,
   ) {
-    // 弹窗比顶层页面窄，最多两列；列数逻辑仍复用同一份组件。
+    // 列数按可用宽度自适应，与 customize 页同一份逻辑。
     return ResponsiveCardWrap(
-      minWidth: 260,
-      maxColumns: 2,
       children: [
         for (final plugin in items)
           SkillCard(

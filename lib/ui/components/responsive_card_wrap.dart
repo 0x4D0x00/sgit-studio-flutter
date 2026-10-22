@@ -26,7 +26,6 @@ class ResponsiveCardWrap extends StatelessWidget {
   final double minWidth;
 
   /// 列数上限。默认 8 —— 再宽的窗口也不无限加列，否则卡片窄得放不下描述。
-  /// 设置弹窗那种嵌在窄容器里的场景传 2，保持与顶层页面不同的疏密。
   final int maxColumns;
 
   @override
