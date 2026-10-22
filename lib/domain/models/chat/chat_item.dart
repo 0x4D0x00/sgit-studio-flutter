@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 
 import 'package:sgit_studio_flutter/domain/models/chat/assistant_preamble.dart';
+import 'package:sgit_studio_flutter/domain/models/chat/message_quotes.dart';
 
 /// 会话条目 —— UI 消费的领域模型。
 ///
@@ -79,7 +80,7 @@ final class TextItem extends ChatItem {
   /// 所以这里在流式热路径上调用也是 O(1)-ish，不会退化成全文扫描。
   String get displayText => _displayCache ??= role == ChatRole.assistant
       ? AssistantPreamble.strip(text)
-      : text;
+      : MessageQuotes.split(text).body; // 用户消息开头的引用另外画成卡片
 
   bool get isEmpty => _buf.isEmpty;
 

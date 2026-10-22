@@ -8,8 +8,10 @@ import 'package:go_router/go_router.dart';
 import 'package:sgit_studio_flutter/design/extensions/app_skin.dart';
 import 'package:sgit_studio_flutter/design/tokens/app_spacing.dart';
 import 'package:sgit_studio_flutter/design/tokens/composer_metrics.dart';
+import 'package:sgit_studio_flutter/domain/models/chat/message_quotes.dart';
 import 'package:sgit_studio_flutter/domain/models/chat/sgcode_settings.dart';
 import 'package:sgit_studio_flutter/features/chat/application/composer_focus_controller.dart';
+import 'package:sgit_studio_flutter/features/chat/application/composer_quotes_controller.dart';
 import 'package:sgit_studio_flutter/features/chat/application/composer_settings_controller.dart';
 import 'package:sgit_studio_flutter/features/chat/application/model_list_controller.dart';
 import 'package:sgit_studio_flutter/features/chat/presentation/model_selector.dart';
@@ -22,6 +24,8 @@ import 'package:sgit_studio_flutter/ui/components/chat/composer/composer_attachm
 import 'package:sgit_studio_flutter/ui/components/chat/composer/composer_control_bar.dart';
 import 'package:sgit_studio_flutter/ui/components/chat/composer/composer_control_button.dart';
 import 'package:sgit_studio_flutter/ui/components/chat/composer/composer_model_label.dart';
+import 'package:sgit_studio_flutter/ui/components/chat/composer/composer_quote_card.dart';
+import 'package:sgit_studio_flutter/ui/components/dialogs/quote_dialog.dart';
 import 'package:sgit_studio_flutter/ui/components/chat/composer/composer_send_button.dart';
 import 'package:sgit_studio_flutter/ui/components/chat/composer/composer_shell.dart';
 import 'package:sgit_studio_flutter/ui/components/chat/composer/orbit_beam.dart';
@@ -179,10 +183,15 @@ class _ChatComposerState extends ConsumerState<ChatComposer> {
         .read(modelListProvider)
         .effective(ref.read(composerSettingsProvider).settings.selectedModel)
         ?.id;
-    final accepted = busy ? ctrl.steer(text) : ctrl.send(text, model: model);
+    // 引用拼在正文前面一起发出（格式见 [MessageQuotes]）。
+    final quotes = ref.read(composerQuotesProvider);
+    final payload = MessageQuotes.encode(quotes, text);
+    final accepted =
+        busy ? ctrl.steer(payload) : ctrl.send(payload, model: model);
     // ⚠️ **只在受理后才清空**。被拒时保留用户输入，让他改完能直接重发。
     if (accepted) {
       _ctl.clear();
+      ref.read(composerQuotesProvider.notifier).clear();
       // 一次性装饰反馈：从"消息被受理"这一刻起跑。
       // 被拒（没模型 / 未连接 / busy）时**不跑** —— 那会给出"已发送"的错误暗示。
       // 同理，系统关掉动态效果时也不点这一下。
@@ -198,6 +207,7 @@ class _ChatComposerState extends ConsumerState<ChatComposer> {
     // 只订阅用得到的字段，不整块 watch。
     final busy = ref.watch(chatControllerProvider.select((s) => s.busy));
     final ctrl = ref.read(chatControllerProvider.notifier);
+    final quotes = ref.watch(composerQuotesProvider);
 
     // 系统的「减弱动态效果」= studio 的 `disableAnimation`。
     final animationsOff = MediaQuery.maybeDisableAnimationsOf(context) ?? false;
@@ -245,7 +255,8 @@ class _ChatComposerState extends ConsumerState<ChatComposer> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    if (_attachments.isNotEmpty) _attachmentArea(l10n),
+                    if (_attachments.isNotEmpty || quotes.isNotEmpty)
+                      _attachmentArea(l10n, quotes),
                     if (widget.variant == ComposerVariant.conversation)
                       _resizeHandle(),
                     _editor(l10n, busy, ctrl),
@@ -294,7 +305,7 @@ class _ChatComposerState extends ConsumerState<ChatComposer> {
 
   // ---- 头部：附件 ----
 
-  Widget _attachmentArea(AppLocalizations l10n) => Padding(
+  Widget _attachmentArea(AppLocalizations l10n, List<String> quotes) => Padding(
         padding: const EdgeInsets.only(
           left: ComposerMetrics.attachmentAreaPaddingInline,
           right: ComposerMetrics.attachmentAreaPaddingInline,
@@ -304,6 +315,14 @@ class _ChatComposerState extends ConsumerState<ChatComposer> {
           spacing: AppSpacing.xs,
           runSpacing: AppSpacing.xs,
           children: [
+            for (final (index, text) in quotes.indexed)
+              ComposerQuoteCard(
+                text: text,
+                removeSemanticLabel: l10n.chatRemoveQuote,
+                onTap: () => showQuoteDialog(context, text),
+                onRemove: () =>
+                    ref.read(composerQuotesProvider.notifier).removeAt(index),
+              ),
             for (final (index, file) in _attachments.indexed)
               ComposerAttachmentChip(
                 name: file.name,

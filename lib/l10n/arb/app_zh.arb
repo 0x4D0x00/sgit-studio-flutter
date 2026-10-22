@@ -101,6 +101,9 @@
     }
   },
   "chatRemoveAttachment": "移除附件",
+  "chatReply": "回复",
+  "chatQuoteTitle": "引用",
+  "chatRemoveQuote": "移除引用",
   "chatClearScene": "退出场景",
   "chatMemory": "记忆",
   "chatSkills": "技能",

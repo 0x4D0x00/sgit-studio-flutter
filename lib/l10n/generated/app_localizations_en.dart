@@ -245,6 +245,15 @@ class AppLocalizationsEn extends AppLocalizations {
   String get chatRemoveAttachment => 'Remove attachment';
 
   @override
+  String get chatReply => 'Reply';
+
+  @override
+  String get chatQuoteTitle => 'Quote';
+
+  @override
+  String get chatRemoveQuote => 'Remove quote';
+
+  @override
   String get chatClearScene => 'Leave scene';
 
   @override

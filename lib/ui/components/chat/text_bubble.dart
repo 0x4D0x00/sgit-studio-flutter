@@ -8,6 +8,8 @@ import 'package:sgit_studio_flutter/design/tokens/bubble_metrics.dart';
 import 'package:sgit_studio_flutter/domain/models/chat/chat_artifact.dart';
 import 'package:sgit_studio_flutter/domain/models/chat/chat_item.dart';
 import 'package:sgit_studio_flutter/domain/models/chat/markdown/markdown_block.dart';
+import 'package:sgit_studio_flutter/domain/models/chat/message_quotes.dart';
+import 'package:sgit_studio_flutter/ui/components/chat/composer/composer_quote_card.dart';
 import 'package:sgit_studio_flutter/l10n/generated/app_localizations.dart';
 import 'package:sgit_studio_flutter/services/export/artifact_exporter.dart';
 import 'package:sgit_studio_flutter/services/layout/layout_controller.dart';
@@ -98,7 +100,7 @@ class _TextBubbleState extends ConsumerState<TextBubble> {
 
   void _saveEdit() {
     final text = _editCtl!.text.trim();
-    if (text.isEmpty || text == widget.item.text.trim()) return;
+    if (text.isEmpty || text == widget.item.displayText.trim()) return;
     widget.onEditSave?.call(text);
     _editCtl!.dispose();
     setState(() => _editCtl = null);
@@ -173,6 +175,7 @@ class _TextBubbleState extends ConsumerState<TextBubble> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
+              _quoteCards(context, item),
               Container(
                 margin: const EdgeInsets.symmetric(vertical: AppSpacing.xxs),
                 padding: const EdgeInsets.symmetric(
@@ -192,6 +195,36 @@ class _TextBubbleState extends ConsumerState<TextBubble> {
           ),
         ),
       );
+
+  /// 用户消息开头携带的引用：气泡上方一排卡片，点开在右侧面板看全文。
+  Widget _quoteCards(BuildContext context, TextItem item) {
+    final quotes = MessageQuotes.split(item.text).quotes;
+    if (quotes.isEmpty) return const SizedBox.shrink();
+    final title = AppLocalizations.of(context).chatQuoteTitle;
+    return Padding(
+      padding: const EdgeInsets.only(bottom: AppSpacing.xxs),
+      child: Wrap(
+        alignment: WrapAlignment.end,
+        spacing: AppSpacing.xs,
+        runSpacing: AppSpacing.xs,
+        children: [
+          for (final q in quotes)
+            ComposerQuoteCard(
+              text: q,
+              size: 160,
+              onTap: () => ref.read(layoutControllerProvider.notifier).showArtifact(
+                    ChatArtifact(
+                      title: title,
+                      language: 'quote',
+                      content: q,
+                      kind: ArtifactKind.code,
+                    ),
+                  ),
+            ),
+        ],
+      ),
+    );
+  }
 
   /// 助手回复：**无气泡框**，纯文字铺满转录列宽。
   ///
@@ -402,7 +435,7 @@ class _TextBubbleState extends ConsumerState<TextBubble> {
                       // 内容为空或与原文一致（没改动）时保存不可点。
                       final trimmed = value.text.trim();
                       final enabled = trimmed.isNotEmpty &&
-                          trimmed != widget.item.text.trim();
+                          trimmed != widget.item.displayText.trim();
                       return TextButton(
                         onPressed: enabled ? _saveEdit : null,
                         style: TextButton.styleFrom(

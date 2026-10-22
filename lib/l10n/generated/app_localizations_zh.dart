@@ -245,6 +245,15 @@ class AppLocalizationsZh extends AppLocalizations {
   String get chatRemoveAttachment => '移除附件';
 
   @override
+  String get chatReply => '回复';
+
+  @override
+  String get chatQuoteTitle => '引用';
+
+  @override
+  String get chatRemoveQuote => '移除引用';
+
+  @override
   String get chatClearScene => '退出场景';
 
   @override

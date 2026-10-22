@@ -12,7 +12,10 @@ import 'package:sgit_studio_flutter/domain/models/artifact/artifact.dart';
 import 'package:sgit_studio_flutter/domain/models/chat/chat_artifact.dart';
 import 'package:sgit_studio_flutter/domain/models/chat/chat_item.dart';
 import 'package:sgit_studio_flutter/domain/models/chat/markdown/markdown_block.dart';
+import 'package:sgit_studio_flutter/domain/models/chat/message_quotes.dart';
 import 'package:sgit_studio_flutter/features/artifacts/application/artifacts_controller.dart';
+import 'package:sgit_studio_flutter/features/chat/application/composer_focus_controller.dart';
+import 'package:sgit_studio_flutter/features/chat/application/composer_quotes_controller.dart';
 import 'package:sgit_studio_flutter/features/chat/application/composer_settings_controller.dart';
 import 'package:sgit_studio_flutter/features/chat/application/model_list_controller.dart';
 import 'package:sgit_studio_flutter/l10n/generated/app_localizations.dart';
@@ -145,6 +148,7 @@ class _ChatTranscriptState extends ConsumerState<ChatTranscript> {
   @override
   void dispose() {
     _dwell?.cancel();
+    _replyTimer?.cancel();
     _scroll.removeListener(_onScroll);
     _scroll.dispose();
     super.dispose();
@@ -168,6 +172,11 @@ class _ChatTranscriptState extends ConsumerState<ChatTranscript> {
     if (p.hasContentDimensions &&
         p.userScrollDirection != ScrollDirection.idle) {
       _follow = p.pixels <= p.minScrollExtent;
+    }
+    // 浮钮是按选区当时的位置摆的，滚动后就对不上了 —— 收起，选区还在的话
+    // 下一次选区变化会再浮出来。
+    if (_replyPos != null && p.userScrollDirection != ScrollDirection.idle) {
+      setState(() => _replyPos = null);
     }
     _scheduleSettle();
   }
@@ -268,7 +277,10 @@ class _ChatTranscriptState extends ConsumerState<ChatTranscript> {
     // 定位期间不能让「跟随最新」把视口钉回底部。
     _follow = false;
 
-    final target = _chipContext(_itemKeys[items[idx].id]?.currentContext, focus);
+    final target = _chipContext(
+      _itemKeys[items[idx].id]?.currentContext,
+      focus,
+    );
     if (target != null) {
       _finishReveal();
       Scrollable.ensureVisible(
@@ -313,8 +325,10 @@ class _ChatTranscriptState extends ConsumerState<ChatTranscript> {
       final perScreen = (builtMax - builtMin + 1).clamp(1, 1 << 20);
       step = p.viewportDimension * (gap / perScreen * 0.8).clamp(0.9, 40.0);
     }
-    final next = (p.pixels + (older ? step : -step))
-        .clamp(p.minScrollExtent, p.maxScrollExtent);
+    final next = (p.pixels + (older ? step : -step)).clamp(
+      p.minScrollExtent,
+      p.maxScrollExtent,
+    );
     if (next == p.pixels) {
       // 已经顶到头还没建出来：内容高度还没算全，等下一帧。
       _scheduleReveal();
@@ -341,8 +355,10 @@ class _ChatTranscriptState extends ConsumerState<ChatTranscript> {
       // 与渲染侧取同一份文本 —— 偏移（sourceStart）必须来自同一串字符。
       final text = it.displayText;
       if (!text.contains('```') && !text.contains('~~~')) continue;
-      for (final a
-          in ChatArtifact.fromBlocks(MarkdownParser.parse(text), text)) {
+      for (final a in ChatArtifact.fromBlocks(
+        MarkdownParser.parse(text),
+        text,
+      )) {
         if (a.content != focus.content) continue;
         if (a.sourceStart == focus.sourceStart) return i;
         if (loose < 0) loose = i;
@@ -477,6 +493,7 @@ class _ChatTranscriptState extends ConsumerState<ChatTranscript> {
   /// 中途那次"空"就不算数。
   void _onSelectionChanged(SelectedContent? content) {
     _selectionEmpty = content == null || content.plainText.isEmpty;
+    _scheduleReply(_selectionEmpty ? null : content!.plainText);
     if (_wholeCopyArmed && _selectionEmpty) _clearWholeCopy();
     if (_materializeAll && _selectionEmpty) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -485,6 +502,112 @@ class _ChatTranscriptState extends ConsumerState<ChatTranscript> {
         setState(() => _materializeAll = false);
       });
     }
+  }
+
+  // ---- 选中文字 → 「回复」浮钮 ----
+
+  final _stackKey = GlobalKey();
+
+  /// 选区稳定后才浮出浮钮的计时（拖选过程中不闪）。
+  Timer? _replyTimer;
+
+  /// 当前选中的文字。点浮钮时用它，**不去重新读选区** —— 点击可能已让选区失焦。
+  String? _replyText;
+
+  /// 浮钮左上角，相对 [_stackKey] 那层 Stack。null = 不显示。
+  Offset? _replyPos;
+
+  static const _replyDelay = Duration(milliseconds: 150);
+  static const _replyBtnSize = Size(60, 34);
+
+  void _scheduleReply(String? text) {
+    _replyTimer?.cancel();
+    _replyText = text;
+    if (text == null) {
+      // 选区回调可能落在 layout 途中，不能就地 setState。
+      if (_replyPos != null) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (mounted && _replyText == null) setState(() => _replyPos = null);
+        });
+      }
+      return;
+    }
+    _replyTimer = Timer(_replyDelay, _placeReply);
+  }
+
+  void _placeReply() {
+    if (!mounted || _replyText == null) return;
+    final stack = _stackKey.currentContext?.findRenderObject() as RenderBox?;
+    final region = _selectionKey.currentState?.selectableRegion;
+    if (stack == null || !stack.hasSize || region == null) return;
+    final Offset anchor;
+    try {
+      anchor = stack.globalToLocal(region.contextMenuAnchors.primaryAnchor);
+    } catch (_) {
+      return; // 选区端点此刻不可用（刚被回收 / 清空），等下一次变化。
+    }
+    final size = stack.size;
+    // 默认放在选区上沿之上；上面没位置就压到下面。
+    var top = anchor.dy - _replyBtnSize.height - 8;
+    if (top < 0) top = anchor.dy + 24;
+    final left = (anchor.dx - _replyBtnSize.width / 2).clamp(
+      0.0,
+      (size.width - _replyBtnSize.width).clamp(0.0, size.width),
+    );
+    top = top.clamp(
+      0.0,
+      (size.height - _replyBtnSize.height).clamp(0.0, size.height),
+    );
+    setState(() => _replyPos = Offset(left.toDouble(), top));
+  }
+
+  void _reply() {
+    final text = _replyText;
+    if (text != null) ref.read(composerQuotesProvider.notifier).add(text);
+    _replyTimer?.cancel();
+    _replyText = null;
+    setState(() => _replyPos = null);
+    _selectionKey.currentState?.selectableRegion.clearSelection();
+    ref.read(composerFocusProvider.notifier).requestFocus();
+  }
+
+  Widget _replyButton(AppLocalizations l10n) {
+    final pos = _replyPos;
+    if (pos == null) return const SizedBox.shrink();
+    return Positioned(
+      left: pos.dx,
+      top: pos.dy,
+      child: Material(
+        color: const Color(0xFF3A3A3A),
+        borderRadius: BorderRadius.circular(10),
+        elevation: 4,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(10),
+          onTap: _reply,
+          // 不抢焦点：抢了的话选区会先被清掉。
+          canRequestFocus: false,
+          child: SizedBox(
+            width: _replyBtnSize.width,
+            height: _replyBtnSize.height,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text(
+                  l10n.chatReply,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 13,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                const SizedBox(width: 6),
+                const Icon(Icons.reply, size: 14, color: Colors.white),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
   }
 
   /// 整段会话的纯文本 —— 用户消息与助手回答按列表顺序用空行隔开。
@@ -512,8 +635,9 @@ class _ChatTranscriptState extends ConsumerState<ChatTranscript> {
     // `itemsRevision` + 各气泡自己的 `revision`，这里多订一个字段会让
     // 每次 parse state 变化都过一遍本 widget 的 build —— `select` 把它缩到
     // "这一个 bool 变了才重建"。
-    final thinking =
-        ref.watch(chatControllerProvider.select((s) => s.thinking));
+    final thinking = ref.watch(
+      chatControllerProvider.select((s) => s.thinking),
+    );
 
     // 有没有 turn 在跑 —— 决定末尾回答的工具行露不露面（见下面 tailComplete）。
     final busy = ref.watch(chatControllerProvider.select((s) => s.busy));
@@ -525,8 +649,10 @@ class _ChatTranscriptState extends ConsumerState<ChatTranscript> {
     // 从输出物页跳来的定位请求。三个触发点：请求本身（watch，覆盖「页面刚挂载、
     // 请求已在」）、会话内容到齐（下面 itemsRevision 的 builder）、载入态结束。
     if (ref.watch(artifactFocusProvider) != null) _scheduleReveal();
-    ref.listen(chatControllerProvider.select((s) => s.openingThread),
-        (was, now) {
+    ref.listen(chatControllerProvider.select((s) => s.openingThread), (
+      was,
+      now,
+    ) {
       if (was == true && now == false) _scheduleReveal();
     });
 
@@ -559,6 +685,7 @@ class _ChatTranscriptState extends ConsumerState<ChatTranscript> {
           }
         }
         return Stack(
+          key: _stackKey,
           // 撑满：ListView 是唯一未定位的子项，让它吃满整块区域，
           // 否则 Stack 会按内容去量一个滚动列表（量不出来）。
           fit: StackFit.expand,
@@ -600,9 +727,12 @@ class _ChatTranscriptState extends ConsumerState<ChatTranscript> {
                 // 一下才拿到焦点，Ctrl+A 才落到它头上。
                 child: Actions(
                   actions: <Type, Action<Intent>>{
-                    SelectAllTextIntent: _SelectAllIntentAction(_handleSelectAll),
-                    CopySelectionTextIntent:
-                        _CopyIntentAction(_handleCopyIntent),
+                    SelectAllTextIntent: _SelectAllIntentAction(
+                      _handleSelectAll,
+                    ),
+                    CopySelectionTextIntent: _CopyIntentAction(
+                      _handleCopyIntent,
+                    ),
                   },
                   child: SelectionArea(
                     key: _selectionKey,
@@ -618,8 +748,9 @@ class _ChatTranscriptState extends ConsumerState<ChatTranscript> {
                           ? const ScrollCacheExtent.pixels(_materializePixels)
                           : null,
                       padding: const EdgeInsets.symmetric(
-                          horizontal: WorkspaceMetrics.contentPaddingInline,
-                          vertical: WorkspaceMetrics.framePadding),
+                        horizontal: WorkspaceMetrics.contentPaddingInline,
+                        vertical: WorkspaceMetrics.framePadding,
+                      ),
                       // ⚠️ 思考行是列表的**最后一项**，不是 index 0 的头部 ——
                       // 它跟着"最新一轮"走，而不是钉在会话顶端。反向列表下它是
                       // **index 0**（最底部那条）。
@@ -640,20 +771,28 @@ class _ChatTranscriptState extends ConsumerState<ChatTranscript> {
                           key: ValueKey<int>(item.id),
                           // 内层 GlobalKey 只服务于「定位到某条」（见 [_reveal]）。
                           child: KeyedSubtree(
-                            key:
-                                _itemKeys.putIfAbsent(item.id, () => GlobalKey()),
-                            child: _card(context, ref, ctrl, l10n, item,
-                                isLastAnswer: item.id == lastAssistantId,
-                                // 这一条的整轮回答跑完了没有 —— 见
-                                // `TextBubble.replyComplete`。
-                                //
-                                // ⚠️ **不能只看 `item.done`**：按 done 判定就会
-                                // 在回答中间插出工具行
-                                //
-                                // 真正的问题是「这一条属于哪一轮」。分界线是最后
-                                // 一条**用户**消息：在它之前的都跑完了；在它之后
-                                // 的属于本轮，而本轮只要 [busy] 就还没结束。
-                                replyComplete: !busy || at <= lastUserId),
+                            key: _itemKeys.putIfAbsent(
+                              item.id,
+                              () => GlobalKey(),
+                            ),
+                            child: _card(
+                              context,
+                              ref,
+                              ctrl,
+                              l10n,
+                              item,
+                              isLastAnswer: item.id == lastAssistantId,
+                              // 这一条的整轮回答跑完了没有 —— 见
+                              // `TextBubble.replyComplete`。
+                              //
+                              // ⚠️ **不能只看 `item.done`**：按 done 判定就会
+                              // 在回答中间插出工具行
+                              //
+                              // 真正的问题是「这一条属于哪一轮」。分界线是最后
+                              // 一条**用户**消息：在它之前的都跑完了；在它之后
+                              // 的属于本轮，而本轮只要 [busy] 就还没结束。
+                              replyComplete: !busy || at <= lastUserId,
+                            ),
                           ),
                         );
                       },
@@ -663,86 +802,96 @@ class _ChatTranscriptState extends ConsumerState<ChatTranscript> {
               ),
             ),
             _jumpButton(l10n),
+            _replyButton(l10n),
           ],
         );
       },
     );
   }
+
   /// 「回到最新」浮钮。
   ///
   /// ⚠️ **常驻在树里，靠 opacity + IgnorePointer 控制**，不做条件挂载。
   /// 条件挂载会让整棵 Stack 在浮钮进出时重建一次布局；而纯粹淡出（不摘）则
   /// 会在对话右下角留一块透明的 [SizedBox] —— 正好压住最后一条回复的结尾，
   Widget _jumpButton(AppLocalizations l10n) => Positioned(
-        // 与输入框同轴居中，不贴右边缘。正文列是有上限的
-        // （`TranscriptWidth` 的 640/800/960 三档），宽档下屏幕很宽，
-        // 贴右下角会在屏幕上孤零零地漂着；居中才和输入框那条轴线对上。
-        left: 0,
-        right: 0,
-        bottom: ChatBubbleMetrics.jumpButtonMarginBottom,
-        child: IgnorePointer(
-          ignoring: !_showJump,
-          child: AnimatedOpacity(
-            opacity: _showJump ? 1 : 0,
-            duration: ChatBubbleMetrics.jumpButtonFade,
-            child: Center(
-              child: JumpToLatestButton(
-                tooltip: l10n.chatJumpToLatest,
-                onPressed: _jumpToLatest,
-              ),
-            ),
+    // 与输入框同轴居中，不贴右边缘。正文列是有上限的
+    // （`TranscriptWidth` 的 640/800/960 三档），宽档下屏幕很宽，
+    // 贴右下角会在屏幕上孤零零地漂着；居中才和输入框那条轴线对上。
+    left: 0,
+    right: 0,
+    bottom: ChatBubbleMetrics.jumpButtonMarginBottom,
+    child: IgnorePointer(
+      ignoring: !_showJump,
+      child: AnimatedOpacity(
+        opacity: _showJump ? 1 : 0,
+        duration: ChatBubbleMetrics.jumpButtonFade,
+        child: Center(
+          child: JumpToLatestButton(
+            tooltip: l10n.chatJumpToLatest,
+            onPressed: _jumpToLatest,
           ),
         ),
-      );
+      ),
+    ),
+  );
 
   /// 一条 → 一张卡。用 sealed class 的 switch，新增条目类型时编译器会在这里拦住。
-  Widget _card(BuildContext context, WidgetRef ref, ChatController ctrl,
-          AppLocalizations l10n, ChatItem item,
-          {required bool isLastAnswer, required bool replyComplete}) =>
-      switch (item) {
-        final TextItem t => TextBubble(
-            item: t,
-            truncatedHint: l10n.chatTextTruncated,
-            isLastAnswer: isLastAnswer,
-            replyComplete: replyComplete,
-            onEditSave: t.role == ChatRole.user
-                ? (text) => ctrl.editAndResend(t.id, text,
-                    model: ref
-                        .read(modelListProvider)
-                        .effective(ref
-                            .read(composerSettingsProvider)
-                            .settings
-                            .selectedModel)
-                        ?.id)
-                : null,
-          ),
-        final ToolItem t => ToolCard(
-            item: t,
-            runningLabel: l10n.chatToolRunning,
-            truncatedLabel: l10n.chatToolTruncated,
-            elapsedLabel: switch (t.elapsedMs) {
-              final int ms => l10n.chatToolElapsed(ms),
-              null => null,
-            },
-          ),
-        final ApprovalItem a => ApprovalCard(
-            item: a,
-            title: l10n.chatApprovalTitle,
-            labels: {
-              ApprovalDecision.accept: l10n.chatApprovalAllowOnce,
-              ApprovalDecision.acceptForSession: l10n.chatApprovalAllowAlways,
-              ApprovalDecision.decline: l10n.chatApprovalDeny,
-            },
-            resolvedLabel: (wire) => switch (wire) {
-              'accept' => l10n.chatApprovalResolvedAllow,
-              'acceptForSession' => l10n.chatApprovalResolvedAlways,
-              'decline' => l10n.chatApprovalResolvedDeny,
-              _ => wire,
-            },
-            onDecide: (d) => ctrl.respond(a, d),
-          ),
-        final NoticeItem n => NoticeBar(item: n),
-      };
+  Widget _card(
+    BuildContext context,
+    WidgetRef ref,
+    ChatController ctrl,
+    AppLocalizations l10n,
+    ChatItem item, {
+    required bool isLastAnswer,
+    required bool replyComplete,
+  }) => switch (item) {
+    final TextItem t => TextBubble(
+      item: t,
+      truncatedHint: l10n.chatTextTruncated,
+      isLastAnswer: isLastAnswer,
+      replyComplete: replyComplete,
+      onEditSave: t.role == ChatRole.user
+          // 编辑的只是正文，原消息带的引用要原样带上。
+          ? (text) => ctrl.editAndResend(
+              t.id,
+              MessageQuotes.encode(MessageQuotes.split(t.text).quotes, text),
+              model: ref
+                  .read(modelListProvider)
+                  .effective(
+                    ref.read(composerSettingsProvider).settings.selectedModel,
+                  )
+                  ?.id,
+            )
+          : null,
+    ),
+    final ToolItem t => ToolCard(
+      item: t,
+      runningLabel: l10n.chatToolRunning,
+      truncatedLabel: l10n.chatToolTruncated,
+      elapsedLabel: switch (t.elapsedMs) {
+        final int ms => l10n.chatToolElapsed(ms),
+        null => null,
+      },
+    ),
+    final ApprovalItem a => ApprovalCard(
+      item: a,
+      title: l10n.chatApprovalTitle,
+      labels: {
+        ApprovalDecision.accept: l10n.chatApprovalAllowOnce,
+        ApprovalDecision.acceptForSession: l10n.chatApprovalAllowAlways,
+        ApprovalDecision.decline: l10n.chatApprovalDeny,
+      },
+      resolvedLabel: (wire) => switch (wire) {
+        'accept' => l10n.chatApprovalResolvedAllow,
+        'acceptForSession' => l10n.chatApprovalResolvedAlways,
+        'decline' => l10n.chatApprovalResolvedDeny,
+        _ => wire,
+      },
+      onDecide: (d) => ctrl.respond(a, d),
+    ),
+    final NoticeItem n => NoticeBar(item: n),
+  };
 }
 
 /// Ctrl+A 的入口：交给 [onSelectAll] 自己决定怎么全选。

@@ -554,6 +554,24 @@ abstract class AppLocalizations {
   /// **'移除附件'**
   String get chatRemoveAttachment;
 
+  /// No description provided for @chatReply.
+  ///
+  /// In zh, this message translates to:
+  /// **'回复'**
+  String get chatReply;
+
+  /// No description provided for @chatQuoteTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'引用'**
+  String get chatQuoteTitle;
+
+  /// No description provided for @chatRemoveQuote.
+  ///
+  /// In zh, this message translates to:
+  /// **'移除引用'**
+  String get chatRemoveQuote;
+
   /// No description provided for @chatClearScene.
   ///
   /// In zh, this message translates to:

@@ -99,6 +99,9 @@
     }
   },
   "chatRemoveAttachment": "Remove attachment",
+  "chatReply": "Reply",
+  "chatQuoteTitle": "Quote",
+  "chatRemoveQuote": "Remove quote",
   "chatClearScene": "Leave scene",
   "chatMemory": "Memory",
   "chatSkills": "Skills",
