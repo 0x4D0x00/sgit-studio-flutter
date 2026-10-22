@@ -3370,6 +3370,18 @@ abstract class AppLocalizations {
   /// In zh, this message translates to:
   /// **'搜索操作'**
   String get searchActionsHint;
+
+  /// No description provided for @searchCmdAllChats.
+  ///
+  /// In zh, this message translates to:
+  /// **'全部聊天'**
+  String get searchCmdAllChats;
+
+  /// No description provided for @searchCmdToggleSidebar.
+  ///
+  /// In zh, this message translates to:
+  /// **'切换侧边栏'**
+  String get searchCmdToggleSidebar;
 }
 
 class _AppLocalizationsDelegate

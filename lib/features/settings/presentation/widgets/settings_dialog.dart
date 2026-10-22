@@ -24,7 +24,8 @@ import 'package:sgit_studio_flutter/features/studio/studio_feature.dart';
 import 'package:sgit_studio_flutter/l10n/generated/app_localizations.dart';
 import 'package:sgit_studio_flutter/router/route_names.dart';
 
-enum _SettingsTab {
+/// 设置弹窗的分类。公开是为了让命令面板能直接打开到某一页。
+enum SettingsTab {
   general,
   account,
   privacy,
@@ -47,24 +48,29 @@ enum _SettingsTab {
 }
 
 /// 设置弹窗外壳：盖在当前页上方的大号弹窗，左侧分类栏 + 右侧内容 + 右上角关闭。
-Future<void> showSettingsDialog(BuildContext context) {
+Future<void> showSettingsDialog(
+  BuildContext context, {
+  SettingsTab initialTab = SettingsTab.general,
+}) {
   return showDialog<void>(
     context: context,
-    builder: (_) => const _SettingsDialog(),
+    builder: (_) => _SettingsDialog(initialTab: initialTab),
   );
 }
 
 class _SettingsDialog extends ConsumerStatefulWidget {
-  const _SettingsDialog();
+  const _SettingsDialog({required this.initialTab});
+
+  final SettingsTab initialTab;
 
   @override
   ConsumerState<_SettingsDialog> createState() => _SettingsDialogState();
 }
 
 class _SettingsDialogState extends ConsumerState<_SettingsDialog> {
-  _SettingsTab _selectedTab = _SettingsTab.general;
+  late SettingsTab _selectedTab = widget.initialTab;
 
-  /// [_SettingsTab.studio] 下当前正在看哪一个「智能体」子页（`StudioPageDef.key`）。
+  /// [SettingsTab.studio] 下当前正在看哪一个「智能体」子页（`StudioPageDef.key`）。
   ///
   /// 与 [_selectedTab] 分开记：切去「账户」再切回来时，用户回到的是原来那一页，
   /// 而不是每次都弹回第一个。
@@ -118,7 +124,11 @@ class _SettingsDialogState extends ConsumerState<_SettingsDialog> {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             _sidebar(skin, l10n),
-            VerticalDivider(width: 1, thickness: 1, color: skin.borderSecondary),
+            VerticalDivider(
+              width: 1,
+              thickness: 1,
+              color: skin.borderSecondary,
+            ),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -163,11 +173,12 @@ class _SettingsDialogState extends ConsumerState<_SettingsDialog> {
   /// 技能 / 连接器 / 插件与「智能体」子页（场景 / 子 Agent / MCP …）走**同一条**
   /// 分流：在 Customize 页点「MCP」和在设置里点「MCP」，落到的是同一处。后者
   /// 只多传一个 [studioKey]，由 [CustomizeTab.fromStudioPageKey] 翻成对应标签。
-  void _onCustomizeItemTap(_SettingsTab tab, {String? studioKey}) {
-    final target = switch (tab) {
-          _SettingsTab.skills => CustomizeTab.skills,
-          _SettingsTab.connectors => CustomizeTab.connectors,
-          _SettingsTab.plugins => CustomizeTab.plugins,
+  void _onCustomizeItemTap(SettingsTab tab, {String? studioKey}) {
+    final target =
+        switch (tab) {
+          SettingsTab.skills => CustomizeTab.skills,
+          SettingsTab.connectors => CustomizeTab.connectors,
+          SettingsTab.plugins => CustomizeTab.plugins,
           _ => null,
         } ??
         (studioKey == null ? null : CustomizeTab.fromStudioPageKey(studioKey));
@@ -179,8 +190,9 @@ class _SettingsDialogState extends ConsumerState<_SettingsDialog> {
       // `GoRouterState.of(context)`：本弹窗是 `showDialog` 开出来的独立路由，
       // 它的 `ModalRoute` 不是 go_router 的 Page，`GoRouterState.of` 在这里
       // 找不到关联状态会直接抛异常。
-      final currentPath =
-          GoRouter.of(context).routerDelegate.currentConfiguration.uri.path;
+      final currentPath = GoRouter.of(
+        context,
+      ).routerDelegate.currentConfiguration.uri.path;
       if (currentPath == RouteNames.customize) {
         ref.read(customizeTabControllerProvider.notifier).setTab(target);
         Navigator.of(context).pop();
@@ -196,40 +208,41 @@ class _SettingsDialogState extends ConsumerState<_SettingsDialog> {
 
   Widget _buildCurrentPage() {
     switch (_selectedTab) {
-      case _SettingsTab.general:
+      case SettingsTab.general:
         return const SettingsPage();
-      case _SettingsTab.account:
+      case SettingsTab.account:
         return const AccountPage();
-      case _SettingsTab.privacy:
+      case SettingsTab.privacy:
         return const PrivacyPage();
-      case _SettingsTab.billing:
+      case SettingsTab.billing:
         return const BillingPage();
-      case _SettingsTab.memory:
+      case SettingsTab.memory:
         return const MemoryPage();
-      case _SettingsTab.reflect:
+      case SettingsTab.reflect:
         return ReflectPage(
-          onOpenMemorySettings: () => setState(() => _selectedTab = _SettingsTab.memory),
+          onOpenMemorySettings: () =>
+              setState(() => _selectedTab = SettingsTab.memory),
         );
-      case _SettingsTab.timeFocus:
+      case SettingsTab.timeFocus:
         return const TimeFocusPage();
-      case _SettingsTab.skills:
+      case SettingsTab.skills:
         return const SkillsSettingsPage();
-      case _SettingsTab.connectors:
+      case SettingsTab.connectors:
         return const ConnectorsSettingsPage();
-      case _SettingsTab.plugins:
+      case SettingsTab.plugins:
         return const PluginsSettingsPage();
-      case _SettingsTab.studio:
+      case SettingsTab.studio:
         // 直接复用「智能体」那条路由的页面实现：同一份 spec、同一套判权
         // （[StudioPage] 内部还要过一次 `visibleStudioPagesProvider`）。
         // 不共用的话，弹窗里就得再维持一份子页分派，两处迟早对不上。
         return StudioPage(pageKey: _studioPageKey);
-      case _SettingsTab.capabilities:
+      case SettingsTab.capabilities:
         // 「技能已移至 Customize」里的链接走与侧栏「技能」项相同的分流：
         // 中栏在 Customize 就切过去并关掉弹窗，否则在弹窗内切到「技能」页。
         return CapabilitiesPage(
-          onOpenSkills: () => _onCustomizeItemTap(_SettingsTab.skills),
+          onOpenSkills: () => _onCustomizeItemTap(SettingsTab.skills),
         );
-      case _SettingsTab.claudeCode:
+      case SettingsTab.claudeCode:
         return const SettingsPlaceholderPage();
     }
   }
@@ -239,47 +252,47 @@ class _SettingsDialogState extends ConsumerState<_SettingsDialog> {
       _SidebarItemData(
         icon: Icons.settings_outlined,
         label: l10n.settingsGeneral,
-        tab: _SettingsTab.general,
+        tab: SettingsTab.general,
       ),
       _SidebarItemData(
         icon: Icons.person_outlined,
         label: l10n.settingsAccount,
-        tab: _SettingsTab.account,
+        tab: SettingsTab.account,
       ),
       _SidebarItemData(
         icon: Icons.shield_outlined,
         label: l10n.settingsPrivacy,
-        tab: _SettingsTab.privacy,
+        tab: SettingsTab.privacy,
       ),
       _SidebarItemData(
         icon: Icons.receipt_outlined,
         label: l10n.settingsBilling,
-        tab: _SettingsTab.billing,
+        tab: SettingsTab.billing,
       ),
       _SidebarItemData(
         icon: Icons.auto_awesome_outlined,
         label: l10n.settingsCapabilities,
-        tab: _SettingsTab.capabilities,
+        tab: SettingsTab.capabilities,
       ),
       _SidebarItemData(
         icon: Icons.psychology_outlined,
         label: l10n.settingsMemory,
-        tab: _SettingsTab.memory,
+        tab: SettingsTab.memory,
       ),
       _SidebarItemData(
         icon: Icons.wb_twilight_outlined,
         label: l10n.settingsReflect,
-        tab: _SettingsTab.reflect,
+        tab: SettingsTab.reflect,
       ),
       _SidebarItemData(
         icon: Icons.schedule_outlined,
         label: l10n.settingsTimeFocus,
-        tab: _SettingsTab.timeFocus,
+        tab: SettingsTab.timeFocus,
       ),
       _SidebarItemData(
         icon: Icons.code_outlined,
         label: l10n.settingsClaudeCode,
-        tab: _SettingsTab.claudeCode,
+        tab: SettingsTab.claudeCode,
       ),
     ];
 
@@ -287,17 +300,17 @@ class _SettingsDialogState extends ConsumerState<_SettingsDialog> {
       _SidebarItemData(
         icon: Icons.extension_outlined,
         label: l10n.settingsSkills,
-        tab: _SettingsTab.skills,
+        tab: SettingsTab.skills,
       ),
       _SidebarItemData(
         icon: Icons.link_outlined,
         label: l10n.settingsConnectors,
-        tab: _SettingsTab.connectors,
+        tab: SettingsTab.connectors,
       ),
       _SidebarItemData(
         icon: Icons.widgets_outlined,
         label: l10n.settingsPlugins,
-        tab: _SettingsTab.plugins,
+        tab: SettingsTab.plugins,
       ),
     ];
 
@@ -317,7 +330,7 @@ class _SettingsDialogState extends ConsumerState<_SettingsDialog> {
           _SidebarItemData(
             icon: p.icon,
             label: p.label(l10n),
-            tab: _SettingsTab.studio,
+            tab: SettingsTab.studio,
             studioKey: p.key,
           ),
     ];
@@ -340,35 +353,42 @@ class _SettingsDialogState extends ConsumerState<_SettingsDialog> {
                 padding: EdgeInsets.zero,
                 children: [
                   _sectionHeader(skin, l10n.settingsTitle),
-                  ...filteredItems.map((item) => _SidebarItem(
-                        icon: item.icon,
-                        label: item.label,
-                        skin: skin,
-                        selected: _selectedTab == item.tab,
-                        onTap: () => setState(() => _selectedTab = item.tab),
-                      )),
+                  ...filteredItems.map(
+                    (item) => _SidebarItem(
+                      icon: item.icon,
+                      label: item.label,
+                      skin: skin,
+                      selected: _selectedTab == item.tab,
+                      onTap: () => setState(() => _selectedTab = item.tab),
+                    ),
+                  ),
                   const SizedBox(height: AppSpacing.sm),
                   _sectionHeader(skin, l10n.settingsCustomize),
-                  ...filteredCustomizeItems.map((item) => _SidebarItem(
-                        icon: item.icon,
-                        label: item.label,
-                        skin: skin,
-                        selected: _selectedTab == item.tab,
-                        onTap: () => _onCustomizeItemTap(item.tab),
-                      )),
+                  ...filteredCustomizeItems.map(
+                    (item) => _SidebarItem(
+                      icon: item.icon,
+                      label: item.label,
+                      skin: skin,
+                      selected: _selectedTab == item.tab,
+                      onTap: () => _onCustomizeItemTap(item.tab),
+                    ),
+                  ),
                   // 「智能体」子页。与上面两组不同，这九项共用一个 tab ——
                   // 选中态得靠 `_studioPageKey` 才能分出是哪一项。
-                  ...filteredStudioItems.map((item) => _SidebarItem(
-                        icon: item.icon,
-                        label: item.label,
-                        skin: skin,
-                        selected: _selectedTab == _SettingsTab.studio &&
-                            _studioPageKey == item.studioKey,
-                        onTap: () => _onCustomizeItemTap(
-                          _SettingsTab.studio,
-                          studioKey: item.studioKey,
-                        ),
-                      )),
+                  ...filteredStudioItems.map(
+                    (item) => _SidebarItem(
+                      icon: item.icon,
+                      label: item.label,
+                      skin: skin,
+                      selected:
+                          _selectedTab == SettingsTab.studio &&
+                          _studioPageKey == item.studioKey,
+                      onTap: () => _onCustomizeItemTap(
+                        SettingsTab.studio,
+                        studioKey: item.studioKey,
+                      ),
+                    ),
+                  ),
                 ],
               ),
             ),
@@ -399,16 +419,9 @@ class _SettingsDialogState extends ConsumerState<_SettingsDialog> {
             horizontal: AppSpacing.sm,
             vertical: AppSpacing.xs,
           ),
-          prefixIcon: Icon(
-            Icons.search,
-            size: 18,
-            color: skin.textSecondary,
-          ),
+          prefixIcon: Icon(Icons.search, size: 18, color: skin.textSecondary),
           hintText: l10n.settingsSearch,
-          hintStyle: TextStyle(
-            fontSize: 14,
-            color: skin.textTertiary,
-          ),
+          hintStyle: TextStyle(fontSize: 14, color: skin.textTertiary),
         ),
       ),
     );
@@ -450,9 +463,9 @@ class _SidebarItemData {
 
   final IconData icon;
   final String label;
-  final _SettingsTab tab;
+  final SettingsTab tab;
 
-  /// 仅 [_SettingsTab.studio] 的项有值：对应 `StudioPageDef.key`。
+  /// 仅 [SettingsTab.studio] 的项有值：对应 `StudioPageDef.key`。
   final String? studioKey;
 }
 
@@ -473,37 +486,39 @@ class _SidebarItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Material(
-        color: Colors.transparent,
-        borderRadius: BorderRadius.circular(AppRadius.sm),
-        clipBehavior: Clip.antiAlias,
-        child: InkWell(
-          onTap: onTap,
-          child: Container(
-            height: 36,
-            padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm),
-            decoration: BoxDecoration(
-              color: selected ? skin.text.withValues(alpha: 0.06) : Colors.transparent,
-              borderRadius: BorderRadius.circular(AppRadius.sm),
-            ),
-            child: Row(
-              children: [
-                Icon(icon, size: 18, color: skin.text),
-                const SizedBox(width: AppSpacing.xs),
-                Expanded(
-                  child: Text(
-                    label,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: TextStyle(
-                      fontSize: 14,
-                      fontWeight: selected ? FontWeight.w600 : FontWeight.normal,
-                      color: skin.text,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
+    color: Colors.transparent,
+    borderRadius: BorderRadius.circular(AppRadius.sm),
+    clipBehavior: Clip.antiAlias,
+    child: InkWell(
+      onTap: onTap,
+      child: Container(
+        height: 36,
+        padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm),
+        decoration: BoxDecoration(
+          color: selected
+              ? skin.text.withValues(alpha: 0.06)
+              : Colors.transparent,
+          borderRadius: BorderRadius.circular(AppRadius.sm),
         ),
-      );
+        child: Row(
+          children: [
+            Icon(icon, size: 18, color: skin.text),
+            const SizedBox(width: AppSpacing.xs),
+            Expanded(
+              child: Text(
+                label,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: selected ? FontWeight.w600 : FontWeight.normal,
+                  color: skin.text,
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    ),
+  );
 }

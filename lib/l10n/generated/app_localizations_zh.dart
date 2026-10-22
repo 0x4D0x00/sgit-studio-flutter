@@ -1729,4 +1729,10 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get searchActionsHint => '搜索操作';
+
+  @override
+  String get searchCmdAllChats => '全部聊天';
+
+  @override
+  String get searchCmdToggleSidebar => '切换侧边栏';
 }

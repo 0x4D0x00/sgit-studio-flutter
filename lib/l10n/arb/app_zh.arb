@@ -770,5 +770,7 @@
   "searchFilterActions": "操作",
   "searchOwnerMe": "我",
   "searchOwnerShared": "与我共享",
-  "searchActionsHint": "搜索操作"
+  "searchActionsHint": "搜索操作",
+  "searchCmdAllChats": "全部聊天",
+  "searchCmdToggleSidebar": "切换侧边栏"
 }

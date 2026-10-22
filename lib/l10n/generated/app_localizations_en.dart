@@ -1772,4 +1772,10 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get searchActionsHint => 'Search actions';
+
+  @override
+  String get searchCmdAllChats => 'All chats';
+
+  @override
+  String get searchCmdToggleSidebar => 'Toggle sidebar';
 }

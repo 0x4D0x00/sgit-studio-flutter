@@ -767,5 +767,7 @@
   "searchFilterActions": "Actions",
   "searchOwnerMe": "Me",
   "searchOwnerShared": "Shared with me",
-  "searchActionsHint": "Search actions"
+  "searchActionsHint": "Search actions",
+  "searchCmdAllChats": "All chats",
+  "searchCmdToggleSidebar": "Toggle sidebar"
 }

@@ -23,6 +23,24 @@ class SearchRowResult {
   final String? newLabel;
 }
 
+/// 「操作」里的一条命令。选中后先关弹窗再执行 [onRun]。
+///
+/// [featured] 的命令也会出现在「全部」标签的「操作」分组里；其余只在筛选「操作」后列出。
+@immutable
+class SearchDialogCommand {
+  const SearchDialogCommand({
+    required this.label,
+    required this.icon,
+    required this.onRun,
+    this.featured = false,
+  });
+
+  final String label;
+  final IconData icon;
+  final VoidCallback onRun;
+  final bool featured;
+}
+
 /// 搜索弹窗里的一行 —— 展示用，选中后回传 [id] 给调用方。
 @immutable
 class SearchDialogItem {
@@ -68,7 +86,7 @@ extension on _SearchTab {
 /// 居中命令面板：搜索框 + 分类标签 + 结果列表 + 底栏快捷键。
 ///
 /// **纯展示组件**：数据（[items]）与动作（[onSelect] / [onRowAction] /
-/// [onNewChat] / [onCompose]）都由调用方注入，弹窗本身只管过滤、选择和渲染 ——
+/// [commands] / [onCompose]）都由调用方注入，弹窗本身只管过滤、选择和渲染 ——
 /// 和 `confirm.dart` 一样的分工。
 ///
 /// 选中一项会先关闭弹窗，再调用回调。
@@ -81,7 +99,7 @@ Future<void> showSearchChatsDialog(
     SearchDialogRowAction action,
   )
   onRowAction,
-  required VoidCallback onNewChat,
+  required List<SearchDialogCommand> commands,
   required VoidCallback onCompose,
 }) {
   return showDialog<void>(
@@ -90,7 +108,7 @@ Future<void> showSearchChatsDialog(
       items: items,
       onSelect: onSelect,
       onRowAction: onRowAction,
-      onNewChat: onNewChat,
+      commands: commands,
       onCompose: onCompose,
     ),
   );
@@ -115,9 +133,17 @@ class _ItemRow extends _Row {
 
 /// 一条命令（目前只有「新建对话」）。
 class _ActionRow extends _Row {
-  const _ActionRow({required this.label, required this.icon});
+  const _ActionRow({
+    required this.label,
+    required this.icon,
+    required this.onRun,
+  });
   final String label;
   final IconData icon;
+  final VoidCallback onRun;
+
+  _ActionRow.of(SearchDialogCommand c)
+    : this(label: c.label, icon: c.icon, onRun: c.onRun);
 }
 
 /// 输入 `/` 后列出的筛选项，或选完筛选键后列出的候选值。选中即回调 [onPick]。
@@ -159,7 +185,7 @@ class _SearchChatsDialog extends StatefulWidget {
     required this.items,
     required this.onSelect,
     required this.onRowAction,
-    required this.onNewChat,
+    required this.commands,
     required this.onCompose,
   });
 
@@ -170,7 +196,7 @@ class _SearchChatsDialog extends StatefulWidget {
     SearchDialogRowAction action,
   )
   onRowAction;
-  final VoidCallback onNewChat;
+  final List<SearchDialogCommand> commands;
   final VoidCallback onCompose;
 
   @override
@@ -315,8 +341,8 @@ class _SearchChatsDialogState extends State<_SearchChatsDialog> {
     if (_has(_FilterKind.actions)) {
       final q = _query.trim().toLowerCase();
       return [
-        if (q.isEmpty || l10n.searchNewChat.toLowerCase().contains(q))
-          _ActionRow(label: l10n.searchNewChat, icon: Icons.add_circle_outline),
+        for (final c in widget.commands)
+          if (q.isEmpty || c.label.toLowerCase().contains(q)) _ActionRow.of(c),
       ];
     }
     final items = _visibleItems;
@@ -331,7 +357,8 @@ class _SearchChatsDialogState extends State<_SearchChatsDialog> {
       // 带着筛选时只看筛选结果，不再夹带命令。
       if (_filters.isEmpty) ...[
         _SectionRow(l10n.searchSectionActions),
-        _ActionRow(label: l10n.searchNewChat, icon: Icons.add_circle_outline),
+        for (final c in widget.commands)
+          if (c.featured) _ActionRow.of(c),
       ],
     ];
   }
@@ -568,9 +595,9 @@ class _SearchChatsDialogState extends State<_SearchChatsDialog> {
       case _ItemRow(:final item):
         _close();
         widget.onSelect(item.id);
-      case _ActionRow():
+      case _ActionRow(:final onRun):
         _close();
-        widget.onNewChat();
+        onRun();
       case _SuggestionRow(:final onPick):
         onPick();
       case _SectionRow():
@@ -879,11 +906,12 @@ class _SearchChatsDialogState extends State<_SearchChatsDialog> {
             index: i,
             selected: i == selected,
           ),
-          _ActionRow(:final label, :final icon) => _actionRow(
+          _ActionRow(:final label, :final icon, :final onRun) => _actionRow(
             skin,
             l10n,
             label: label,
             icon: icon,
+            onRun: onRun,
             index: i,
             selected: i == selected,
           ),
@@ -1099,6 +1127,7 @@ class _SearchChatsDialogState extends State<_SearchChatsDialog> {
     AppLocalizations l10n, {
     required String label,
     required IconData icon,
+    required VoidCallback onRun,
     required int index,
     required bool selected,
   }) {
@@ -1107,7 +1136,8 @@ class _SearchChatsDialogState extends State<_SearchChatsDialog> {
       skin,
       index: index,
       highlighted: highlighted,
-      onTap: () => _activate(_ActionRow(label: label, icon: icon)),
+      onTap: () =>
+          _activate(_ActionRow(label: label, icon: icon, onRun: onRun)),
       onHover: (v) => _hoverRow(index, v),
       child: Row(
         children: [
