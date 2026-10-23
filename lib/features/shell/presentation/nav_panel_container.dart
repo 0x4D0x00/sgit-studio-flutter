@@ -23,7 +23,6 @@ import 'package:sgit_studio_flutter/features/settings/presentation/widgets/setti
 import 'package:sgit_studio_flutter/features/settings/application/user_profile_controller.dart';
 import 'package:sgit_studio_flutter/router/route_names.dart';
 import 'package:sgit_studio_flutter/services/chat/chat_controller.dart';
-import 'package:sgit_studio_flutter/services/brand/brand_assets.dart';
 import 'package:sgit_studio_flutter/services/brand/brand_config.dart';
 import 'package:sgit_studio_flutter/services/layout/layout_controller.dart';
 import 'package:sgit_studio_flutter/ui/components/dialogs/search_chats_dialog.dart';
@@ -111,7 +110,6 @@ class NavPanelContainer extends ConsumerWidget {
             : '$_threadPrefix$currentThreadId');
 
     return NavPanel(
-      brandMark: BrandAssets.image(BrandAssets.loginMark),
       brandName: BrandConfig.instance.name,
       activeId: effectiveActiveId,
       // 导航行：新对话、输出物、Projects、Customize。
@@ -136,17 +134,10 @@ class NavPanelContainer extends ConsumerWidget {
         NavEntry(id: idCustomize, icon: Icons.tune, label: l10n.navCustomize),
       ],
       sections: [
-        // // 置顶区：位于导航行下方、历史对话上方。空着也要出现（靠 emptyHint 撑住），
-        // // 否则用户不知道有「置顶」这回事。
-        // NavSection(
-        //   title: '置顶',
-        //   // action: NavSectionAction.add,
-        //   emptyHint: 'Pin chats to keep them here',
-        //   emptyHintIcon: Icons.push_pin_outlined,
-        //   entries: const [
-        //     // TODO: 接置顶对话列表（内核还没放开 thread/pin）。
-        //   ],
-        // ),
+        // 置顶区：有置顶对话时才出现，位于历史对话上方；没有则整组不渲染
+        // （NavSection.isEmpty 为真时 NavPanel 会跳过）。
+        // TODO: 接置顶对话列表（内核还没放开 thread/pin），目前恒为空。
+        NavSection(title: l10n.navChatPin, entries: const []),
         // 历史对话：标题带收起箭头，右侧是菜单/排序项。
         ..._buildHistorySections(l10n, ref, threads, sortGroupState, context),
       ],
@@ -216,11 +207,6 @@ class NavPanelContainer extends ConsumerWidget {
       ],
       onDownload: () => _notWired(context, l10n, 'get-apps'),
       onCollapse: () => ref.read(layoutControllerProvider.notifier).toggleNav(),
-      // onAddProject: () => _notWired(
-      //   context,
-      //   l10n,
-      //   'add-project',
-      // ),
     );
   }
 

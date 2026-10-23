@@ -75,9 +75,6 @@ enum NavSectionAction {
   /// 不放按钮。
   none,
 
-  /// 「+」：新增/置顶一项。
-  add,
-
   /// 弹菜单：具体几项、点了干什么，由 [NavSection.menu] 声明。
   ///
   /// 早先这里叫 `sort`，布局层还顺带管着「分组方式/排序方式」两行的文案参数
@@ -97,8 +94,6 @@ class NavSection {
     this.collapsible = false,
     this.onToggleCollapse,
     this.isCollapsed,
-    this.emptyHint,
-    this.emptyHintIcon,
     this.viewAllTooltip,
     this.actionTooltip,
     this.onViewAll,
@@ -112,8 +107,7 @@ class NavSection {
   /// 组标题右侧的按钮。
   final NavSectionAction action;
 
-  /// 按钮图标。`action == add` 时默认 `Icons.add`；`action == menu` 时
-  /// 默认 `Icons.tune`；容器可以传这个参数盖掉默认。
+  /// 按钮图标。`action == menu` 时默认 `Icons.tune`；容器可以传这个参数盖掉默认。
   final IconData? actionIcon;
 
   /// `action == menu` 时的菜单内容（图2 的 Group by / Sort by 子菜单）。
@@ -141,14 +135,7 @@ class NavSection {
   /// 折叠状态 —— 用于分组场景。如果提供了这个值，使用它来决定显示/隐藏条目。
   final bool? isCollapsed;
 
-  /// [entries] 为空时的占位提示文案。给了就说明「空也要出现」，
-  /// 不给才是 studio 原来的「无权限就彻底不出现」。
-  final String? emptyHint;
-
-  /// [emptyHint] 前面的图标。
-  final IconData? emptyHintIcon;
-
-  /// 整组该不该被跳过：没条目、又没有空态提示、也不是折叠状态，才算真的没有。
+  /// 整组该不该被跳过：没条目、也不是折叠状态，才算真的没有。
   /// 折叠状态的分组即使 entries 为空也应该显示标题。
-  bool get isEmpty => entries.isEmpty && emptyHint == null && isCollapsed != true;
+  bool get isEmpty => entries.isEmpty && isCollapsed != true;
 }

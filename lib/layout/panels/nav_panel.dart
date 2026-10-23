@@ -25,7 +25,6 @@ import 'package:sgit_studio_flutter/ui/components/menu/app_menu.dart';
 class NavPanel extends StatefulWidget {
   const NavPanel({
     super.key,
-    required this.brandMark,
     required this.brandName,
     required this.header,
     required this.sections,
@@ -38,10 +37,8 @@ class NavPanel extends StatefulWidget {
     this.userMenu = const [],
     this.onDownload,
     this.onCollapse,
-    this.onAddProject,
   });
 
-  final ImageProvider brandMark;
   final String brandName;
   final List<NavEntry> header;
   final List<NavSection> sections;
@@ -63,7 +60,6 @@ class NavPanel extends StatefulWidget {
 
   final VoidCallback? onDownload;
   final VoidCallback? onCollapse;
-  final VoidCallback? onAddProject;
 
   @override
   State<NavPanel> createState() => _NavPanelState();
@@ -92,21 +88,18 @@ class _NavPanelState extends State<NavPanel> {
           // 1. 品牌行
           _brand(skin),
 
-          // 2. 导航行
+          // 2. 固定区：新对话（不随列表滚动）
           if (widget.header.isNotEmpty)
-            Column(
-              children: [
-                for (final e in widget.header) _row(e, isHeader: true),
-              ],
-            ),
+            _row(widget.header.first, isHeader: true),
 
-          const SizedBox(height: 6),
-
-          // 3-4. 可滚动区域（置顶和历史会话列表）
+          // 3-4. 可滚动区域（其余导航行、置顶、历史会话列表）
           Expanded(
             child: ListView(
               padding: EdgeInsets.zero,
               children: [
+                for (final e in widget.header.skip(1))
+                  _row(e, isHeader: true),
+                if (widget.header.length > 1) const SizedBox(height: 8),
                 for (var i = 0; i < widget.sections.length; i++)
                   if (!widget.sections[i].isEmpty)
                     _sectionBlock(widget.sections[i], i),
@@ -150,14 +143,10 @@ class _NavPanelState extends State<NavPanel> {
                             (s.collapsible
                                 ? () => setState(() => _chatsCollapsed = !_chatsCollapsed)
                                 : null),
-                        onAddProject: widget.onAddProject,
                         hovered: _hoveredSection == index,
                       ),
 
-                    // 空组走占位提示
-                    if (s.entries.isEmpty && s.emptyHint != null)
-                      NavSectionEmptyHint(section: s)
-                    else if (s.entries.isNotEmpty &&
+                    if (s.entries.isNotEmpty &&
                             (!_chatsCollapsed || !s.collapsible || s.onToggleCollapse != null))
                       // 显示条目（未折叠 或 不可折叠 或 有自定义折叠回调）
                       for (final e in s.entries)
