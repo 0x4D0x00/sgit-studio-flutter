@@ -801,5 +801,18 @@
   "editCopy": "复制",
   "editPaste": "粘贴",
   "editSelectAll": "全选",
-  "railMore": "更多"
+  "railMore": "更多",
+  "railImages": "图像",
+  "railTasks": "定时任务",
+  "railLibrary": "资料库",
+  "imagesTabHot": "热门",
+  "imagesTabTemplates": "Templates",
+  "libraryTabRecommended": "推荐",
+  "libraryTabFavorites": "收藏",
+  "libraryTabFolders": "文件夹",
+  "libraryTabImages": "图像",
+  "libraryTabAll": "全部",
+  "tasksNew": "新建任务",
+  "tasksUpcoming": "即将执行",
+  "tasksEmpty": "暂无已安排的任务"
 }

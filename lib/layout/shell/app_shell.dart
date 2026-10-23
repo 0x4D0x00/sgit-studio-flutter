@@ -12,10 +12,11 @@ import 'package:sgit_studio_flutter/platform/window_bar/app_window_bar.dart';
 /// 结构（**层级顺序很关键**，照 studio 摆）：
 /// ```
 /// Row
-///  ├── 左栏 nav                 ← 在圆角卡「外面」，背景 layoutBg，无右边框
-///  └── Padding(top:8, left: 展开?0:8)
-///        └── ClipRRect(12) + 1px 边框   ← 圆角卡，背景 containerBg
+///  ├── 工具列 rail              ← 固定宽，背景 layoutBg
+///  └── Padding(top:8)
+///        └── ClipRRect(左:12)          ← 圆角卡，背景 containerBg
 ///              └── Row
+///                   ├── 左栏 nav        ← 在卡「里面」，右侧 1px 分割线
 ///                   ├── 中栏 child      ← flex:1，无固定宽
 ///                   └── 右栏 output     ← 在卡「里面」，左侧 1px 分割线
 /// ```
@@ -34,6 +35,7 @@ class AppShell extends StatelessWidget {
     this.headerTitle,
     required this.toolbarBuilder,
     this.rail,
+    this.showNav = true,
     required this.navExpanded,
     required this.navWidth,
     required this.outputExpanded,
@@ -58,6 +60,9 @@ class AppShell extends StatelessWidget {
 
   /// 最左侧固定工具列，不可收起。窄屏不显示。
   final Widget? rail;
+
+  /// 是否挂左栏。独立页面（图像 / 定时任务 / 资料库）传 false。
+  final bool showNav;
 
   final bool navExpanded;
   final double navWidth;
@@ -106,92 +111,95 @@ class AppShell extends StatelessWidget {
                   // ---- 最左侧工具列：固定、不可收起 ----
                   if (!narrow && rail != null) rail!,
 
-                  // ---- 左栏：圆角卡之外 ----
-                  if (!narrow)
-                    ResizablePanel(
-                      side: AxisDirection.left,
-                      width: navWidth,
-                      expanded: navExpanded,
-                      minWidth: WorkspaceMetrics.navMinWidth,
-                      maxWidth: WorkspaceMetrics.navMaxWidth,
-                      onWidthChanged: onNavWidthChanged,
-                      onToggle: onToggleNav,
-                      backgroundColor: skin.layoutBg,
-                      borderSide: BorderSide(color: skin.border, width: 1),
-                      child: nav,
-                    ),
-
-                  // ---- 圆角卡：中栏 + 右栏 ----
+                  // ---- 圆角卡：左栏 + 中栏 + 右栏 ----
                   Expanded(
-                    child: AnimatedPadding(
-                      duration: WorkspaceMetrics.panelAnim,
-                      curve: Curves.easeOut,
-                      padding: EdgeInsets.only(
-                        // studio：左栏展开时左边不留白，折叠时补 8。
-                        left: (!narrow && navExpanded)
-                            ? 0
-                            : WorkspaceMetrics.framePadding,
+                    child: Padding(
+                      // 只留顶边；左边紧贴工具列，折叠左栏也不补白。
+                      padding: const EdgeInsets.only(
                         top: WorkspaceMetrics.framePadding,
                       ),
-                      child: DecoratedBox(
-                        decoration: BoxDecoration(
-                          color: skin.containerBg,
+                      child: ClipRRect(
+                        borderRadius: const BorderRadius.horizontal(
+                          left: Radius.circular(WorkspaceMetrics.frameRadius),
+                          // topLeft: Radius.circular(
+                          //   WorkspaceMetrics.frameRadius,
+                          // ),
                         ),
-                        child: Row(
-                          children: [
-                            Expanded(
-                              child: Column(
-                                children: [
-                                  _header(context, skin, narrow),
-                                  // 中栏内容宽度。
-                                  //
-                                  // ⚠️ 限宽的**初衷是会话页的正文列**（阅读舒适度），
-                                  // 不该套在技能库 / 设置这类铺卡片或表格的页面上 ——
-                                  // 那些页在 2560 宽的窗口里被压成 800 只够放两列，
-                                  // 右半边整片空白。
-                                  //
-                                  // 所以这里分两种：会话页限宽居中，其余页**占满**。
-                                  // [contentMaxWidth] 为 0 表示"不设上限"。
-                                  Expanded(
-                                    child: LayoutBuilder(
-                                      builder: (context, c) {
-                                        if (contentMaxWidth <= 0) {
-                                          return SizedBox(
-                                            width: c.maxWidth,
-                                            height: c.maxHeight,
-                                            child: child,
-                                          );
-                                        }
-                                        return Align(
-                                          alignment: Alignment.topCenter,
-                                          child: SizedBox(
-                                            width: c.maxWidth < contentMaxWidth
-                                                ? c.maxWidth
-                                                : contentMaxWidth,
-                                            height: c.maxHeight,
-                                            child: child,
-                                          ),
-                                        );
-                                      },
-                                    ),
+                        child: DecoratedBox(
+                          decoration: BoxDecoration(color: skin.containerBg),
+                          child: Row(
+                            children: [
+                              // 左栏：与中栏同顶、同高。独立页面（图像 / 定时任务 / 资料库）不挂。
+                              if (!narrow && showNav)
+                                ResizablePanel(
+                                  side: AxisDirection.left,
+                                  width: navWidth,
+                                  expanded: navExpanded,
+                                  minWidth: WorkspaceMetrics.navMinWidth,
+                                  maxWidth: WorkspaceMetrics.navMaxWidth,
+                                  onWidthChanged: onNavWidthChanged,
+                                  onToggle: onToggleNav,
+                                  borderSide: BorderSide(
+                                    color: skin.borderSecondary,
                                   ),
-                                ],
+                                  child: nav,
+                                ),
+                              Expanded(
+                                child: Column(
+                                  children: [
+                                    _header(context, skin, narrow),
+                                    // 中栏内容宽度。
+                                    //
+                                    // ⚠️ 限宽的**初衷是会话页的正文列**（阅读舒适度），
+                                    // 不该套在技能库 / 设置这类铺卡片或表格的页面上 ——
+                                    // 那些页在 2560 宽的窗口里被压成 800 只够放两列，
+                                    // 右半边整片空白。
+                                    //
+                                    // 所以这里分两种：会话页限宽居中，其余页**占满**。
+                                    // [contentMaxWidth] 为 0 表示"不设上限"。
+                                    Expanded(
+                                      child: LayoutBuilder(
+                                        builder: (context, c) {
+                                          if (contentMaxWidth <= 0) {
+                                            return SizedBox(
+                                              width: c.maxWidth,
+                                              height: c.maxHeight,
+                                              child: child,
+                                            );
+                                          }
+                                          return Align(
+                                            alignment: Alignment.topCenter,
+                                            child: SizedBox(
+                                              width:
+                                                  c.maxWidth < contentMaxWidth
+                                                  ? c.maxWidth
+                                                  : contentMaxWidth,
+                                              height: c.maxHeight,
+                                              child: child,
+                                            ),
+                                          );
+                                        },
+                                      ),
+                                    ),
+                                  ],
+                                ),
                               ),
-                            ),
-                            if (!narrow)
-                              ResizablePanel(
-                                side: AxisDirection.right,
-                                width: outputWidth,
-                                expanded: outputExpanded,
-                                minWidth: WorkspaceMetrics.outputMinWidth,
-                                maxWidth: WorkspaceMetrics.outputMaxWidth,
-                                onWidthChanged: onOutputWidthChanged,
-                                backgroundColor: skin.containerBg,
-                                borderSide:
-                                    BorderSide(color: skin.borderSecondary),
-                                child: output,
-                              ),
-                          ],
+                              if (!narrow)
+                                ResizablePanel(
+                                  side: AxisDirection.right,
+                                  width: outputWidth,
+                                  expanded: outputExpanded,
+                                  minWidth: WorkspaceMetrics.outputMinWidth,
+                                  maxWidth: WorkspaceMetrics.outputMaxWidth,
+                                  onWidthChanged: onOutputWidthChanged,
+                                  backgroundColor: skin.containerBg,
+                                  borderSide: BorderSide(
+                                    color: skin.borderSecondary,
+                                  ),
+                                  child: output,
+                                ),
+                            ],
+                          ),
                         ),
                       ),
                     ),
@@ -221,14 +229,6 @@ class AppShell extends StatelessWidget {
                 child: headerTitle ?? const SizedBox.shrink(),
               ),
             ),
-            // if (!narrow)
-            //   IconButton(
-            //     iconSize: 18,
-            //     color: skin.textSecondary,
-            //     tooltip: l10n.shellToggleOutput,
-            //     icon: const Icon(Icons.view_sidebar_outlined),
-            //     onPressed: onToggleOutput,
-            //   ),
           ],
         ),
       ),

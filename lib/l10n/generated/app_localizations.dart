@@ -3556,6 +3556,84 @@ abstract class AppLocalizations {
   /// In zh, this message translates to:
   /// **'更多'**
   String get railMore;
+
+  /// No description provided for @railImages.
+  ///
+  /// In zh, this message translates to:
+  /// **'图像'**
+  String get railImages;
+
+  /// No description provided for @railTasks.
+  ///
+  /// In zh, this message translates to:
+  /// **'定时任务'**
+  String get railTasks;
+
+  /// No description provided for @railLibrary.
+  ///
+  /// In zh, this message translates to:
+  /// **'资料库'**
+  String get railLibrary;
+
+  /// No description provided for @imagesTabHot.
+  ///
+  /// In zh, this message translates to:
+  /// **'热门'**
+  String get imagesTabHot;
+
+  /// No description provided for @imagesTabTemplates.
+  ///
+  /// In zh, this message translates to:
+  /// **'Templates'**
+  String get imagesTabTemplates;
+
+  /// No description provided for @libraryTabRecommended.
+  ///
+  /// In zh, this message translates to:
+  /// **'推荐'**
+  String get libraryTabRecommended;
+
+  /// No description provided for @libraryTabFavorites.
+  ///
+  /// In zh, this message translates to:
+  /// **'收藏'**
+  String get libraryTabFavorites;
+
+  /// No description provided for @libraryTabFolders.
+  ///
+  /// In zh, this message translates to:
+  /// **'文件夹'**
+  String get libraryTabFolders;
+
+  /// No description provided for @libraryTabImages.
+  ///
+  /// In zh, this message translates to:
+  /// **'图像'**
+  String get libraryTabImages;
+
+  /// No description provided for @libraryTabAll.
+  ///
+  /// In zh, this message translates to:
+  /// **'全部'**
+  String get libraryTabAll;
+
+  /// No description provided for @tasksNew.
+  ///
+  /// In zh, this message translates to:
+  /// **'新建任务'**
+  String get tasksNew;
+
+  /// No description provided for @tasksUpcoming.
+  ///
+  /// In zh, this message translates to:
+  /// **'即将执行'**
+  String get tasksUpcoming;
+
+  /// No description provided for @tasksEmpty.
+  ///
+  /// In zh, this message translates to:
+  /// **'暂无已安排的任务'**
+  String get tasksEmpty;
 }
 
 class _AppLocalizationsDelegate

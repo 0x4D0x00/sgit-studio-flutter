@@ -35,10 +35,18 @@ class AppShellContainer extends ConsumerStatefulWidget {
     super.key,
     required this.child,
     required this.isConversation,
+    this.showNav = true,
+    this.activePath,
     this.activeNavId,
   });
 
   final Widget child;
+
+  /// 是否挂左栏（图像 / 定时任务 / 资料库为 false）。
+  final bool showNav;
+
+  /// 当前路由路径，用来点亮最左侧工具列对应的项。
+  final String? activePath;
 
   /// 当前路由是不是**会话页**（工作台）。
   ///
@@ -142,7 +150,8 @@ class _AppShellContainerState extends ConsumerState<AppShellContainer> {
         // 根据可用宽度动态计算右侧面板的安全宽度
         // 总宽度 - 左栏宽度(如果展开) - 中栏最小宽度 = 右侧面板可用空间
         final totalWidth = constraints.maxWidth;
-        final navActualWidth = layout.navExpanded ? layout.navWidth : 0;
+        final navActualWidth =
+            widget.showNav && layout.navExpanded ? layout.navWidth : 0;
         final minCenterWidth = contentMaxWidth * 0.6; // 中栏至少保留 70% 的内容宽度
         final availableForOutput = totalWidth - navActualWidth - minCenterWidth;
         final safeOutputWidth = layout.outputWidth.clamp(
@@ -158,32 +167,27 @@ class _AppShellContainerState extends ConsumerState<AppShellContainer> {
             SideRailItem(
               icon: Icons.home_rounded,
               tooltip: l10n.navNewChat,
-              selected: widget.isConversation,
+              // 首页 = 左栏那一族页面（会话 / 历史 / 输出物 / Projects / Customize）。
+              selected: widget.showNav,
               onTap: () => context.go(RouteNames.home),
             ),
             SideRailItem(
-              icon: Icons.history_rounded,
-              tooltip: l10n.navHistory,
-              selected: widget.activeNavId == NavPanelContainer.idHistory,
-              onTap: () => context.go(RouteNames.history),
+              icon: Icons.photo_library_outlined,
+              tooltip: l10n.railImages,
+              selected: widget.activePath == RouteNames.images,
+              onTap: () => context.go(RouteNames.images),
             ),
             SideRailItem(
-              icon: Icons.widgets_outlined,
-              tooltip: l10n.shellOutputTitle,
-              selected: widget.activeNavId == NavPanelContainer.idArtifacts,
-              onTap: () => context.go(RouteNames.artifacts),
+              icon: Icons.schedule_rounded,
+              tooltip: l10n.railTasks,
+              selected: widget.activePath == RouteNames.tasks,
+              onTap: () => context.go(RouteNames.tasks),
             ),
             SideRailItem(
-              icon: Icons.folder_outlined,
-              tooltip: l10n.navProjects,
-              selected: widget.activeNavId == NavPanelContainer.idProjects,
-              onTap: () => context.go(RouteNames.projects),
-            ),
-            SideRailItem(
-              icon: Icons.tune,
-              tooltip: l10n.navCustomize,
-              selected: widget.activeNavId == NavPanelContainer.idCustomize,
-              onTap: () => context.go(RouteNames.customize),
+              icon: Icons.local_library_outlined,
+              tooltip: l10n.railLibrary,
+              selected: widget.activePath == RouteNames.library,
+              onTap: () => context.go(RouteNames.library),
             ),
             SideRailItem(
               icon: Icons.more_horiz_rounded,
@@ -303,6 +307,7 @@ class _AppShellContainerState extends ConsumerState<AppShellContainer> {
 
         return AppShell(
           rail: rail,
+          showNav: widget.showNav,
           toolbarBuilder: (toggleNav) => WindowToolbar(
             canGoBack: _cursor > 0,
             canGoForward: _cursor < _history.length - 1,

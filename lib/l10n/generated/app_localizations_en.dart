@@ -1865,4 +1865,43 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get railMore => 'More';
+
+  @override
+  String get railImages => 'Images';
+
+  @override
+  String get railTasks => 'Scheduled tasks';
+
+  @override
+  String get railLibrary => 'Library';
+
+  @override
+  String get imagesTabHot => 'Popular';
+
+  @override
+  String get imagesTabTemplates => 'Templates';
+
+  @override
+  String get libraryTabRecommended => 'Recommended';
+
+  @override
+  String get libraryTabFavorites => 'Favorites';
+
+  @override
+  String get libraryTabFolders => 'Folders';
+
+  @override
+  String get libraryTabImages => 'Images';
+
+  @override
+  String get libraryTabAll => 'All';
+
+  @override
+  String get tasksNew => 'New task';
+
+  @override
+  String get tasksUpcoming => 'Upcoming';
+
+  @override
+  String get tasksEmpty => 'No tasks scheduled';
 }

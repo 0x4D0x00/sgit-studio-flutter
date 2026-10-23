@@ -7,6 +7,7 @@ import 'package:sgit_studio_flutter/features/auth/application/auth_controller.da
 import 'package:sgit_studio_flutter/features/auth/presentation/pages/login_page.dart';
 import 'package:sgit_studio_flutter/features/customize/presentation/pages/customize_page.dart';
 import 'package:sgit_studio_flutter/features/projects/presentation/pages/projects_page.dart';
+import 'package:sgit_studio_flutter/features/rail/presentation/rail_pages.dart';
 import 'package:sgit_studio_flutter/features/settings/presentation/pages/settings_page.dart';
 import 'package:sgit_studio_flutter/features/shell/presentation/app_shell_container.dart';
 import 'package:sgit_studio_flutter/features/shell/presentation/history_page.dart';
@@ -36,8 +37,7 @@ final routerProvider = Provider<GoRouter>((ref) {
           // 确定当前激活的导航项：产物页 / studio 子页 / 默认 null（工作台）。
           final path = state.uri.path;
           final activeNavId = switch (path) {
-            RouteNames.artifacts =>
-              NavPanelContainer.idArtifacts,
+            RouteNames.artifacts => NavPanelContainer.idArtifacts,
             RouteNames.history => NavPanelContainer.idHistory,
             RouteNames.projects => NavPanelContainer.idProjects,
             RouteNames.customize => NavPanelContainer.idCustomize,
@@ -48,12 +48,21 @@ final routerProvider = Provider<GoRouter>((ref) {
             // 只有工作台是会话页。其余路由（输出物 / Projects / 设置 / 智能体
             // 子页）都不该带着右侧面板 —— 面板里的产物属于某条会话。
             isConversation: path == RouteNames.home,
+            // 图像 / 定时任务 / 资料库是独立页面，不挂左栏。
+            showNav:
+                path != RouteNames.images &&
+                path != RouteNames.tasks &&
+                path != RouteNames.library,
+            activePath: path,
             activeNavId: activeNavId,
             child: child,
           );
         },
         routes: [
-          GoRoute(path: RouteNames.home, builder: (_, _) => const WorkspacePage()),
+          GoRoute(
+            path: RouteNames.home,
+            builder: (_, _) => const WorkspacePage(),
+          ),
           GoRoute(
             path: RouteNames.artifacts,
             builder: (_, _) => const ArtifactsPage(),
@@ -67,6 +76,15 @@ final routerProvider = Provider<GoRouter>((ref) {
             builder: (_, _) => const CustomizePage(),
           ),
           GoRoute(
+            path: RouteNames.images,
+            builder: (_, _) => const ImagesPage(),
+          ),
+          GoRoute(path: RouteNames.tasks, builder: (_, _) => const TasksPage()),
+          GoRoute(
+            path: RouteNames.library,
+            builder: (_, _) => const LibraryPage(),
+          ),
+          GoRoute(
             path: RouteNames.history,
             builder: (_, _) => const HistoryPage(),
           ),
@@ -76,8 +94,9 @@ final routerProvider = Provider<GoRouter>((ref) {
                 StudioPage(pageKey: state.pathParameters['key'] ?? ''),
           ),
           GoRoute(
-              path: RouteNames.settings,
-              builder: (_, _) => const SettingsPage()),
+            path: RouteNames.settings,
+            builder: (_, _) => const SettingsPage(),
+          ),
         ],
       ),
     ],
@@ -87,7 +106,9 @@ final routerProvider = Provider<GoRouter>((ref) {
 /// 把登录态变化桥接成 GoRouter 可监听的 Listenable。
 class _AuthListenable extends ChangeNotifier {
   _AuthListenable(Ref ref) {
-    ref.listen(authControllerProvider.select((s) => s.isAuthenticated),
-        (_, _) => notifyListeners());
+    ref.listen(
+      authControllerProvider.select((s) => s.isAuthenticated),
+      (_, _) => notifyListeners(),
+    );
   }
 }

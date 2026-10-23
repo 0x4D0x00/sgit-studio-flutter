@@ -74,7 +74,7 @@ class WindowToolbar extends StatelessWidget {
               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
               child: Text(
                 m.label,
-                style: TextStyle(fontSize: 13, color: skin.textSecondary),
+                style: TextStyle(fontSize: 14, color: skin.textSecondary),
               ),
             ),
           ),

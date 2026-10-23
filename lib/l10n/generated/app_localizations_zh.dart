@@ -1822,4 +1822,43 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get railMore => '更多';
+
+  @override
+  String get railImages => '图像';
+
+  @override
+  String get railTasks => '定时任务';
+
+  @override
+  String get railLibrary => '资料库';
+
+  @override
+  String get imagesTabHot => '热门';
+
+  @override
+  String get imagesTabTemplates => 'Templates';
+
+  @override
+  String get libraryTabRecommended => '推荐';
+
+  @override
+  String get libraryTabFavorites => '收藏';
+
+  @override
+  String get libraryTabFolders => '文件夹';
+
+  @override
+  String get libraryTabImages => '图像';
+
+  @override
+  String get libraryTabAll => '全部';
+
+  @override
+  String get tasksNew => '新建任务';
+
+  @override
+  String get tasksUpcoming => '即将执行';
+
+  @override
+  String get tasksEmpty => '暂无已安排的任务';
 }

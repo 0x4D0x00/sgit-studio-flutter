@@ -798,5 +798,18 @@
   "editCopy": "Copy",
   "editPaste": "Paste",
   "editSelectAll": "Select all",
-  "railMore": "More"
+  "railMore": "More",
+  "railImages": "Images",
+  "railTasks": "Scheduled tasks",
+  "railLibrary": "Library",
+  "imagesTabHot": "Popular",
+  "imagesTabTemplates": "Templates",
+  "libraryTabRecommended": "Recommended",
+  "libraryTabFavorites": "Favorites",
+  "libraryTabFolders": "Folders",
+  "libraryTabImages": "Images",
+  "libraryTabAll": "All",
+  "tasksNew": "New task",
+  "tasksUpcoming": "Upcoming",
+  "tasksEmpty": "No tasks scheduled"
 }

@@ -25,6 +25,11 @@ class RouteNames {
   /// Customize 页面。
   static const String customize = '/customize';
 
+  /// 最左侧工具列的三个页面：图像 / 定时任务 / 资料库。
+  static const String images = '/images';
+  static const String tasks = '/tasks';
+  static const String library = '/library';
+
   /// 「智能体」子页前缀，完整路径 `/studio/<key>`。
   static const String studioPrefix = '/studio';
   static String studio(String key) => '$studioPrefix/$key';
