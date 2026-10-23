@@ -32,11 +32,9 @@ class NavPanel extends StatefulWidget {
     required this.onSelect,
     required this.userName,
     required this.downloadTooltip,
-    this.collapseTooltip = '',
     this.avatarBytes,
     this.userMenu = const [],
     this.onDownload,
-    this.onCollapse,
   });
 
   final String brandName;
@@ -50,16 +48,11 @@ class NavPanel extends StatefulWidget {
   /// 用户区右侧下载按钮的 tooltip。
   final String downloadTooltip;
 
-  /// 品牌行左侧收起按钮的 tooltip（仅传了 [onCollapse] 时有意义；
-  /// 目前收起入口在窗口工具行，容器不再传）。
-  final String collapseTooltip;
-
   /// 用户菜单内容（设置、退出登录）。容器注入，由
   /// `features/shell/presentation/nav_panel_container.dart` 管业务。
   final List<AppMenuEntry> userMenu;
 
   final VoidCallback? onDownload;
-  final VoidCallback? onCollapse;
 
   @override
   State<NavPanel> createState() => _NavPanelState();
@@ -94,16 +87,22 @@ class _NavPanelState extends State<NavPanel> {
 
           // 3-4. 可滚动区域（其余导航行、置顶、历史会话列表）
           Expanded(
-            child: ListView(
-              padding: EdgeInsets.zero,
-              children: [
-                for (final e in widget.header.skip(1))
-                  _row(e, isHeader: true),
-                if (widget.header.length > 1) const SizedBox(height: 8),
-                for (var i = 0; i < widget.sections.length; i++)
-                  if (!widget.sections[i].isEmpty)
-                    _sectionBlock(widget.sections[i], i),
-              ],
+            child: ScrollbarTheme(
+              data: const ScrollbarThemeData(
+                thickness: WidgetStatePropertyAll(4),
+                radius: Radius.circular(1),
+              ),
+              child: ListView(
+                padding: EdgeInsets.zero,
+                children: [
+                  for (final e in widget.header.skip(1))
+                    _row(e, isHeader: true),
+                  if (widget.header.length > 1) const SizedBox(height: 8),
+                  for (var i = 0; i < widget.sections.length; i++)
+                    if (!widget.sections[i].isEmpty)
+                      _sectionBlock(widget.sections[i], i),
+                ],
+              ),
             ),
           ),
 
@@ -134,25 +133,28 @@ class _NavPanelState extends State<NavPanel> {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           ...[
-                    // 组标题行（带操作按钮）
-                    if (s.title != null)
-                      NavSectionHeader(
-                        section: s,
-                        collapsed: s.isCollapsed ?? _chatsCollapsed,
-                        onToggleCollapse: s.onToggleCollapse ??
-                            (s.collapsible
-                                ? () => setState(() => _chatsCollapsed = !_chatsCollapsed)
-                                : null),
-                        hovered: _hoveredSection == index,
-                      ),
+            // 组标题行（带操作按钮）
+            if (s.title != null)
+              NavSectionHeader(
+                section: s,
+                collapsed: s.isCollapsed ?? _chatsCollapsed,
+                onToggleCollapse:
+                    s.onToggleCollapse ??
+                    (s.collapsible
+                        ? () =>
+                              setState(() => _chatsCollapsed = !_chatsCollapsed)
+                        : null),
+                hovered: _hoveredSection == index,
+              ),
 
-                    if (s.entries.isNotEmpty &&
-                            (!_chatsCollapsed || !s.collapsible || s.onToggleCollapse != null))
-                      // 显示条目（未折叠 或 不可折叠 或 有自定义折叠回调）
-                      for (final e in s.entries)
-                        _row(e, isChatItem: s.collapsible),
+            if (s.entries.isNotEmpty &&
+                (!_chatsCollapsed ||
+                    !s.collapsible ||
+                    s.onToggleCollapse != null))
+              // 显示条目（未折叠 或 不可折叠 或 有自定义折叠回调）
+              for (final e in s.entries) _row(e, isChatItem: s.collapsible),
 
-                    const SizedBox(height: 8),
+            const SizedBox(height: 8),
           ],
         ],
       ),
@@ -171,52 +173,28 @@ class _NavPanelState extends State<NavPanel> {
         isChatItem: isChatItem,
       );
 
-  /// 品牌行：左侧收起按钮 + 字标。
+  /// 品牌行：字标。（收起/展开左栏的入口在窗口左上角工具行。）
   Widget _brand(AppSkin skin) => Padding(
-        padding: EdgeInsets.only(
-          left: widget.onCollapse != null ? 12 : 24,
-          right: 24,
-          top: 8,
-          bottom: 8,
-        ),
-        child: Row(
-          children: [
-            // 收起侧边栏按钮（收起左栏的唯一入口）
-            if (widget.onCollapse != null) ...[
-              IconButton(
-                icon: Icon(Icons.menu_open_sharp,
-                    size: 20, color: skin.textSecondary),
-                onPressed: widget.onCollapse,
-                tooltip: widget.collapseTooltip,
-                padding: EdgeInsets.zero,
-                constraints:
-                    const BoxConstraints(minWidth: 32, minHeight: 32),
-              ),
-              const SizedBox(width: 4),
-            ],
-            Expanded(
-              child: Text(
-                widget.brandName,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: TextStyle(
-                  fontSize: WorkspaceMetrics.brandFontSize,
-                  fontWeight: FontWeight.w700,
-                  height: 1,
-                  color: skin.text,
-                ),
-              ),
-            ),
-          ],
-        ),
-      );
+    padding: const EdgeInsets.fromLTRB(12, 8, 12, 8),
+    child: Text(
+      widget.brandName,
+      maxLines: 1,
+      overflow: TextOverflow.ellipsis,
+      style: TextStyle(
+        fontSize: WorkspaceMetrics.brandFontSize,
+        fontWeight: FontWeight.w700,
+        height: 1,
+        color: skin.text,
+      ),
+    ),
+  );
 
   Widget _divider(AppSkin skin) => Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 24),
-        child: Container(
-          height: 1,
-          margin: const EdgeInsets.only(bottom: 8),
-          color: skin.borderSecondary,
-        ),
-      );
+    padding: const EdgeInsets.symmetric(horizontal: 12),
+    child: Container(
+      height: 1,
+      margin: const EdgeInsets.only(bottom: 8),
+      color: skin.borderSecondary,
+    ),
+  );
 }

@@ -28,7 +28,7 @@ class NavSectionHeader extends StatelessWidget {
   Widget build(BuildContext context) {
     final skin = AppSkin.of(context);
     return Padding(
-      padding: const EdgeInsets.only(left: 24, right: 8, top: 6, bottom: 2),
+      padding: const EdgeInsets.only(left: 12, right: 8, top: 6, bottom: 2),
       child: Row(
         children: [
           // 标题（可折叠的带点击）

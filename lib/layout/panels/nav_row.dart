@@ -16,9 +16,7 @@ import 'package:sgit_studio_flutter/ui/components/menu/app_menu.dart';
 /// 带 [NavEntry.trailingMenu] 的行（历史对话项）不一样：整行仍要能点选中，
 /// 「⁝」只是悬停才露出的第二个热区 —— 所以两者是 `Row` 里的**兄弟节点**，
 /// 不是嵌套，才不会重演上面那句注释里的手势互吃。
-class NavRow
-    extends
-        StatefulWidget {
+class NavRow extends StatefulWidget {
   const NavRow({
     super.key,
     required this.entry,
@@ -36,14 +34,8 @@ class NavRow
   /// 这一行的悬停菜单当前是否开着（由容器/父状态持有，这里只读）。
   final bool menuOpen;
 
-  final ValueChanged<
-    String
-  >
-  onSelect;
-  final ValueChanged<
-    bool
-  >
-  onMenuOpenChanged;
+  final ValueChanged<String> onSelect;
+  final ValueChanged<bool> onMenuOpenChanged;
 
   /// 顶部导航行（New、Projects 等），与品牌行左对齐。
   final bool isHeader;
@@ -52,24 +44,15 @@ class NavRow
   final bool isChatItem;
 
   @override
-  State<
-    NavRow
-  >
-  createState() => _NavRowState();
+  State<NavRow> createState() => _NavRowState();
 }
 
-class _NavRowState
-    extends
-        State<
-          NavRow
-        > {
+class _NavRowState extends State<NavRow> {
   /// 鼠标是否停在这一行上。只用来决定「⁝」按钮露不露出，不影响选中态。
   bool _hovering = false;
 
   @override
-  Widget build(
-    BuildContext context,
-  ) {
+  Widget build(BuildContext context) {
     final entry = widget.entry;
     final selected = widget.selected;
     final menuOpen = widget.menuOpen;
@@ -77,39 +60,25 @@ class _NavRowState
     final onMenuOpenChanged = widget.onMenuOpenChanged;
     final isHeader = widget.isHeader;
     final isChatItem = widget.isChatItem;
-    final skin = AppSkin.of(
-      context,
-    );
+    final skin = AppSkin.of(context);
 
     // 菜单开着时这一行保持高亮，否则菜单飘在外面、行是灰的，看着不像一对。
     // 停在某个子页里时也算 —— 那一行是子页的归属。
     // 历史对话项（isChatItem）选中时也保持灰底常驻
-    final highlighted =
-        selected ||
-            menuOpen ||
-            entry.menuHasChecked;
+    final highlighted = selected || menuOpen || entry.menuHasChecked;
     // 所有行统一灰底 —— 点击选中和鼠标悬停用同一个颜色
-    final hoverBg = skin.text.withValues(
-      alpha: 0.06,
-    );
+    final hoverBg = skin.text.withValues(alpha: 0.06);
     // 历史对话项：选中、悬停、菜单开着都出灰底常驻；其余行悬停或高亮时出底色
     final showBackground = isChatItem
-        ? (selected ||
-              _hovering ||
-              menuOpen)
-        : (highlighted ||
-              _hovering);
-    final fg = highlighted
-        ? skin.text
-        : skin.textSecondary;
+        ? (selected || _hovering || menuOpen)
+        : (highlighted || _hovering);
+    final fg = highlighted ? skin.text : skin.textSecondary;
 
     // 整行右边距 —— 有 trailingMenu 时右边距挪给按钮那个 SizedBox。
     final core = Padding(
       padding: EdgeInsets.only(
-        left:
-            isHeader ||
-                isChatItem
-            ? 24
+        left: isHeader || isChatItem
+            ? 12
             : WorkspaceMetrics.navItemPaddingInline,
         right: (entry.hasTrailingMenu || entry.hasTrailingAdd || entry.hasMenu)
             ? 0
@@ -122,25 +91,16 @@ class _NavRowState
             Container(
               width: 6,
               height: 6,
-              margin: const EdgeInsets.only(
-                right: 12,
-              ),
+              margin: const EdgeInsets.only(right: 12),
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                border: Border.all(
-                  color: fg.withValues(alpha: 0.4)),
+                border: Border.all(color: fg.withValues(alpha: 0.4)),
               ),
             )
           else
-            Icon(
-              entry.icon,
-              size: WorkspaceMetrics.navIconSize,
-              color: fg,
-            ),
+            Icon(entry.icon, size: WorkspaceMetrics.navIconSize, color: fg),
           if (!isChatItem || entry.isSpecialAction)
-            const SizedBox(
-              width: WorkspaceMetrics.navItemGap,
-            ),
+            const SizedBox(width: WorkspaceMetrics.navItemGap),
           Expanded(
             child: Text(
               entry.label,
@@ -164,11 +124,7 @@ class _NavRowState
             SizedBox(
               width: 32,
               child: Center(
-                child: Icon(
-                  Icons.chevron_right,
-                  size: 18,
-                  color: fg,
-                ),
+                child: Icon(Icons.chevron_right, size: 18, color: fg),
               ),
             ),
         ],
@@ -187,9 +143,7 @@ class _NavRowState
         : SizedBox(
             width: 32,
             height: WorkspaceMetrics.navItemHeight,
-            child:
-                (_hovering ||
-                    menuOpen)
+            child: (_hovering || menuOpen)
                 ? Center(
                     child: entry.hasTrailingMenu
                         ? AppMenuAnchor(
@@ -198,22 +152,14 @@ class _NavRowState
                             align: AppMenuAlign.underEnd,
                             semanticLabel: entry.label,
                             onOpenChanged: onMenuOpenChanged,
-                            child: Icon(
-                              Icons.more_vert,
-                              size: 18,
-                              color: fg,
-                            ),
+                            child: Icon(Icons.more_vert, size: 18, color: fg),
                           )
                         : Tooltip(
                             message: entry.trailingAddTooltip ?? '',
                             child: InkWell(
                               onTap: entry.onTrailingAdd,
                               borderRadius: BorderRadius.circular(4),
-                              child: Icon(
-                                Icons.add,
-                                size: 18,
-                                color: fg,
-                              ),
+                              child: Icon(Icons.add, size: 18, color: fg),
                             ),
                           ),
                   )
@@ -235,9 +181,7 @@ class _NavRowState
           // 或菜单项时，点击会一并冒泡到这个 InkWell 触发 onSelect
           Expanded(
             child: InkWell(
-              onTap: () => onSelect(
-                entry.id,
-              ),
+              onTap: () => onSelect(entry.id),
               hoverColor: Colors.transparent,
               splashColor: Colors.transparent,
               highlightColor: Colors.transparent,
@@ -247,50 +191,26 @@ class _NavRowState
           trailingButton!,
         ],
       ),
-      _ => InkWell(
-        onTap: () => onSelect(
-          entry.id,
-        ),
-        child: content,
-      ),
+      _ => InkWell(onTap: () => onSelect(entry.id), child: content),
     };
 
     return Padding(
-      padding: const EdgeInsets.only(
-        bottom: 0.5,
-      ),
+      padding: const EdgeInsets.only(bottom: 0.5),
       child: MouseRegion(
-        onEnter:
-            (
-              _,
-            ) => setState(
-              () => _hovering = true,
-            ),
-        onExit:
-            (
-              _,
-            ) => setState(
-              () => _hovering = false,
-            ),
+        onEnter: (_) => setState(() => _hovering = true),
+        onExit: (_) => setState(() => _hovering = false),
         child: Material(
-          color: showBackground
-              ? hoverBg
-              : Colors.transparent,
-          borderRadius: BorderRadius.circular(
-            WorkspaceMetrics.navItemRadius,
-          ),
+          color: showBackground ? hoverBg : Colors.transparent,
+          borderRadius: BorderRadius.circular(WorkspaceMetrics.navItemRadius),
           clipBehavior: Clip.antiAlias,
           // 历史对话项自己已经在整行外层画了灰底（上面 color）
           child: hasTrailingArea
               ? Theme(
-                  data:
-                      Theme.of(
-                        context,
-                      ).copyWith(
-                        splashColor: Colors.transparent,
-                        highlightColor: Colors.transparent,
-                        hoverColor: Colors.transparent,
-                      ),
+                  data: Theme.of(context).copyWith(
+                    splashColor: Colors.transparent,
+                    highlightColor: Colors.transparent,
+                    hoverColor: Colors.transparent,
+                  ),
                   child: body,
                 )
               : body,

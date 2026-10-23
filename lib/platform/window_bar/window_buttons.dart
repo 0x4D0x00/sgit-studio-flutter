@@ -17,7 +17,7 @@ class WindowBarView extends StatelessWidget {
       height: AppWindow.titleBarHeight,
       child: Row(
         children: [
-          const SizedBox(width: AppSpacing.md),
+          const SizedBox(width: 2),
           if (leading != null) leading!,
           // 中间区域整体可拖拽移动窗口。
           Expanded(
