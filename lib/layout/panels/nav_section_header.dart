@@ -74,9 +74,26 @@ class NavSectionHeader extends StatelessWidget {
                     padding: const EdgeInsets.all(4),
                     child: Icon(
                       Icons.north_east,
-                      size: 15,
+                      size: 14,
                       color: skin.textSecondary,
                     ),
+                  ),
+                ),
+              ),
+            ),
+          // 搜索按钮 —— 紧贴排序/分组菜单按钮左侧。
+          if (section.onSearch != null)
+            InkWell(
+              onTap: section.onSearch,
+              borderRadius: BorderRadius.circular(4),
+              child: Tooltip(
+                message: section.searchTooltip ?? '',
+                child: Padding(
+                  padding: const EdgeInsets.all(4),
+                  child: Icon(
+                    Icons.search,
+                    size: 16,
+                    color: skin.textSecondary,
                   ),
                 ),
               ),

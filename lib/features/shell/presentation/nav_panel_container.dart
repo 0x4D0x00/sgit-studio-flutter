@@ -153,7 +153,7 @@ class NavPanelContainer extends ConsumerWidget {
       onSelect: (id) => _onSelect(context, ref, l10n, id),
       userName: userProfile.username,
       avatarBytes: userProfile.avatarBytes,
-      searchTooltip: l10n.navSearch,
+      downloadTooltip: l10n.navGetApps,
       collapseTooltip: l10n.shellCollapseNav,
       userMenu: [
         AppMenuLabel(userProfile.username),
@@ -214,7 +214,7 @@ class NavPanelContainer extends ConsumerWidget {
           onTap: () => ref.read(authControllerProvider.notifier).logout(),
         ),
       ],
-      onSearch: () => _onSearch(context, ref, threads),
+      onDownload: () => _notWired(context, l10n, 'get-apps'),
       onCollapse: () => ref.read(layoutControllerProvider.notifier).toggleNav(),
       // onAddProject: () => _notWired(
       //   context,
@@ -666,6 +666,8 @@ class NavPanelContainer extends ConsumerWidget {
           viewAllTooltip: l10n.navViewAll,
           onViewAll: () => _onViewAllHistory(context),
           action: NavSectionAction.menu,
+          searchTooltip: l10n.navSearch,
+          onSearch: () => _onSearch(context, ref, threads),
           actionTooltip: l10n.chatSortBy,
           menu: [
             AppMenuSubmenu(
@@ -747,6 +749,8 @@ class NavPanelContainer extends ConsumerWidget {
         collapsible: false,
         viewAllTooltip: l10n.navViewAll,
         onViewAll: () => _onViewAllHistory(context),
+        searchTooltip: l10n.navSearch,
+        onSearch: () => _onSearch(context, ref, threads),
         actionTooltip: l10n.chatSortBy,
         action: NavSectionAction.menu,
         menu: [
@@ -819,6 +823,9 @@ class NavPanelContainer extends ConsumerWidget {
           onViewAll: isFirstGroup ? () => _onViewAllHistory(context) : null,
           action: isFirstGroup ? NavSectionAction.menu : NavSectionAction.none,
           actionTooltip: isFirstGroup ? l10n.chatSortBy : null,
+          searchTooltip: isFirstGroup ? l10n.navSearch : null,
+          onSearch:
+              isFirstGroup ? () => _onSearch(context, ref, threads) : null,
           menu: isFirstGroup
               ? [
                   AppMenuSubmenu(

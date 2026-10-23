@@ -32,11 +32,11 @@ class NavPanel extends StatefulWidget {
     required this.activeId,
     required this.onSelect,
     required this.userName,
-    required this.searchTooltip,
+    required this.downloadTooltip,
     required this.collapseTooltip,
     this.avatarBytes,
     this.userMenu = const [],
-    this.onSearch,
+    this.onDownload,
     this.onCollapse,
     this.onAddProject,
   });
@@ -50,8 +50,8 @@ class NavPanel extends StatefulWidget {
   final String userName;
   final Uint8List? avatarBytes;
 
-  /// 用户区右下角搜索按钮的 tooltip。
-  final String searchTooltip;
+  /// 用户区右侧下载按钮的 tooltip。
+  final String downloadTooltip;
 
   /// 品牌行左侧收起按钮的 tooltip。收起左栏的入口**只有这一处**
   /// （中栏顶栏只负责展开），所以它得说清楚自己是干什么的。
@@ -61,7 +61,7 @@ class NavPanel extends StatefulWidget {
   /// `features/shell/presentation/nav_panel_container.dart` 管业务。
   final List<AppMenuEntry> userMenu;
 
-  final VoidCallback? onSearch;
+  final VoidCallback? onDownload;
   final VoidCallback? onCollapse;
   final VoidCallback? onAddProject;
 
@@ -122,8 +122,8 @@ class _NavPanelState extends State<NavPanel> {
             userName: widget.userName,
             avatarBytes: widget.avatarBytes,
             userMenu: widget.userMenu,
-            searchTooltip: widget.searchTooltip,
-            onSearch: widget.onSearch,
+            downloadTooltip: widget.downloadTooltip,
+            onDownload: widget.onDownload,
           ),
         ],
       ),

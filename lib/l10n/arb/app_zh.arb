@@ -3,6 +3,7 @@
   "@@comment_appTitle": "产品名一律读 brand.json(BrandConfig),不在 arb 里写死品牌名",
   "@@comment_rule": "⚠️ widget 里禁止出现中英文字面量,一律走本文件。新增文案两份 arb 同步加。",
   "navSearch": "搜索",
+  "navGetApps": "获取应用和扩展",
   "navSearchDialogHint": "搜索聊天",
   "navSearchDialogEmpty": "未找到匹配的会话",
   "navNewChat": "新建对话",

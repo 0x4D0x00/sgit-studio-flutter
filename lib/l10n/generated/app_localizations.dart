@@ -104,6 +104,12 @@ abstract class AppLocalizations {
   /// **'搜索'**
   String get navSearch;
 
+  /// No description provided for @navGetApps.
+  ///
+  /// In zh, this message translates to:
+  /// **'获取应用和扩展'**
+  String get navGetApps;
+
   /// No description provided for @navSearchDialogHint.
   ///
   /// In zh, this message translates to:

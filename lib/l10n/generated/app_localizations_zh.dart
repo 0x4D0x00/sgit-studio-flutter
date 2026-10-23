@@ -12,6 +12,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get navSearch => '搜索';
 
   @override
+  String get navGetApps => '获取应用和扩展';
+
+  @override
   String get navSearchDialogHint => '搜索聊天';
 
   @override

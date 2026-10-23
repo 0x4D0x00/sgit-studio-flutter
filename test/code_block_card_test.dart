@@ -111,16 +111,13 @@ void main() {
       await tester.pumpWidget(wrap(ArtifactOutputPanel(
         artifact: artifact,
         copyLabel: '复制',
-        downloadLabel: '下载',
         closeLabel: '关闭',
         onClose: () {},
         onCopy: () {},
-        onDownload: () {},
         child: const SizedBox(),
       )));
 
       expect(find.text('复制'), findsNothing);
-      expect(find.text('下载'), findsNothing);
       expect(find.text('关闭'), findsNothing);
 
       final gesture =

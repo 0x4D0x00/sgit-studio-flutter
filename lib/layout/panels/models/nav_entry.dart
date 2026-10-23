@@ -102,6 +102,8 @@ class NavSection {
     this.viewAllTooltip,
     this.actionTooltip,
     this.onViewAll,
+    this.searchTooltip,
+    this.onSearch,
   });
 
   final String? title;
@@ -122,6 +124,10 @@ class NavSection {
   /// 为空则不渲染这颗按钮。
   final String? viewAllTooltip;
   final VoidCallback? onViewAll;
+
+  /// 标题行搜索按钮（画在 [action] 菜单按钮左侧）。[onSearch] 为空则不渲染。
+  final String? searchTooltip;
+  final VoidCallback? onSearch;
 
   /// [action] 按钮的 tooltip。
   final String? actionTooltip;

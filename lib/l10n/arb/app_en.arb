@@ -2,6 +2,7 @@
   "@@locale": "en",
   "@@comment_appTitle": "Product name comes from brand.json (BrandConfig); never hardcode it here",
   "navSearch": "Search",
+  "navGetApps": "Get apps and extensions",
   "navSearchDialogHint": "Search chats",
   "navSearchDialogEmpty": "No matching chats found",
   "navNewChat": "New chat",

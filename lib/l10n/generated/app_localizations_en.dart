@@ -12,6 +12,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get navSearch => 'Search';
 
   @override
+  String get navGetApps => 'Get apps and extensions';
+
+  @override
   String get navSearchDialogHint => 'Search chats';
 
   @override
