@@ -1783,4 +1783,43 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get searchCmdToggleSidebar => '切换侧边栏';
+
+  @override
+  String get toolbarBack => '后退';
+
+  @override
+  String get toolbarForward => '前进';
+
+  @override
+  String get menuFile => '文件';
+
+  @override
+  String get menuEdit => '编辑';
+
+  @override
+  String get menuView => '视图';
+
+  @override
+  String get menuHelp => '帮助';
+
+  @override
+  String get editUndo => '撤销';
+
+  @override
+  String get editRedo => '重做';
+
+  @override
+  String get editCut => '剪切';
+
+  @override
+  String get editCopy => '复制';
+
+  @override
+  String get editPaste => '粘贴';
+
+  @override
+  String get editSelectAll => '全选';
+
+  @override
+  String get railMore => '更多';
 }

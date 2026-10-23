@@ -145,7 +145,6 @@ class NavPanelContainer extends ConsumerWidget {
       userName: userProfile.username,
       avatarBytes: userProfile.avatarBytes,
       downloadTooltip: l10n.navGetApps,
-      collapseTooltip: l10n.shellCollapseNav,
       userMenu: [
         AppMenuLabel(userProfile.username),
         const AppMenuDivider(),
@@ -206,7 +205,6 @@ class NavPanelContainer extends ConsumerWidget {
         ),
       ],
       onDownload: () => _notWired(context, l10n, 'get-apps'),
-      onCollapse: () => ref.read(layoutControllerProvider.notifier).toggleNav(),
     );
   }
 

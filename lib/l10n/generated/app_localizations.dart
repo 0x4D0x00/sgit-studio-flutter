@@ -3478,6 +3478,84 @@ abstract class AppLocalizations {
   /// In zh, this message translates to:
   /// **'切换侧边栏'**
   String get searchCmdToggleSidebar;
+
+  /// No description provided for @toolbarBack.
+  ///
+  /// In zh, this message translates to:
+  /// **'后退'**
+  String get toolbarBack;
+
+  /// No description provided for @toolbarForward.
+  ///
+  /// In zh, this message translates to:
+  /// **'前进'**
+  String get toolbarForward;
+
+  /// No description provided for @menuFile.
+  ///
+  /// In zh, this message translates to:
+  /// **'文件'**
+  String get menuFile;
+
+  /// No description provided for @menuEdit.
+  ///
+  /// In zh, this message translates to:
+  /// **'编辑'**
+  String get menuEdit;
+
+  /// No description provided for @menuView.
+  ///
+  /// In zh, this message translates to:
+  /// **'视图'**
+  String get menuView;
+
+  /// No description provided for @menuHelp.
+  ///
+  /// In zh, this message translates to:
+  /// **'帮助'**
+  String get menuHelp;
+
+  /// No description provided for @editUndo.
+  ///
+  /// In zh, this message translates to:
+  /// **'撤销'**
+  String get editUndo;
+
+  /// No description provided for @editRedo.
+  ///
+  /// In zh, this message translates to:
+  /// **'重做'**
+  String get editRedo;
+
+  /// No description provided for @editCut.
+  ///
+  /// In zh, this message translates to:
+  /// **'剪切'**
+  String get editCut;
+
+  /// No description provided for @editCopy.
+  ///
+  /// In zh, this message translates to:
+  /// **'复制'**
+  String get editCopy;
+
+  /// No description provided for @editPaste.
+  ///
+  /// In zh, this message translates to:
+  /// **'粘贴'**
+  String get editPaste;
+
+  /// No description provided for @editSelectAll.
+  ///
+  /// In zh, this message translates to:
+  /// **'全选'**
+  String get editSelectAll;
+
+  /// No description provided for @railMore.
+  ///
+  /// In zh, this message translates to:
+  /// **'更多'**
+  String get railMore;
 }
 
 class _AppLocalizationsDelegate

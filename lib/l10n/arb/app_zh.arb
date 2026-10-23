@@ -788,5 +788,18 @@
   "searchOwnerShared": "与我共享",
   "searchActionsHint": "搜索操作",
   "searchCmdAllChats": "全部聊天",
-  "searchCmdToggleSidebar": "切换侧边栏"
+  "searchCmdToggleSidebar": "切换侧边栏",
+  "toolbarBack": "后退",
+  "toolbarForward": "前进",
+  "menuFile": "文件",
+  "menuEdit": "编辑",
+  "menuView": "视图",
+  "menuHelp": "帮助",
+  "editUndo": "撤销",
+  "editRedo": "重做",
+  "editCut": "剪切",
+  "editCopy": "复制",
+  "editPaste": "粘贴",
+  "editSelectAll": "全选",
+  "railMore": "更多"
 }

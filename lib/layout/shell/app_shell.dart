@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 
 import 'package:sgit_studio_flutter/design/effects/layered_scaffold.dart';
 import 'package:sgit_studio_flutter/design/extensions/app_skin.dart';
-import 'package:sgit_studio_flutter/l10n/generated/app_localizations.dart';
 import 'package:sgit_studio_flutter/layout/metrics/workspace_metrics.dart';
 import 'package:sgit_studio_flutter/layout/panels/resizable_panel.dart';
 import 'package:sgit_studio_flutter/layout/responsive/responsive.dart';
@@ -33,6 +32,8 @@ class AppShell extends StatelessWidget {
     required this.output,
     required this.child,
     this.headerTitle,
+    required this.toolbarBuilder,
+    this.rail,
     required this.navExpanded,
     required this.navWidth,
     required this.outputExpanded,
@@ -50,6 +51,13 @@ class AppShell extends StatelessWidget {
 
   /// 顶栏左侧（展开按钮右边）的标题槽，如会话标题。null 则留空。
   final Widget? headerTitle;
+
+  /// 窗口左上角工具行。参数是「切换导航」回调：窄屏开 Drawer，宽屏收起/展开左栏
+  /// （Drawer 要在 Scaffold 之下才找得到，所以由外壳提供回调而不是容器直接给）。
+  final Widget Function(VoidCallback onToggleNav) toolbarBuilder;
+
+  /// 最左侧固定工具列，不可收起。窄屏不显示。
+  final Widget? rail;
 
   final bool navExpanded;
   final double navWidth;
@@ -83,10 +91,21 @@ class AppShell extends StatelessWidget {
             : null,
         body: Column(
           children: [
-            const AppWindowBar(),
+            Builder(
+              builder: (context) => AppWindowBar(
+                leading: toolbarBuilder(
+                  () => narrow
+                      ? Scaffold.of(context).openDrawer()
+                      : onToggleNav(),
+                ),
+              ),
+            ),
             Expanded(
               child: Row(
                 children: [
+                  // ---- 最左侧工具列：固定、不可收起 ----
+                  if (!narrow && rail != null) rail!,
+
                   // ---- 左栏：圆角卡之外 ----
                   if (!narrow)
                     ResizablePanel(
@@ -188,29 +207,14 @@ class AppShell extends StatelessWidget {
 
   /// 顶栏：高 44、padding 8。
   ///
-  /// ⚠️ **只放「展开左栏」按钮**：收起走左栏底部（搜索右边）那颗 chevron，
-  /// 收起入口只留一个 —— 两处都能收起时，用户会以为它们不是同一件事。
-  /// 左栏展开时这里空着（右栏开关仍在），折叠后才出现展开按钮。
+  /// 收起/展开左栏的入口统一在窗口左上角工具行（见 [WindowToolbar]），这里只放标题槽。
   Widget _header(BuildContext context, AppSkin skin, bool narrow) {
-    final l10n = AppLocalizations.of(context);
-    final collapsed = narrow || !navExpanded;
-
     return SizedBox(
       height: WorkspaceMetrics.headerHeight,
       child: Padding(
         padding: const EdgeInsets.all(8),
         child: Row(
           children: [
-            if (collapsed)
-              IconButton(
-                iconSize: 18,
-                color: skin.textSecondary,
-                tooltip: l10n.shellExpandNav,
-                icon: const Icon(Icons.menu_rounded),
-                onPressed: () => narrow
-                    ? Scaffold.of(context).openDrawer()
-                    : onToggleNav(),
-              ),
             Expanded(
               child: Align(
                 alignment: Alignment.centerLeft,

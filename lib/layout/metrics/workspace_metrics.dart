@@ -22,6 +22,9 @@ class WorkspaceMetrics {
   static const double navMinWidth = 240;
   static const double navMaxWidth = 300;
 
+  /// 最左侧工具列（固定宽度，不可收起）。
+  static const double railWidth = 50;
+
   /// 右栏（在圆角卡里面）。
   static const double outputDefaultWidth = 280;
   static const double outputMinWidth = 240;

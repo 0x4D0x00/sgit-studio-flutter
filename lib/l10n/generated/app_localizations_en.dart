@@ -1826,4 +1826,43 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get searchCmdToggleSidebar => 'Toggle sidebar';
+
+  @override
+  String get toolbarBack => 'Back';
+
+  @override
+  String get toolbarForward => 'Forward';
+
+  @override
+  String get menuFile => 'File';
+
+  @override
+  String get menuEdit => 'Edit';
+
+  @override
+  String get menuView => 'View';
+
+  @override
+  String get menuHelp => 'Help';
+
+  @override
+  String get editUndo => 'Undo';
+
+  @override
+  String get editRedo => 'Redo';
+
+  @override
+  String get editCut => 'Cut';
+
+  @override
+  String get editCopy => 'Copy';
+
+  @override
+  String get editPaste => 'Paste';
+
+  @override
+  String get editSelectAll => 'Select all';
+
+  @override
+  String get railMore => 'More';
 }

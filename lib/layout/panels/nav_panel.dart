@@ -32,7 +32,7 @@ class NavPanel extends StatefulWidget {
     required this.onSelect,
     required this.userName,
     required this.downloadTooltip,
-    required this.collapseTooltip,
+    this.collapseTooltip = '',
     this.avatarBytes,
     this.userMenu = const [],
     this.onDownload,
@@ -50,8 +50,8 @@ class NavPanel extends StatefulWidget {
   /// 用户区右侧下载按钮的 tooltip。
   final String downloadTooltip;
 
-  /// 品牌行左侧收起按钮的 tooltip。收起左栏的入口**只有这一处**
-  /// （中栏顶栏只负责展开），所以它得说清楚自己是干什么的。
+  /// 品牌行左侧收起按钮的 tooltip（仅传了 [onCollapse] 时有意义；
+  /// 目前收起入口在窗口工具行，容器不再传）。
   final String collapseTooltip;
 
   /// 用户菜单内容（设置、退出登录）。容器注入，由

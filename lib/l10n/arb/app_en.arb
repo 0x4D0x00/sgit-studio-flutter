@@ -785,5 +785,18 @@
   "searchOwnerShared": "Shared with me",
   "searchActionsHint": "Search actions",
   "searchCmdAllChats": "All chats",
-  "searchCmdToggleSidebar": "Toggle sidebar"
+  "searchCmdToggleSidebar": "Toggle sidebar",
+  "toolbarBack": "Back",
+  "toolbarForward": "Forward",
+  "menuFile": "File",
+  "menuEdit": "Edit",
+  "menuView": "View",
+  "menuHelp": "Help",
+  "editUndo": "Undo",
+  "editRedo": "Redo",
+  "editCut": "Cut",
+  "editCopy": "Copy",
+  "editPaste": "Paste",
+  "editSelectAll": "Select all",
+  "railMore": "More"
 }

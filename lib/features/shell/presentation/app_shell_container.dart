@@ -1,5 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
+
+import 'package:sgit_studio_flutter/features/auth/application/auth_controller.dart';
+import 'package:sgit_studio_flutter/features/settings/presentation/widgets/language_dialog.dart';
+import 'package:sgit_studio_flutter/features/settings/presentation/widgets/settings_dialog.dart';
+import 'package:sgit_studio_flutter/layout/shell/side_rail.dart';
+import 'package:sgit_studio_flutter/layout/shell/window_toolbar.dart';
+import 'package:sgit_studio_flutter/router/route_names.dart';
+import 'package:sgit_studio_flutter/services/chat/chat_controller.dart';
+import 'package:sgit_studio_flutter/ui/components/menu/app_menu.dart';
 
 import 'package:sgit_studio_flutter/features/chat/presentation/thread_title_bar.dart';
 import 'package:sgit_studio_flutter/features/shell/presentation/nav_panel_container.dart';
@@ -45,6 +55,44 @@ class AppShellContainer extends ConsumerStatefulWidget {
 }
 
 class _AppShellContainerState extends ConsumerState<AppShellContainer> {
+  /// 路由访问历史（go_router 的 go 是替换式导航，没有现成的前进/后退栈）。
+  final List<String> _history = [];
+  int _cursor = -1;
+
+  /// 后退/前进触发的跳转不该再往历史里追加。
+  bool _replaying = false;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final loc = GoRouterState.of(context).uri.toString();
+    if (_replaying) {
+      _replaying = false;
+      return;
+    }
+    if (_cursor >= 0 && _history[_cursor] == loc) return;
+    // 在历史中间导航：丢弃「前进」分支。
+    _history.removeRange(_cursor + 1, _history.length);
+    _history.add(loc);
+    _cursor = _history.length - 1;
+  }
+
+  void _go(int delta) {
+    final next = _cursor + delta;
+    if (next < 0 || next >= _history.length) return;
+    setState(() {
+      _cursor = next;
+      _replaying = true;
+    });
+    context.go(_history[next]);
+  }
+
+  /// 把当前焦点控件（输入框 / 可选文本）当作菜单动作的目标。
+  void _editAction(Intent intent) {
+    final ctx = FocusManager.instance.primaryFocus?.context;
+    if (ctx != null) Actions.maybeInvoke(ctx, intent);
+  }
+
   @override
   void didUpdateWidget(AppShellContainer old) {
     super.didUpdateWidget(old);
@@ -105,7 +153,170 @@ class _AppShellContainerState extends ConsumerState<AppShellContainer> {
           ),
         );
 
+        final rail = SideRail(
+          items: [
+            SideRailItem(
+              icon: Icons.home_rounded,
+              tooltip: l10n.navNewChat,
+              selected: widget.isConversation,
+              onTap: () => context.go(RouteNames.home),
+            ),
+            SideRailItem(
+              icon: Icons.history_rounded,
+              tooltip: l10n.navHistory,
+              selected: widget.activeNavId == NavPanelContainer.idHistory,
+              onTap: () => context.go(RouteNames.history),
+            ),
+            SideRailItem(
+              icon: Icons.widgets_outlined,
+              tooltip: l10n.shellOutputTitle,
+              selected: widget.activeNavId == NavPanelContainer.idArtifacts,
+              onTap: () => context.go(RouteNames.artifacts),
+            ),
+            SideRailItem(
+              icon: Icons.folder_outlined,
+              tooltip: l10n.navProjects,
+              selected: widget.activeNavId == NavPanelContainer.idProjects,
+              onTap: () => context.go(RouteNames.projects),
+            ),
+            SideRailItem(
+              icon: Icons.tune,
+              tooltip: l10n.navCustomize,
+              selected: widget.activeNavId == NavPanelContainer.idCustomize,
+              onTap: () => context.go(RouteNames.customize),
+            ),
+            SideRailItem(
+              icon: Icons.more_horiz_rounded,
+              tooltip: l10n.railMore,
+              menu: [
+                AppMenuAction(
+                  icon: Icons.settings_outlined,
+                  label: l10n.navSettings,
+                  onTap: () => showSettingsDialog(context),
+                ),
+                AppMenuAction(
+                  icon: Icons.language,
+                  label: l10n.settingsLanguage,
+                  onTap: () => showLanguageDialog(context),
+                ),
+              ],
+            ),
+          ],
+        );
+
+        final menus = [
+          WindowMenu(
+            label: l10n.menuFile,
+            entries: [
+              AppMenuAction(
+                icon: Icons.add,
+                label: l10n.navNewChat,
+                onTap: () {
+                  ref.read(chatControllerProvider.notifier).newChat();
+                  context.go(RouteNames.home);
+                },
+              ),
+              AppMenuAction(
+                icon: Icons.settings_outlined,
+                label: l10n.navSettings,
+                onTap: () => showSettingsDialog(context),
+              ),
+              const AppMenuDivider(),
+              AppMenuAction(
+                icon: Icons.logout,
+                label: l10n.navLogout,
+                onTap: () => ref.read(authControllerProvider.notifier).logout(),
+              ),
+            ],
+          ),
+          WindowMenu(
+            label: l10n.menuEdit,
+            entries: [
+              AppMenuAction(
+                label: l10n.editUndo,
+                onTap: () => _editAction(
+                  const UndoTextIntent(SelectionChangedCause.toolbar),
+                ),
+              ),
+              AppMenuAction(
+                label: l10n.editRedo,
+                onTap: () => _editAction(
+                  const RedoTextIntent(SelectionChangedCause.toolbar),
+                ),
+              ),
+              const AppMenuDivider(),
+              AppMenuAction(
+                label: l10n.editCut,
+                onTap: () => _editAction(
+                  const CopySelectionTextIntent.cut(
+                    SelectionChangedCause.toolbar,
+                  ),
+                ),
+              ),
+              AppMenuAction(
+                label: l10n.editCopy,
+                onTap: () => _editAction(CopySelectionTextIntent.copy),
+              ),
+              AppMenuAction(
+                label: l10n.editPaste,
+                onTap: () => _editAction(
+                  const PasteTextIntent(SelectionChangedCause.toolbar),
+                ),
+              ),
+              AppMenuAction(
+                label: l10n.editSelectAll,
+                onTap: () => _editAction(
+                  const SelectAllTextIntent(SelectionChangedCause.toolbar),
+                ),
+              ),
+            ],
+          ),
+          WindowMenu(
+            label: l10n.menuView,
+            entries: [
+              AppMenuAction(
+                icon: Icons.view_sidebar_outlined,
+                label: layout.navExpanded
+                    ? l10n.shellCollapseNav
+                    : l10n.shellExpandNav,
+                onTap: ctrl.toggleNav,
+              ),
+              if (widget.isConversation)
+                AppMenuAction(
+                  icon: Icons.view_sidebar_outlined,
+                  label: l10n.shellToggleOutput,
+                  onTap: ctrl.toggleOutput,
+                ),
+            ],
+          ),
+          WindowMenu(
+            label: l10n.menuHelp,
+            entries: [
+              AppMenuAction(
+                icon: Icons.language,
+                label: l10n.settingsLanguage,
+                onTap: () => showLanguageDialog(context),
+              ),
+            ],
+          ),
+        ];
+
         return AppShell(
+          rail: rail,
+          toolbarBuilder: (toggleNav) => WindowToolbar(
+            canGoBack: _cursor > 0,
+            canGoForward: _cursor < _history.length - 1,
+            onBack: () => _go(-1),
+            onForward: () => _go(1),
+            onToggleNav: toggleNav,
+            navExpanded: layout.navExpanded,
+            backTooltip: l10n.toolbarBack,
+            forwardTooltip: l10n.toolbarForward,
+            toggleNavTooltip: layout.navExpanded
+                ? l10n.shellCollapseNav
+                : l10n.shellExpandNav,
+            menus: menus,
+          ),
           navExpanded: layout.navExpanded,
           navWidth: layout.navWidth,
           // ⚠️ 非会话页恒为 false。关状态是 post-frame 的（见 didUpdateWidget），
