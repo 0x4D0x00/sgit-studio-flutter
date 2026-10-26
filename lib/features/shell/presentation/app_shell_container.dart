@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
@@ -322,6 +323,20 @@ class _AppShellContainerState extends ConsumerState<AppShellContainer> {
         );
         final themeCtrl = ref.read(themeControllerProvider.notifier);
 
+        void newChat() {
+          ref.read(chatControllerProvider.notifier).newChat();
+          context.go(RouteNames.home);
+        }
+
+        // 关闭当前页面（回到工作台）；已经没有可关的页面就最小化客户端。
+        void closePage() {
+          if (widget.activePath == RouteNames.home) {
+            minimizeClient();
+          } else {
+            context.go(RouteNames.home);
+          }
+        }
+
         final menus = [
           WindowMenu(
             label: l10n.menuFile,
@@ -333,10 +348,7 @@ class _AppShellContainerState extends ConsumerState<AppShellContainer> {
               AppMenuAction(
                 label: l10n.navNewChat,
                 shortcut: 'Ctrl+N',
-                onTap: () {
-                  ref.read(chatControllerProvider.notifier).newChat();
-                  context.go(RouteNames.home);
-                },
+                onTap: newChat,
               ),
               AppMenuAction(
                 label: l10n.menuNewProject,
@@ -352,14 +364,7 @@ class _AppShellContainerState extends ConsumerState<AppShellContainer> {
               AppMenuAction(
                 label: l10n.menuClose,
                 shortcut: 'Ctrl+W',
-                onTap: () {
-                  // 关闭当前页面（回到工作台）；已经没有可关的页面就最小化客户端。
-                  if (widget.activePath == RouteNames.home) {
-                    minimizeClient();
-                  } else {
-                    context.go(RouteNames.home);
-                  }
-                },
+                onTap: closePage,
               ),
               const AppMenuDivider(),
               AppMenuAction(
@@ -496,7 +501,7 @@ class _AppShellContainerState extends ConsumerState<AppShellContainer> {
           ),
         ];
 
-        return AppShell(
+        final shell = AppShell(
           rail: rail,
           showNav: widget.showNav,
           toolbarBuilder: (toggleNav) => Listener(
@@ -535,6 +540,55 @@ class _AppShellContainerState extends ConsumerState<AppShellContainer> {
           output: outputPanel,
           headerTitle: widget.isConversation ? const ThreadTitleBar() : null,
           child: widget.child,
+        );
+
+        // 菜单里写的快捷键要有真实按键。输入框 / 选区自带 Ctrl+Z/X/C/V/A，不用再绑；
+        // Flutter 在 Windows/Linux 只认 Ctrl+Shift+Z 重做，Ctrl+Y 这里补上。
+        // 还没有功能的项和菜单一样只弹「功能待接」。
+        return CallbackShortcuts(
+          bindings: {
+            const SingleActivator(LogicalKeyboardKey.keyN, control: true): newChat,
+            const SingleActivator(LogicalKeyboardKey.keyO, control: true): () =>
+                notWired(l10n.menuOpenFolder),
+            const SingleActivator(LogicalKeyboardKey.keyW, control: true): closePage,
+            const SingleActivator(LogicalKeyboardKey.keyQ, control: true): quitClient,
+            const SingleActivator(LogicalKeyboardKey.keyY, control: true): () {
+              final ctx = FocusManager.instance.primaryFocus?.context;
+              if (ctx == null) return;
+              Actions.maybeInvoke(
+                ctx,
+                const RedoTextIntent(SelectionChangedCause.keyboard),
+              );
+            },
+            // 视图
+            const SingleActivator(LogicalKeyboardKey.keyS, control: true, shift: true):
+                ctrl.toggleNav,
+            const SingleActivator(LogicalKeyboardKey.backquote, control: true): () =>
+                notWired(l10n.menuOpenTerminal),
+            const SingleActivator(LogicalKeyboardKey.keyB, control: true, alt: true): () =>
+                notWired(l10n.menuSwitchChatTabs),
+            const SingleActivator(LogicalKeyboardKey.keyF, control: true): () =>
+                notWired(l10n.menuFind),
+            const SingleActivator(LogicalKeyboardKey.bracketLeft, control: true): () =>
+                _go(-1),
+            const SingleActivator(LogicalKeyboardKey.equal, control: true, shift: true): () =>
+                themeCtrl.bumpFontScale(1),
+            const SingleActivator(LogicalKeyboardKey.equal, control: true): () =>
+                themeCtrl.bumpFontScale(1),
+            const SingleActivator(LogicalKeyboardKey.numpadAdd, control: true): () =>
+                themeCtrl.bumpFontScale(1),
+            const SingleActivator(LogicalKeyboardKey.minus, control: true): () =>
+                themeCtrl.bumpFontScale(-1),
+            const SingleActivator(LogicalKeyboardKey.numpadSubtract, control: true): () =>
+                themeCtrl.bumpFontScale(-1),
+            const SingleActivator(LogicalKeyboardKey.digit0, control: true):
+                themeCtrl.resetFontScale,
+            const SingleActivator(LogicalKeyboardKey.f11): () => notWired(l10n.menuFullScreen),
+            // 帮助
+            const SingleActivator(LogicalKeyboardKey.slash, control: true): () =>
+                notWired(l10n.navKeyboardShortcuts),
+          },
+          child: shell,
         );
       },
     );
