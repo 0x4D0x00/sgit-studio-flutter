@@ -3,7 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:sgit_studio_flutter/data/repositories/settings_repository.dart';
 import 'package:sgit_studio_flutter/domain/models/studio/relay_models.dart';
-import 'package:sgit_studio_flutter/features/studio/application/settings_repository_provider.dart';
+import 'package:sgit_studio_flutter/app/app_providers.dart';
 
 // ============================================================================
 // 大模型中转站（L1 厂商 → L2 模型 → L3 密钥）

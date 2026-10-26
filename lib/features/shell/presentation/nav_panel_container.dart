@@ -14,7 +14,7 @@ import 'package:sgit_studio_flutter/features/chat/presentation/thread_actions.da
 import 'package:sgit_studio_flutter/features/projects/application/projects_controller.dart';
 import 'package:sgit_studio_flutter/features/projects/presentation/widgets/create_project_dialog.dart';
 import 'package:sgit_studio_flutter/features/projects/presentation/widgets/edit_project_dialog.dart';
-import 'package:sgit_studio_flutter/ui/components/confirm.dart';
+import 'package:sgit_studio_flutter/ui/feedback/confirm.dart';
 import 'package:sgit_studio_flutter/l10n/generated/app_localizations.dart';
 import 'package:sgit_studio_flutter/layout/panels/models/nav_entry.dart';
 import 'package:sgit_studio_flutter/layout/panels/nav_panel.dart';

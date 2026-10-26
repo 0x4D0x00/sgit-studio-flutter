@@ -22,6 +22,7 @@ import 'package:sgit_studio_flutter/features/chat/application/transcript_selecti
 import 'package:sgit_studio_flutter/l10n/generated/app_localizations.dart';
 import 'package:sgit_studio_flutter/layout/metrics/workspace_metrics.dart';
 import 'package:sgit_studio_flutter/services/chat/chat_controller.dart';
+import 'package:sgit_studio_flutter/services/layout/layout_controller.dart';
 import 'package:sgit_studio_flutter/ui/components/chat/approval_card.dart';
 import 'package:sgit_studio_flutter/ui/components/chat/artifact_chip.dart';
 import 'package:sgit_studio_flutter/ui/components/chat/jump_to_latest_button.dart';
@@ -868,6 +869,7 @@ class _ChatTranscriptState extends ConsumerState<ChatTranscript> {
       truncatedHint: l10n.chatTextTruncated,
       isLastAnswer: isLastAnswer,
       replyComplete: replyComplete,
+      onOpenArtifact: ref.read(layoutControllerProvider.notifier).showArtifact,
       onEditSave: t.role == ChatRole.user
           // 编辑的只是正文，原消息带的引用要原样带上。
           ? (text) => ctrl.editAndResend(

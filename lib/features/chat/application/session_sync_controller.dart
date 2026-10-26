@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'package:sgit_studio_flutter/app/app_providers.dart';
 import 'package:sgit_studio_flutter/data/repositories/session_sync_repository.dart';
 
 /// 会话历史同步的触发器。

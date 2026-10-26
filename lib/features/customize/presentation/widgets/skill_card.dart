@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:sgit_studio_flutter/design/extensions/app_skin.dart';
 import 'package:sgit_studio_flutter/design/tokens/app_spacing.dart';
 import 'package:sgit_studio_flutter/l10n/generated/app_localizations.dart';
-import 'package:sgit_studio_flutter/ui/components/hover_lift.dart';
+import 'package:sgit_studio_flutter/ui/primitives/hover_lift.dart';
 
 import '../../data/customize_models.dart';
 import 'customize_tag_chip.dart';

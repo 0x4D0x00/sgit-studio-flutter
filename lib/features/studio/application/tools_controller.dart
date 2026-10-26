@@ -3,7 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:sgit_studio_flutter/data/repositories/settings_repository.dart';
 import 'package:sgit_studio_flutter/domain/models/studio/tool_catalog.dart';
-import 'package:sgit_studio_flutter/features/studio/application/settings_repository_provider.dart';
+import 'package:sgit_studio_flutter/app/app_providers.dart';
 
 /// 目录里的一项 + 它当前的启用状态。
 @immutable

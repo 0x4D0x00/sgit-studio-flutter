@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:sgit_studio_flutter/design/extensions/app_skin.dart';
 import 'package:sgit_studio_flutter/design/tokens/app_spacing.dart';
 import 'package:sgit_studio_flutter/l10n/generated/app_localizations.dart';
-import 'package:sgit_studio_flutter/ui/components/responsive_card_wrap.dart';
+import 'package:sgit_studio_flutter/ui/primitives/responsive_card_wrap.dart';
 
 import '../../data/customize_models.dart';
 import 'connector_card.dart';

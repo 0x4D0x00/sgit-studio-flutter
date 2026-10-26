@@ -3,7 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:sgit_studio_flutter/features/chat/application/thread_list_controller.dart';
 import 'package:sgit_studio_flutter/l10n/generated/app_localizations.dart';
-import 'package:sgit_studio_flutter/ui/components/confirm.dart';
+import 'package:sgit_studio_flutter/ui/feedback/confirm.dart';
 
 /// 会话的改名 / 删除交互。
 ///

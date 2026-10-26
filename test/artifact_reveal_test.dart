@@ -4,10 +4,12 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'package:sgit_studio_flutter/features/chat/application/chat_ports_impl.dart';
+import 'package:sgit_studio_flutter/app/app_providers.dart';
 import 'package:sgit_studio_flutter/core/storage/local_storage.dart';
 import 'package:sgit_studio_flutter/data/repositories/session_sync_repository.dart';
 import 'package:sgit_studio_flutter/data/repositories/thread_repository.dart';
-import 'package:sgit_studio_flutter/data/transport/kernel/kernel_client_mock.dart';
+import 'fakes/kernel_client_mock.dart';
 import 'package:sgit_studio_flutter/design/themes/app_theme.dart';
 import 'package:sgit_studio_flutter/design/tokens/app_colors.dart';
 import 'package:sgit_studio_flutter/domain/models/artifact/artifact.dart';
@@ -88,6 +90,7 @@ void main() {
 
   Widget harness({int filler = 60}) => ProviderScope(
         overrides: [
+ chatPortsOverride,
           threadRepositoryProvider.overrideWithValue(_Repo(filler: filler)),
           sessionSyncRepositoryProvider.overrideWithValue(_Sync()),
           chatControllerProvider

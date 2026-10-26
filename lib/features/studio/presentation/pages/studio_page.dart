@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:sgit_studio_flutter/design/extensions/app_skin.dart';
-import 'package:sgit_studio_flutter/features/studio/application/accessible_menus_controller.dart';
+import 'package:sgit_studio_flutter/app/app_providers.dart';
 import 'package:sgit_studio_flutter/features/studio/presentation/pages/relay_page.dart';
 import 'package:sgit_studio_flutter/features/studio/presentation/pages/resource_list_page.dart';
 import 'package:sgit_studio_flutter/features/studio/presentation/pages/tools_page.dart';

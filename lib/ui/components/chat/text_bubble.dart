@@ -1,6 +1,5 @@
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:sgit_studio_flutter/design/extensions/app_skin.dart';
 import 'package:sgit_studio_flutter/design/tokens/app_spacing.dart';
@@ -12,7 +11,6 @@ import 'package:sgit_studio_flutter/domain/models/chat/message_quotes.dart';
 import 'package:sgit_studio_flutter/ui/components/chat/composer/composer_quote_card.dart';
 import 'package:sgit_studio_flutter/l10n/generated/app_localizations.dart';
 import 'package:sgit_studio_flutter/services/export/artifact_exporter.dart';
-import 'package:sgit_studio_flutter/services/layout/layout_controller.dart';
 import 'package:sgit_studio_flutter/ui/components/chat/bubble_actions_row.dart';
 import 'package:sgit_studio_flutter/ui/components/chat/markdown/markdown_view.dart';
 import 'package:sgit_studio_flutter/ui/components/chat/markdown/markdown_view_cache.dart';
@@ -30,7 +28,7 @@ import 'package:sgit_studio_flutter/ui/components/chat/markdown/markdown_view_ca
 ///
 /// 所以下面按角色分支成两条子树，而不是在一个 `Container` 上做三元：两者连
 /// 「有没有 Container」都不一样，硬合并只会得到一个满是条件的分支。
-class TextBubble extends ConsumerStatefulWidget {
+class TextBubble extends StatefulWidget {
   const TextBubble({
     super.key,
     required this.item,
@@ -38,6 +36,7 @@ class TextBubble extends ConsumerStatefulWidget {
     this.isLastAnswer = false,
     this.replyComplete = false,
     this.onEditSave,
+    this.onOpenArtifact,
   });
 
   final TextItem item;
@@ -71,11 +70,15 @@ class TextBubble extends ConsumerStatefulWidget {
   /// 调用方（[ChatTranscript]）据此丢弃这条之后的内容并重新发送。
   final void Function(String text)? onEditSave;
 
+  /// 点开引用卡/产物卡时调用。本组件不碰布局状态，由调用方决定怎么展示
+  /// （`ChatTranscript` 里接的是右侧输出面板）。不传则点击无反应。
+  final void Function(ChatArtifact artifact)? onOpenArtifact;
+
   @override
-  ConsumerState<TextBubble> createState() => _TextBubbleState();
+  State<TextBubble> createState() => _TextBubbleState();
 }
 
-class _TextBubbleState extends ConsumerState<TextBubble> {
+class _TextBubbleState extends State<TextBubble> {
   bool _hovering = false;
 
   /// 正在气泡内编辑。非 null 时气泡内容替换成输入框。
@@ -212,7 +215,7 @@ class _TextBubbleState extends ConsumerState<TextBubble> {
             ComposerQuoteCard(
               text: q,
               size: 100,
-              onTap: () => ref.read(layoutControllerProvider.notifier).showArtifact(
+              onTap: () => widget.onOpenArtifact?.call(
                     ChatArtifact(
                       title: title,
                       language: 'quote',
@@ -313,7 +316,7 @@ class _TextBubbleState extends ConsumerState<TextBubble> {
 
   /// 打开产物到右侧面板。
   void _openArtifact(ChatArtifact artifact) =>
-      ref.read(layoutControllerProvider.notifier).showArtifact(artifact);
+      widget.onOpenArtifact?.call(artifact);
 
   /// 保存产物到本地。
   ///

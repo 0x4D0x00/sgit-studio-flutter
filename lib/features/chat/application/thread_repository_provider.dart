@@ -7,7 +7,7 @@ import 'package:sgit_studio_flutter/features/chat/application/composer_settings_
 ///
 /// ## 为什么单独一个文件
 ///
-/// 同类 provider（`sessionSyncRepositoryProvider` 等）都跟抽象接口放一起，
+/// 同类 provider 在 `app/app_providers.dart`，
 /// 这个不行：它要 `watch` 属于 features 层的 `composerSettingsProvider`，
 /// 放进 `data/repositories/` 就成了 data 反向依赖 features。
 ///

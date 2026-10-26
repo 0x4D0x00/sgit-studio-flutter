@@ -5,8 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:sgit_studio_flutter/data/repositories/gateway_repository.dart';
 import 'package:sgit_studio_flutter/data/repositories/settings_repository.dart';
 import 'package:sgit_studio_flutter/domain/models/studio/resource_item.dart';
-import 'package:sgit_studio_flutter/features/studio/application/kernel_client_provider.dart';
-import 'package:sgit_studio_flutter/features/studio/application/settings_repository_provider.dart';
+import 'package:sgit_studio_flutter/app/app_providers.dart';
 import 'package:sgit_studio_flutter/features/studio/studio_page_specs.dart';
 
 /// 一个 studio 页面的数据状态。**三态齐全**（加载中 / 出错 / 数据），

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:sgit_studio_flutter/app/app.dart';
+import 'package:sgit_studio_flutter/features/chat/application/chat_ports_impl.dart';
 import 'package:sgit_studio_flutter/data/transport/ffi/sgit_request_ffi.dart';
 import 'package:sgit_studio_flutter/services/brand/brand_config.dart';
 import 'package:sgit_studio_flutter/platform/desktop_window.dart';
@@ -39,7 +40,12 @@ Future<void> main() async {
     debugPrint('[main] FFI 预热失败（继续启动）：$e');
   }
 
-  runApp(const ProviderScope(child: SgitStudioApp()));
+  runApp(
+    ProviderScope(
+      overrides: [chatPortsOverride],
+      child: const SgitStudioApp(),
+    ),
+  );
 
   // 桌面无边框透明窗口(仅 Windows/Linux/macOS 生效)。
   await initDesktopWindow();

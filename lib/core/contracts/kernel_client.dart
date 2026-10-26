@@ -9,7 +9,7 @@ import 'package:sgit_studio_flutter/data/transport/kernel/kernel_frame.dart';
 /// 三个实现：
 /// - `kernel_client_io.dart`   桌面：`dart:ffi` 调 `libsgit_ffi.so` / `sgit_ffi.dll`
 /// - `kernel_client_web.dart`  Web：`js_interop` 调 `sgit_ffi_web`（wasm）
-/// - `kernel_client_mock.dart` 开发/测试：自己产真帧，不连后端
+/// - `test/fakes/kernel_client_mock.dart` 测试：自己产真帧，不连后端
 ///
 /// 符号与帧格式见 `docs/KERNEL_FFI.md`。
 abstract interface class KernelClient {

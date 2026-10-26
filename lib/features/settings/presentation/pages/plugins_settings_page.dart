@@ -3,9 +3,9 @@ import 'package:flutter/material.dart';
 import 'package:sgit_studio_flutter/design/extensions/app_skin.dart';
 import 'package:sgit_studio_flutter/design/tokens/app_spacing.dart';
 import 'package:sgit_studio_flutter/l10n/generated/app_localizations.dart';
-import 'package:sgit_studio_flutter/ui/components/confirm.dart';
-import 'package:sgit_studio_flutter/ui/components/pill_tab_bar.dart';
-import 'package:sgit_studio_flutter/ui/components/responsive_card_wrap.dart';
+import 'package:sgit_studio_flutter/ui/feedback/confirm.dart';
+import 'package:sgit_studio_flutter/ui/primitives/pill_tab_bar.dart';
+import 'package:sgit_studio_flutter/ui/primitives/responsive_card_wrap.dart';
 
 import 'package:sgit_studio_flutter/features/customize/data/customize_models.dart';
 import 'package:sgit_studio_flutter/features/customize/data/customize_sample_data.dart';

@@ -6,8 +6,8 @@ import 'package:sgit_studio_flutter/design/tokens/app_spacing.dart';
 import 'package:sgit_studio_flutter/domain/models/studio/tool_catalog.dart';
 import 'package:sgit_studio_flutter/features/studio/application/tools_controller.dart';
 import 'package:sgit_studio_flutter/l10n/generated/app_localizations.dart';
-import 'package:sgit_studio_flutter/ui/components/async_view.dart';
-import 'package:sgit_studio_flutter/ui/components/hover_lift.dart';
+import 'package:sgit_studio_flutter/ui/feedback/async_view.dart';
+import 'package:sgit_studio_flutter/ui/primitives/hover_lift.dart';
 
 /// 工具页 —— sgcode 引擎的**内置工具**，按类别分组展示。
 ///

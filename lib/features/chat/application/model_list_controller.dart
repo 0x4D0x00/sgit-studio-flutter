@@ -3,7 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:sgit_studio_flutter/data/repositories/settings_repository.dart';
 import 'package:sgit_studio_flutter/domain/models/studio/relay_models.dart';
-import 'package:sgit_studio_flutter/features/studio/application/settings_repository_provider.dart';
+import 'package:sgit_studio_flutter/app/app_providers.dart';
 
 /// 输入框「可用 chat 模型」的数据源 —— 与中转站页**读同一份数据、走同一条路**。
 ///

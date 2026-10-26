@@ -3,11 +3,13 @@ import 'dart:async';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'package:sgit_studio_flutter/features/chat/application/chat_ports_impl.dart';
+import 'package:sgit_studio_flutter/app/app_providers.dart';
 import 'package:sgit_studio_flutter/domain/models/chat/chat_item.dart';
 
 import 'package:sgit_studio_flutter/data/repositories/session_sync_repository.dart';
 import 'package:sgit_studio_flutter/data/repositories/thread_repository.dart';
-import 'package:sgit_studio_flutter/data/transport/kernel/kernel_client_mock.dart';
+import 'fakes/kernel_client_mock.dart';
 import 'package:sgit_studio_flutter/domain/models/chat/sgcode_settings.dart';
 import 'package:sgit_studio_flutter/domain/models/chat/thread_summary.dart';
 import 'package:sgit_studio_flutter/features/chat/application/composer_settings_controller.dart';
@@ -178,6 +180,7 @@ void main() {
       repo = _FakeThreadRepository();
       container = ProviderContainer(
         overrides: [
+ chatPortsOverride,
           threadRepositoryProvider.overrideWithValue(repo),
           // ⚠️ **必须注入假内核**。列表控制器 `build()` 里 listen 了
           // `chatControllerProvider`（等连上再拉，见那边的注释），于是一读
@@ -295,6 +298,7 @@ void main() {
       sync = _FakeSyncRepository();
       container = ProviderContainer(
         overrides: [
+ chatPortsOverride,
           threadRepositoryProvider.overrideWithValue(repo),
           sessionSyncRepositoryProvider.overrideWithValue(sync),
           chatControllerProvider
@@ -380,6 +384,7 @@ void main() {
       sync = _FakeSyncRepository();
       container = ProviderContainer(
         overrides: [
+ chatPortsOverride,
           threadRepositoryProvider.overrideWithValue(repo),
           sessionSyncRepositoryProvider.overrideWithValue(sync),
           chatControllerProvider

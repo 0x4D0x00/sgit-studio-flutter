@@ -4,12 +4,13 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'package:sgit_studio_flutter/features/chat/application/chat_ports_impl.dart';
 import 'package:sgit_studio_flutter/core/storage/local_storage.dart';
 import 'package:sgit_studio_flutter/design/themes/app_theme.dart';
 import 'package:sgit_studio_flutter/design/tokens/app_colors.dart';
-import 'package:sgit_studio_flutter/data/transport/kernel/kernel_client_mock.dart';
+import 'fakes/kernel_client_mock.dart';
 import 'package:sgit_studio_flutter/features/chat/presentation/chat_composer.dart';
-import 'package:sgit_studio_flutter/features/studio/application/settings_repository_provider.dart';
+import 'package:sgit_studio_flutter/app/app_providers.dart';
 import 'package:sgit_studio_flutter/features/chat/presentation/chat_transcript.dart';
 import 'package:sgit_studio_flutter/l10n/generated/app_localizations.dart';
 import 'package:sgit_studio_flutter/layout/metrics/workspace_metrics.dart';
@@ -48,6 +49,7 @@ void main() {
 
   Widget harness() => ProviderScope(
         overrides: [
+ chatPortsOverride,
           // 输入框会读引擎设置（审批策略 / 沙箱档位 / 推理强度）。真实现是
           // `dart:ffi` 打本地 `sgit_ffi` —— 测试机上没有那个动态库。
           // 控制器本来就会吞掉读失败并退回默认档，但**让测试依赖"某处会抛异常"

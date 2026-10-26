@@ -3,7 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:sgit_studio_flutter/data/repositories/settings_repository.dart';
 import 'package:sgit_studio_flutter/domain/models/chat/sgcode_settings.dart';
-import 'package:sgit_studio_flutter/features/studio/application/settings_repository_provider.dart';
+import 'package:sgit_studio_flutter/app/app_providers.dart';
 
 /// 输入框上那几个 sgcode 引擎设置（审批策略 / 沙箱档位 / 推理强度 /
 /// 联网搜索 / 记忆）的读写。

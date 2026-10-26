@@ -4,9 +4,9 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'package:sgit_studio_flutter/app/app_providers.dart';
 import 'package:sgit_studio_flutter/core/contracts/kernel_client.dart';
 import 'package:sgit_studio_flutter/core/contracts/kernel_ops.dart';
-import 'package:sgit_studio_flutter/data/repositories/session_sync_repository.dart';
 import 'package:sgit_studio_flutter/data/mappers/kernel_frame_mapper.dart';
 import 'package:sgit_studio_flutter/data/mappers/view_event_mapper.dart';
 import 'package:sgit_studio_flutter/data/transport/kernel/kernel_client_factory.dart';
@@ -16,10 +16,7 @@ import 'package:sgit_studio_flutter/domain/models/chat/chat_item.dart';
 import 'package:sgit_studio_flutter/domain/models/chat/markdown/markdown_block.dart';
 import 'package:sgit_studio_flutter/domain/models/chat/sgcode_settings.dart';
 import 'package:sgit_studio_flutter/domain/models/chat/chat_session.dart';
-import 'package:sgit_studio_flutter/features/artifacts/application/artifacts_controller.dart';
-import 'package:sgit_studio_flutter/features/chat/application/composer_settings_controller.dart';
-import 'package:sgit_studio_flutter/features/chat/application/session_sync_controller.dart';
-import 'package:sgit_studio_flutter/features/chat/application/thread_list_controller.dart';
+import 'package:sgit_studio_flutter/services/chat/chat_ports.dart';
 import 'package:sgit_studio_flutter/services/layout/layout_controller.dart';
 import 'package:sgit_studio_flutter/services/chat/workspace_mode.dart';
 
@@ -127,8 +124,7 @@ class ChatController extends Notifier<ChatSessionState> {
 
       // 读取当前的引擎模式设置。
       // `read` 不配 `select`（后者是给 `watch` 决定重建时机用的，对 read 无意义）。
-      final engineMode =
-          ref.read(composerSettingsProvider).settings.engineMode;
+      final engineMode = ref.read(chatPortsProvider).engineMode;
 
       final caps = await _client.open(
         engineMode: engineMode,
@@ -302,7 +298,7 @@ class ChatController extends Notifier<ChatSessionState> {
     // 等它完成再切（不是 fire-and-forget）：切换本身就要重建连接、有可感知的
     // 等待，把同步并进这段等待里，比切过去之后再让列表悄悄变化清楚。
     // 未启用时是 no-op，不会白等。
-    await ref.read(sessionSyncProvider).syncNow();
+    await ref.read(chatPortsProvider).syncNow();
 
     // 在途的历史载入作废：它是向**旧引擎**要的那条会话，而换引擎就是换了
     // 一份不相干的历史。让它落地的话，`openThread` 会把这个 id 交给新连接的
@@ -389,7 +385,10 @@ class ChatController extends Notifier<ChatSessionState> {
     beginOpenThread(threadId);
     final gen = _openGeneration; // beginOpenThread 刚 +1，记下这次的代次
     try {
-      final replay = await ref.read(threadRepositoryProvider).open(threadId);
+      final replay = await ref
+          .read(chatPortsProvider)
+          .threadRepository
+          .open(threadId);
       // 取数期间用户换了会话 → 这份内容已经过时，丢掉（见 _openGeneration）。
       if (_openGeneration != gen) {
         debugPrint('[threads] $threadId 载入期间用户已换会话，丢弃这份内容');
@@ -417,7 +416,10 @@ class ChatController extends Notifier<ChatSessionState> {
       if (await _pullThreadFromServer(threadId)) {
         if (_openGeneration != gen) return;
         try {
-          final replay = await ref.read(threadRepositoryProvider).open(threadId);
+          final replay = await ref
+          .read(chatPortsProvider)
+          .threadRepository
+          .open(threadId);
           if (_openGeneration != gen) return;
           openThread(threadId, replay.events,
               createdAt: replay.summary.createdAt);
@@ -460,8 +462,7 @@ class ChatController extends Notifier<ChatSessionState> {
     // ⚠️ **只在本地引擎下做**。云端模式的会话本来就在服务器上，
     // `thread/resume` 读到的**就是**最新那份 —— 打不开就是真打不开，
     // 把服务器文件下到本机既没用（引擎读的不是本机那份）又会误导。
-    if (ref.read(composerSettingsProvider).settings.engineMode !=
-        EngineMode.local) {
+    if (ref.read(chatPortsProvider).engineMode != EngineMode.local) {
       return false;
     }
     return ref.read(sessionSyncRepositoryProvider).refreshThread(threadId);
@@ -496,7 +497,10 @@ class ChatController extends Notifier<ChatSessionState> {
     }
     debugPrint('[threads] $threadId 从服务器拿到更新，重新装配');
     try {
-      final replay = await ref.read(threadRepositoryProvider).open(threadId);
+      final replay = await ref
+          .read(chatPortsProvider)
+          .threadRepository
+          .open(threadId);
       if (_openGeneration != gen) return; // 再查一次：取数期间也可能切走
       openThread(threadId, replay.events,
           createdAt: replay.summary.createdAt);
@@ -589,9 +593,9 @@ class ChatController extends Notifier<ChatSessionState> {
   /// 刚被更新的那条就是它。只在 `currentThreadId == null` 时才认领，
   /// 不会覆盖已知的会话。
   Future<void> _reloadThreadsAndAdoptNew() async {
-    await ref.read(threadListProvider.notifier).reload();
+    await ref.read(chatPortsProvider).reloadThreads();
     if (state.currentThreadId == null) {
-      final items = ref.read(threadListProvider).items;
+      final items = ref.read(chatPortsProvider).threads;
       if (items.isNotEmpty) {
         var newest = items.first;
         for (final t in items) {
@@ -637,9 +641,7 @@ class ChatController extends Notifier<ChatSessionState> {
           found.add((artifact: a, at: it.createdAt));
         }
       }
-      ref
-          .read(artifactsControllerProvider.notifier)
-          .replaceForThread(threadId, found);
+      ref.read(chatPortsProvider).replaceArtifacts(threadId, found);
     });
   }
 
@@ -812,7 +814,7 @@ class ChatController extends Notifier<ChatSessionState> {
         // 这一轮的内容已经落进 rollout，排一次同步（内部去抖 30s，连续对话
         // 不会每轮都推）。本地引擎产生的会话靠它才能在云端列表里出现。
         // 未启用时（Web / 服务端进程）这是 no-op。
-        ref.read(sessionSyncProvider).onTurnCompleted();
+        ref.read(chatPortsProvider).onTurnCompleted();
         // 列表里那条的 updatedAt 变了，顺手刷新 —— 否则"刚聊完的会话"在左栏
         // 仍排在旧位置，看着像没记上。
         unawaited(_reloadThreadsAndAdoptNew());

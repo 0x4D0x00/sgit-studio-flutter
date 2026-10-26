@@ -8,8 +8,8 @@ import 'package:sgit_studio_flutter/features/studio/application/relay_controller
 import 'package:sgit_studio_flutter/features/studio/presentation/widgets/relay_forms.dart';
 import 'package:sgit_studio_flutter/features/studio/presentation/widgets/relay_key_pool.dart';
 import 'package:sgit_studio_flutter/l10n/generated/app_localizations.dart';
-import 'package:sgit_studio_flutter/ui/components/async_view.dart';
-import 'package:sgit_studio_flutter/ui/components/confirm.dart';
+import 'package:sgit_studio_flutter/ui/feedback/async_view.dart';
+import 'package:sgit_studio_flutter/ui/feedback/confirm.dart';
 
 /// 大模型中转站 —— **两级页 + 密钥弹窗**：L1 厂商卡片墙 → L2 模型 → L3 密钥池
 /// （对齐 memory `relay-l1l2l3-provider-crud`）。

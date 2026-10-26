@@ -2,6 +2,7 @@ import 'package:flutter_test/flutter_test.dart';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'package:sgit_studio_flutter/features/chat/application/chat_ports_impl.dart';
 import 'package:sgit_studio_flutter/core/contracts/gateway_endpoints.dart';
 import 'package:sgit_studio_flutter/core/contracts/kernel_client.dart';
 import 'package:sgit_studio_flutter/data/transport/kernel/kernel_frame.dart';
@@ -101,6 +102,7 @@ void _wakerOrderTests() {
     final stub = _WakerProbe();
     final c = ChatController(client: stub);
     final container = ProviderContainer(overrides: [
+ chatPortsOverride,
       chatControllerProvider.overrideWith(() => c),
     ]);
     addTearDown(container.dispose);

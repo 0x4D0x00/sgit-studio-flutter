@@ -4,13 +4,13 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'package:sgit_studio_flutter/features/chat/application/chat_ports_impl.dart';
 import 'package:sgit_studio_flutter/core/storage/local_storage.dart';
-import 'package:sgit_studio_flutter/data/transport/kernel/kernel_client_mock.dart';
+import 'fakes/kernel_client_mock.dart';
 import 'package:sgit_studio_flutter/design/themes/app_theme.dart';
 import 'package:sgit_studio_flutter/design/tokens/app_colors.dart';
 import 'package:sgit_studio_flutter/features/chat/presentation/chat_composer.dart';
-import 'package:sgit_studio_flutter/features/studio/application/kernel_client_provider.dart';
-import 'package:sgit_studio_flutter/features/studio/application/settings_repository_provider.dart';
+import 'package:sgit_studio_flutter/app/app_providers.dart';
 import 'package:sgit_studio_flutter/l10n/generated/app_localizations.dart';
 import 'package:sgit_studio_flutter/layout/metrics/workspace_metrics.dart';
 import 'package:sgit_studio_flutter/services/chat/chat_controller.dart';
@@ -110,6 +110,7 @@ void main() {
 
     Widget harness() => ProviderScope(
           overrides: [
+ chatPortsOverride,
             chatControllerProvider.overrideWith(
               () => ChatController(client: MockKernelClient()),
             ),

@@ -3,6 +3,7 @@ import 'dart:typed_data';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:sgit_studio_flutter/features/chat/application/chat_ports_impl.dart';
 import 'package:sgit_studio_flutter/core/contracts/kernel_client.dart';
 import 'package:sgit_studio_flutter/core/contracts/kernel_ops.dart';
 import 'package:sgit_studio_flutter/data/transport/kernel/kernel_frame.dart';
@@ -31,6 +32,7 @@ void main() {
   setUp(() {
     stub = _StubKernel();
     container = ProviderContainer(overrides: [
+ chatPortsOverride,
       chatControllerProvider.overrideWith(() => ChatController(client: stub)),
     ]);
     ctrl = container.read(chatControllerProvider.notifier);

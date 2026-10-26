@@ -6,13 +6,13 @@ import 'package:sgit_studio_flutter/design/tokens/app_spacing.dart';
 import 'package:sgit_studio_flutter/domain/models/studio/resource_item.dart';
 import 'package:sgit_studio_flutter/domain/models/studio/studio_group.dart';
 import 'package:sgit_studio_flutter/features/studio/application/resource_list_controller.dart';
-import 'package:sgit_studio_flutter/features/studio/application/settings_repository_provider.dart';
+import 'package:sgit_studio_flutter/app/app_providers.dart';
 import 'package:sgit_studio_flutter/features/studio/studio_page_specs.dart';
 import 'package:sgit_studio_flutter/l10n/generated/app_localizations.dart';
-import 'package:sgit_studio_flutter/ui/components/async_view.dart';
-import 'package:sgit_studio_flutter/ui/components/hover_lift.dart';
+import 'package:sgit_studio_flutter/ui/feedback/async_view.dart';
+import 'package:sgit_studio_flutter/ui/primitives/hover_lift.dart';
 
-import 'package:sgit_studio_flutter/ui/components/responsive_card_wrap.dart';
+import 'package:sgit_studio_flutter/ui/primitives/responsive_card_wrap.dart';
 
 /// 技能库 —— **设置弹窗与 Customize 页共用这一份**。
 ///

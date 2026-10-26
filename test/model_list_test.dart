@@ -1,13 +1,13 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-import 'package:sgit_studio_flutter/data/transport/kernel/kernel_client_mock.dart';
+import 'fakes/kernel_client_mock.dart';
+import 'package:sgit_studio_flutter/features/chat/application/chat_ports_impl.dart';
 import 'package:sgit_studio_flutter/domain/models/chat/sgcode_settings.dart';
 import 'package:sgit_studio_flutter/features/chat/application/composer_settings_controller.dart';
 import 'package:sgit_studio_flutter/features/chat/application/model_list_controller.dart';
-import 'package:sgit_studio_flutter/features/studio/application/kernel_client_provider.dart';
+import 'package:sgit_studio_flutter/app/app_providers.dart';
 import 'package:sgit_studio_flutter/features/studio/application/relay_controller.dart';
-import 'package:sgit_studio_flutter/features/studio/application/settings_repository_provider.dart';
 import 'package:sgit_studio_flutter/services/chat/chat_controller.dart';
 
 import 'fakes/fake_settings_repository.dart';
@@ -30,6 +30,7 @@ void main() {
   ProviderContainer makeContainer(FakeSettingsRepository settings) {
     final c = ProviderContainer(
       overrides: [
+ chatPortsOverride,
         settingsRepositoryProvider.overrideWithValue(settings),
         kernelClientProvider.overrideWithValue(MockKernelClient()),
         chatControllerProvider.overrideWith(

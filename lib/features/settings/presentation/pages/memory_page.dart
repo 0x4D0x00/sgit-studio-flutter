@@ -7,10 +7,10 @@ import 'package:sgit_studio_flutter/domain/models/studio/resource_item.dart';
 import 'package:sgit_studio_flutter/features/chat/application/composer_settings_controller.dart';
 import 'package:sgit_studio_flutter/features/settings/presentation/widgets/settings_section.dart';
 import 'package:sgit_studio_flutter/features/studio/application/resource_list_controller.dart';
-import 'package:sgit_studio_flutter/features/studio/application/settings_repository_provider.dart';
+import 'package:sgit_studio_flutter/app/app_providers.dart';
 import 'package:sgit_studio_flutter/features/studio/studio_page_specs.dart';
 import 'package:sgit_studio_flutter/l10n/generated/app_localizations.dart';
-import 'package:sgit_studio_flutter/ui/components/async_view.dart';
+import 'package:sgit_studio_flutter/ui/feedback/async_view.dart';
 
 /// 设置弹窗里的 Memory 页面。------两个形态
 /// 这一页不是「一堆开关」的平铺，而是**开/关对应两套完全不同的内容**：

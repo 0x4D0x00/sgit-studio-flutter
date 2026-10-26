@@ -6,7 +6,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:sgit_studio_flutter/design/themes/app_theme.dart';
 import 'package:sgit_studio_flutter/design/tokens/app_colors.dart';
 import 'package:sgit_studio_flutter/features/settings/presentation/pages/memory_page.dart';
-import 'package:sgit_studio_flutter/features/studio/application/settings_repository_provider.dart';
+import 'package:sgit_studio_flutter/app/app_providers.dart';
 import 'package:sgit_studio_flutter/l10n/generated/app_localizations.dart';
 
 import 'fakes/fake_settings_repository.dart';

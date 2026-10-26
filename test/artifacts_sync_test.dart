@@ -1,9 +1,11 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import 'package:sgit_studio_flutter/features/chat/application/chat_ports_impl.dart';
+import 'package:sgit_studio_flutter/app/app_providers.dart';
 import 'package:sgit_studio_flutter/data/repositories/session_sync_repository.dart';
 import 'package:sgit_studio_flutter/data/repositories/thread_repository.dart';
-import 'package:sgit_studio_flutter/data/transport/kernel/kernel_client_mock.dart';
+import 'fakes/kernel_client_mock.dart';
 import 'package:sgit_studio_flutter/domain/models/artifact/artifact.dart';
 import 'package:sgit_studio_flutter/domain/models/chat/chat_artifact.dart';
 import 'package:sgit_studio_flutter/domain/models/chat/markdown/markdown_block.dart';
@@ -141,6 +143,7 @@ void main() {
     ProviderContainer make(String reply) {
       repo = _Repo(reply);
       final container = ProviderContainer(overrides: [
+ chatPortsOverride,
         threadRepositoryProvider.overrideWithValue(repo),
         sessionSyncRepositoryProvider.overrideWithValue(_Sync()),
         chatControllerProvider

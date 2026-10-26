@@ -6,7 +6,7 @@ import 'package:sgit_studio_flutter/domain/models/studio/resource_item.dart';
 import 'package:sgit_studio_flutter/domain/models/studio/studio_group.dart';
 import 'package:sgit_studio_flutter/features/studio/studio_page_specs.dart';
 import 'package:sgit_studio_flutter/l10n/generated/app_localizations.dart';
-import 'package:sgit_studio_flutter/ui/components/hover_lift.dart';
+import 'package:sgit_studio_flutter/ui/primitives/hover_lift.dart';
 
 /// 资源卡片 —— 照 React studio 的卡片规格（`sgcodeGlass.ts`）：
 /// 圆角 16、内边距 14×16、标题与描述各 2 行截断、底部一排标签。

@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'package:sgit_studio_flutter/design/tokens/app_spacing.dart';
 import 'package:sgit_studio_flutter/features/customize/presentation/widgets/customize_toolbar.dart';
-import 'package:sgit_studio_flutter/ui/components/pill_tab_bar.dart';
+import 'package:sgit_studio_flutter/ui/primitives/pill_tab_bar.dart';
 import 'package:sgit_studio_flutter/features/customize/presentation/widgets/skill_library.dart';
 import 'package:sgit_studio_flutter/l10n/generated/app_localizations.dart';
 

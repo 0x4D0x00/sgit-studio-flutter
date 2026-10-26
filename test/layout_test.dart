@@ -4,17 +4,17 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'package:sgit_studio_flutter/features/chat/application/chat_ports_impl.dart';
 import 'package:sgit_studio_flutter/core/storage/local_storage.dart';
 
-import 'package:sgit_studio_flutter/data/transport/kernel/kernel_client_mock.dart';
+import 'fakes/kernel_client_mock.dart';
 import 'package:sgit_studio_flutter/design/themes/app_theme.dart';
 import 'package:sgit_studio_flutter/design/tokens/app_colors.dart';
 import 'package:sgit_studio_flutter/features/shell/presentation/app_shell_container.dart';
 import 'package:sgit_studio_flutter/features/studio/presentation/pages/relay_page.dart';
 import 'package:sgit_studio_flutter/features/studio/presentation/pages/tools_page.dart';
 import 'package:sgit_studio_flutter/features/studio/presentation/pages/resource_list_page.dart';
-import 'package:sgit_studio_flutter/features/studio/application/kernel_client_provider.dart';
-import 'package:sgit_studio_flutter/features/studio/application/settings_repository_provider.dart';
+import 'package:sgit_studio_flutter/app/app_providers.dart';
 
 import 'fakes/fake_settings_repository.dart';
 import 'package:sgit_studio_flutter/features/studio/studio_page_specs.dart';
@@ -37,6 +37,7 @@ void main() {
 
   Widget app({Widget page = const WorkspacePage()}) => ProviderScope(
         overrides: [
+ chatPortsOverride,
           chatControllerProvider.overrideWith(
             () => ChatController(client: MockKernelClient()),
           ),

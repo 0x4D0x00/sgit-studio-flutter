@@ -11,7 +11,7 @@ import 'package:sgit_studio_flutter/features/chat/application/thread_list_contro
 import 'package:sgit_studio_flutter/l10n/generated/app_localizations.dart';
 import 'package:sgit_studio_flutter/router/route_names.dart';
 import 'package:sgit_studio_flutter/services/chat/chat_controller.dart';
-import 'package:sgit_studio_flutter/ui/components/confirm.dart';
+import 'package:sgit_studio_flutter/ui/feedback/confirm.dart';
 import 'package:sgit_studio_flutter/ui/components/menu/app_menu.dart';
 
 /// 历史对话「查看全部」页 —— 左栏「历史对话」标题行那颗斜向箭头点开的完整列表。

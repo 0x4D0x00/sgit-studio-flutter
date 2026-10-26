@@ -6,7 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:sgit_studio_flutter/core/storage/local_storage.dart';
 import 'package:sgit_studio_flutter/domain/models/artifact/artifact.dart';
-import 'package:sgit_studio_flutter/domain/models/chat/chat_artifact.dart';
+import 'package:sgit_studio_flutter/services/chat/chat_ports.dart';
 
 /// 产物列表状态。
 @immutable
@@ -57,9 +57,6 @@ class ArtifactsState {
         loading: loading ?? this.loading,
       );
 }
-
-/// 一条会话里扫出来的文件卡 + 它所在消息的时间。
-typedef FoundArtifact = ({ChatArtifact artifact, DateTime? at});
 
 /// 产物列表控制器。
 ///

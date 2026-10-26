@@ -4,7 +4,7 @@ import 'package:sgit_studio_flutter/design/extensions/app_skin.dart';
 import 'package:sgit_studio_flutter/design/tokens/app_spacing.dart';
 import 'package:sgit_studio_flutter/l10n/generated/app_localizations.dart';
 
-import 'package:sgit_studio_flutter/ui/components/confirm.dart';
+import 'package:sgit_studio_flutter/ui/feedback/confirm.dart';
 
 import '../../application/customize_page_controller.dart';
 import 'package:sgit_studio_flutter/features/studio/presentation/pages/studio_page.dart';
@@ -13,8 +13,8 @@ import '../../data/customize_sample_data.dart';
 import '../widgets/customize_section_header.dart';
 import '../widgets/customize_show_all_view.dart';
 import '../widgets/customize_toolbar.dart';
-import 'package:sgit_studio_flutter/ui/components/pill_tab_bar.dart';
-import 'package:sgit_studio_flutter/ui/components/responsive_card_wrap.dart';
+import 'package:sgit_studio_flutter/ui/primitives/pill_tab_bar.dart';
+import 'package:sgit_studio_flutter/ui/primitives/responsive_card_wrap.dart';
 import '../widgets/skill_card.dart';
 import '../widgets/skill_library.dart';
 import '../widgets/connector_card.dart';

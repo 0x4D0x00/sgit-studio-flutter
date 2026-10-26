@@ -39,5 +39,5 @@ abstract interface class ThreadRepository {
 ///
 /// ⚠️ 测试里必须 `overrideWithValue` 一个假实现 —— 桌面工厂会去 dlopen
 /// `sgit_ffi.dll`，测试环境没有那个库，一调就挂。
-/// （`settings_repository_provider.dart` 的注释记着同一个坑。）
+/// （`app/app_providers.dart` 的注释记着同一个坑。）
 ThreadRepository createThreadRepository() => impl.createThreadRepository();

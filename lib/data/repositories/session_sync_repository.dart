@@ -1,5 +1,3 @@
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-
 import 'session_sync_repository_io.dart'
     if (dart.library.js_interop) 'session_sync_repository_web.dart' as impl;
 
@@ -72,6 +70,6 @@ abstract interface class SessionSyncRepository {
   Future<bool> refreshThread(String threadId);
 }
 
-final sessionSyncRepositoryProvider = Provider<SessionSyncRepository>(
-  (ref) => impl.createSessionSyncRepository(),
-);
+/// 按平台创建同步仓储。provider 声明在 `app/app_providers.dart`（data 层不碰状态库）。
+SessionSyncRepository createSessionSyncRepository() =>
+    impl.createSessionSyncRepository();
