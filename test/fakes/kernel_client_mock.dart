@@ -100,13 +100,21 @@ final class MockKernelClient implements KernelClient {
   /// **形状必须与真后端一致** —— 这是布局测试能发现"数据到达后才炸"那类问题的前提。
   /// 空 mock 只能测出空态，而白屏偏偏都发生在有数据的时候。
   @override
+  Future<Map<String, Object?>> toolCall(
+    String server,
+    String tool, {
+    Map<String, Object?>? arguments,
+    String threadId = '',
+  }) async =>
+      const {};
+
+  @override
   Future<Map<String, Object?>> gatewayCall(
     String path, {
     String method = 'GET',
     Map<String, Object?>? body,
   }) async {
-    if (path == '/sgcode-models/manage') return _relay(body ?? const {});
-    return switch (path) {
+    if (path == '/sgcode-models/manage') return _relay(body ?? const {});    return switch (path) {
       '/sgcode-scene/list' => {
           'scenes': [
             // 今天的数据

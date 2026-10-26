@@ -50,6 +50,17 @@ abstract interface class KernelClient {
     Map<String, Object?>? body,
   });
 
+  /// 调一个 MCP 工具并等结果（后台任务卡片的悬停预览 / 点击展开用）。
+  ///
+  /// 本地模式打进程内 app-server；云/中继经 gateway。返回工具结果 JSON
+  /// （`{content, structuredContent, _meta}` 之类），失败抛 [KernelException]。
+  Future<Map<String, Object?>> toolCall(
+    String server,
+    String tool, {
+    Map<String, Object?>? arguments,
+    String threadId = '',
+  });
+
   /// 切换当前会话。传 `null` 表示下次发消息时新建 thread。
   void setThread(String? threadId);
 

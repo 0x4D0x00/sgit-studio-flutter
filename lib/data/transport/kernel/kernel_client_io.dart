@@ -57,6 +57,11 @@ typedef _GatewayC = Pointer<Utf8> Function(
 typedef _GatewayDart = Pointer<Utf8> Function(
     Pointer<Utf8> path, Pointer<Utf8> method, Pointer<Utf8> body);
 
+typedef _ToolCallC = Pointer<Utf8> Function(Pointer<Utf8> server,
+    Pointer<Utf8> tool, Pointer<Utf8> args, Pointer<Utf8> threadId);
+typedef _ToolCallDart = Pointer<Utf8> Function(Pointer<Utf8> server,
+    Pointer<Utf8> tool, Pointer<Utf8> args, Pointer<Utf8> threadId);
+
 typedef _FreeC = Void Function(Pointer<Utf8> ptr);
 typedef _FreeDart = void Function(Pointer<Utf8> ptr);
 
@@ -121,6 +126,8 @@ final class IoKernelClient implements KernelClient {
       _lib.lookupFunction<_Str1C, _Str1Dart>('sgit_kernel_set_thread');
   late final _GatewayDart _kGatewayCall =
       _lib.lookupFunction<_GatewayC, _GatewayDart>('sgit_gateway_call');
+  late final _ToolCallDart _kToolCall =
+      _lib.lookupFunction<_ToolCallC, _ToolCallDart>('sgit_kernel_tool_call');
   late final _FreeDart _free =
       _lib.lookupFunction<_FreeC, _FreeDart>('free_string');
 
@@ -492,5 +499,34 @@ final class IoKernelClient implements KernelClient {
       throw KernelException(msg, isAuthFailure: expired);
     }
     return decoded;
+  }
+
+  @override
+  Future<Map<String, Object?>> toolCall(
+    String server,
+    String tool, {
+    Map<String, Object?>? arguments,
+    String threadId = '',
+  }) async {
+    final pServer = server.toNativeUtf8();
+    final pTool = tool.toNativeUtf8();
+    final pArgs = (arguments == null ? '' : jsonEncode(arguments)).toNativeUtf8();
+    final pThread = threadId.toNativeUtf8();
+    final Map<String, Object?>? decoded;
+    try {
+      decoded = _takeJson(_kToolCall(pServer, pTool, pArgs, pThread));
+    } finally {
+      malloc.free(pServer);
+      malloc.free(pTool);
+      malloc.free(pArgs);
+      malloc.free(pThread);
+    }
+    if (decoded == null) throw const KernelException('工具调用响应格式异常');
+    if (decoded['status'] == 'fail' || decoded['status'] == 'error') {
+      throw KernelException(decoded['message']?.toString() ?? '工具调用失败');
+    }
+    // native 回的是 {status:"ok", result:<工具结果>}；把工具结果交出去。
+    final result = decoded['result'];
+    return result is Map<String, Object?> ? result : const {};
   }
 }

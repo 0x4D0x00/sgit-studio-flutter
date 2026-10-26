@@ -9,6 +9,7 @@ import 'package:sgit_studio_flutter/router/app_router.dart';
 import 'package:sgit_studio_flutter/design/themes/app_theme.dart';
 import 'package:sgit_studio_flutter/services/theme/theme_controller.dart';
 import 'package:sgit_studio_flutter/platform/input/zoom_gesture.dart';
+import 'package:sgit_studio_flutter/ui/components/chat/task_surface_overlay.dart';
 
 /// 应用根。串起 theme(含动态主色/次色/字号) / locale / router。
 class SgitStudioApp extends ConsumerWidget {
@@ -53,7 +54,14 @@ class SgitStudioApp extends ConsumerWidget {
             maxScaleFactor: theme.fontScale,
             child: Theme(
               data: _withToastStyle(context),
-              child: child ?? const SizedBox.shrink(),
+              // 全局 Stack：主内容之上叠一层常驻的后台任务卡片（右下角）。
+              // 卡片的悬停预览用 MaterialApp 自带的 Overlay，无需额外 Navigator。
+              child: Stack(
+                children: [
+                  child ?? const SizedBox.shrink(),
+                  const TaskSurfaceOverlay(),
+                ],
+              ),
             ),
           ),
         );

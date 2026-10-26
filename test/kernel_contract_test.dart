@@ -164,6 +164,10 @@ final class _WakerProbe implements KernelClient {
           {String method = 'GET', Map<String, Object?>? body}) async =>
       const {};
   @override
+  Future<Map<String, Object?>> toolCall(String server, String tool,
+          {Map<String, Object?>? arguments, String threadId = ''}) async =>
+      const {};
+  @override
   void interrupt(String turnId) {}
   @override
   void steer(String turnId, String text) {}

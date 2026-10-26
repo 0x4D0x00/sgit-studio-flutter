@@ -163,6 +163,24 @@ final class WebKernelClient implements KernelClient {
   }
 
   @override
+  Future<Map<String, Object?>> toolCall(
+    String server,
+    String tool, {
+    Map<String, Object?>? arguments,
+    String threadId = '',
+  }) async {
+    // Web 只有云/中继路：经 gateway 的 app-server 转发端点（本期只做本地，这条备着）。
+    final res = await gatewayCall('/sgcode-mcp/tool-call', method: 'POST', body: {
+      'threadId': threadId,
+      'server': server,
+      'tool': tool,
+      if (arguments != null) 'arguments': arguments,
+    });
+    final result = res['result'];
+    return result is Map<String, Object?> ? result : const {};
+  }
+
+  @override
   Future<Map<String, Object?>> gatewayCall(
     String path, {
     String method = 'GET',

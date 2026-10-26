@@ -41,7 +41,12 @@ enum KernelFrameKind {
   /// 本轮 token 用量。**独立于 [turnCompleted]** —— 内核的
   /// `thread/tokenUsage/updated` 在 turn 跑动期间就会推，不是收尾才有。
   /// 混进 turnCompleted 会让客户端以为 turn 结束了。
-  tokenUsage(0x0F);
+  tokenUsage(0x0F),
+
+  /// 后台任务展示面（浏览器/桌面/命令/子代理）。payload 是卡片 JSON，
+  /// 契约见 sgit-code 的 `sgit-kernel/docs/tool-surface.md`。同 surfaceId 覆盖，
+  /// `ended:true` 表示收卡。
+  toolSurface(0x10);
 
   const KernelFrameKind(this.wire);
 
@@ -75,6 +80,7 @@ enum KernelFrameKind {
         0x0D => KernelFrameKind.error,
         0x0E => KernelFrameKind.disconnected,
         0x0F => KernelFrameKind.tokenUsage,
+        0x10 => KernelFrameKind.toolSurface,
         _ => null,
       };
 }

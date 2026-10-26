@@ -12,6 +12,8 @@ import 'package:sgit_studio_flutter/data/transport/kernel/kernel_client_factory.
 import 'package:sgit_studio_flutter/data/transport/kernel/kernel_frame.dart';
 import 'package:sgit_studio_flutter/domain/models/chat/chat_artifact.dart';
 import 'package:sgit_studio_flutter/domain/models/chat/chat_item.dart';
+import 'package:sgit_studio_flutter/domain/models/chat/task_surface.dart';
+import 'package:sgit_studio_flutter/services/chat/task_surface_controller.dart';
 import 'package:sgit_studio_flutter/domain/models/chat/chat_session.dart';
 import 'package:sgit_studio_flutter/services/chat/chat_item_store.dart';
 import 'package:sgit_studio_flutter/services/chat/chat_ports.dart';
@@ -320,6 +322,7 @@ class ChatController extends Notifier<ChatSessionState> {
     ref.read(workspaceModeProvider.notifier).set(WorkspaceMode.chat);
     if (state.busy) interrupt();
     _store.clear();
+    ref.read(taskSurfaceProvider.notifier).clear();
     // 开新对话同样是"换会话"：在途的历史载入回来时必须被丢掉，
     // 否则旧会话的内容会灌进这个空白的新对话里。
     _openGeneration++;
@@ -409,6 +412,7 @@ class ChatController extends Notifier<ChatSessionState> {
     if (state.busy) interrupt();
     _store.clear();
     _store.notifyStructure();
+    ref.read(taskSurfaceProvider.notifier).clear();
 
     // 同 openThread：capabilities 属于连接不属于会话，清掉会让首次发送被拒。
     state = ChatSessionState(
@@ -435,6 +439,7 @@ class ChatController extends Notifier<ChatSessionState> {
   }) {
     if (state.busy) interrupt();
     _store.clear();
+    ref.read(taskSurfaceProvider.notifier).clear();
 
     for (final item in ViewEventMapper.toItems(
       replayEvents,
@@ -647,6 +652,15 @@ class ChatController extends Notifier<ChatSessionState> {
       case KernelFrameKind.hello:
       case KernelFrameKind.callResult:
         // hello 的内容已在 open() 的 caps 里；callResult 由发起方自己认领。
+        return false;
+
+      case KernelFrameKind.toolSurface:
+        // 后台任务卡片：交给独立的 surface 容器（按 surfaceId 去重，ended 删除），
+        // 不进聊天条目列表，所以不改 structural。
+        final surface = TaskSurface.fromJson(KernelFrameMapper.json(f));
+        if (surface != null) {
+          ref.read(taskSurfaceProvider.notifier).apply(surface);
+        }
         return false;
     }
   }

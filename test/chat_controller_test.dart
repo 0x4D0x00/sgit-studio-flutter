@@ -367,6 +367,11 @@ final class _StubKernel implements KernelClient {
       const {};
 
   @override
+  Future<Map<String, Object?>> toolCall(String server, String tool,
+          {Map<String, Object?>? arguments, String threadId = ''}) async =>
+      const {};
+
+  @override
   void setThread(String? threadId) => calls.add('setThread');
 
   @override
