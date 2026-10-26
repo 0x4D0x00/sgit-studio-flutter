@@ -492,7 +492,14 @@ _action(
   bool requestFocusOnHover = true,
 }) {
   final scheme = ThemeData().colorScheme;
-  final fg = e.danger
+  // 禁用项没有 onPressed，Material 不会自己变灰 —— 标题和快捷键都得由这里压色。
+  // 只压标题不压快捷键，看着像「能点但没写快捷键」。
+  final disabledFg = skin.textTertiary.withValues(
+    alpha: 0.6,
+  );
+  final fg = !e.enabled
+      ? disabledFg
+      : e.danger
       ? scheme.error
       : skin.text;
 
@@ -562,7 +569,7 @@ _action(
               e.shortcut!,
               style: TextStyle(
                 fontSize: 12,
-                color: skin.textTertiary,
+                color: e.enabled ? skin.textTertiary : disabledFg,
                 fontFeatures: const [
                   FontFeature.tabularFigures(),
                 ],

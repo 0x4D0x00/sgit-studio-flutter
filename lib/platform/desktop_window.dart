@@ -12,3 +12,24 @@ Future<void> initDesktopWindow() async {
     await setupDesktopWindow();
   }
 }
+
+bool get _isDesktop =>
+    !kIsWeb &&
+    (defaultTargetPlatform == TargetPlatform.windows ||
+        defaultTargetPlatform == TargetPlatform.linux ||
+        defaultTargetPlatform == TargetPlatform.macOS);
+
+/// 新窗口 = 再打开一个客户端。
+Future<void> openNewClientWindow() async {
+  if (_isDesktop) await openNewWindow();
+}
+
+/// 最小化客户端窗口。
+Future<void> minimizeClient() async {
+  if (_isDesktop) await minimizeWindow();
+}
+
+/// 退出客户端（桌面版）或退出应用（Web）。
+Future<void> quitClient() async {
+  if (_isDesktop) await quitApp();
+}

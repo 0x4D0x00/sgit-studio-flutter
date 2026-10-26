@@ -7,6 +7,7 @@ import 'package:sgit_studio_flutter/features/settings/presentation/widgets/langu
 import 'package:sgit_studio_flutter/features/settings/presentation/widgets/settings_dialog.dart';
 import 'package:sgit_studio_flutter/layout/shell/side_rail.dart';
 import 'package:sgit_studio_flutter/layout/shell/window_toolbar.dart';
+import 'package:sgit_studio_flutter/platform/desktop_window.dart';
 import 'package:sgit_studio_flutter/router/route_names.dart';
 import 'package:sgit_studio_flutter/services/brand/brand_config.dart';
 import 'package:sgit_studio_flutter/services/chat/chat_controller.dart';
@@ -229,7 +230,10 @@ class _AppShellContainerState extends ConsumerState<AppShellContainer> {
           WindowMenu(
             label: l10n.menuFile,
             entries: [
-              stub(l10n.menuNewWindow),
+              AppMenuAction(
+                label: l10n.menuNewWindow,
+                onTap: openNewClientWindow,
+              ),
               AppMenuAction(
                 label: l10n.navNewChat,
                 shortcut: 'Ctrl+N',
@@ -249,15 +253,27 @@ class _AppShellContainerState extends ConsumerState<AppShellContainer> {
                 onTap: () => showSettingsDialog(context),
               ),
               const AppMenuDivider(),
-              stub(l10n.menuClose, shortcut: 'Ctrl+W'),
+              AppMenuAction(
+                label: l10n.menuClose,
+                shortcut: 'Ctrl+W',
+                onTap: () {
+                  // 关闭当前页面（回到工作台）；已经没有可关的页面就最小化客户端。
+                  if (widget.activePath == RouteNames.home) {
+                    minimizeClient();
+                  } else {
+                    context.go(RouteNames.home);
+                  }
+                },
+              ),
               const AppMenuDivider(),
               AppMenuAction(
                 label: l10n.navLogout,
                 onTap: () => ref.read(authControllerProvider.notifier).logout(),
               ),
-              stub(
-                l10n.menuQuitBrand(BrandConfig.instance.name),
+              AppMenuAction(
+                label: l10n.menuQuitBrand(BrandConfig.instance.name),
                 shortcut: 'Ctrl+Q',
+                onTap: quitClient,
               ),
             ],
           ),

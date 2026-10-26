@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/widgets.dart';
 import 'package:screen_retriever/screen_retriever.dart';
 import 'package:window_manager/window_manager.dart';
@@ -51,3 +53,17 @@ Future<Size> _computeInitialSize() async {
     return _kFallbackSize;
   }
 }
+
+/// 再启动一个独立的客户端进程（新窗口）。
+Future<void> openNewWindow() async {
+  await Process.start(
+    Platform.resolvedExecutable,
+    const [],
+    mode: ProcessStartMode.detached,
+  );
+}
+
+Future<void> minimizeWindow() => windowManager.minimize();
+
+/// 关闭客户端（退出进程）。
+Future<void> quitApp() => windowManager.destroy();
