@@ -1861,4 +1861,75 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get tasksEmpty => '暂无已安排的任务';
+
+  @override
+  String get menuNewWindow => '新建窗口';
+
+  @override
+  String get menuNewProject => '新建项目...';
+
+  @override
+  String get menuOpenFolder => '打开文件夹';
+
+  @override
+  String get menuClose => '关闭';
+
+  @override
+  String menuQuitBrand(String brand) {
+    return '退出 $brand';
+  }
+
+  @override
+  String get editDelete => '删除';
+
+  @override
+  String get menuToggleSidebar => '显示/隐藏侧边栏';
+
+  @override
+  String get menuOpenTerminal => '打开终端';
+
+  @override
+  String get menuSwitchChatTabs => '在聊天和标签页之间切换';
+
+  @override
+  String get menuBrowser => '浏览器';
+
+  @override
+  String get menuFind => '查找';
+
+  @override
+  String get menuZoomIn => '放大';
+
+  @override
+  String get menuZoomOut => '缩小';
+
+  @override
+  String get menuActualSize => '实际大小';
+
+  @override
+  String get menuFullScreen => '切换全屏';
+
+  @override
+  String get helpDocs => '文档';
+
+  @override
+  String get helpWhatsNew => '新功能';
+
+  @override
+  String get helpTroubleshoot => '故障排除';
+
+  @override
+  String get helpSystemStatus => '系统状态';
+
+  @override
+  String get helpFeedback => '反馈';
+
+  @override
+  String get helpTaskManager => '任务管理器';
+
+  @override
+  String get helpStartTrace => '开始性能跟踪';
+
+  @override
+  String get helpCheckUpdates => '检查更新...';
 }

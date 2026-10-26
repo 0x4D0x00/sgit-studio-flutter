@@ -1904,4 +1904,75 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get tasksEmpty => 'No tasks scheduled';
+
+  @override
+  String get menuNewWindow => 'New window';
+
+  @override
+  String get menuNewProject => 'New project...';
+
+  @override
+  String get menuOpenFolder => 'Open folder';
+
+  @override
+  String get menuClose => 'Close';
+
+  @override
+  String menuQuitBrand(String brand) {
+    return 'Quit $brand';
+  }
+
+  @override
+  String get editDelete => 'Delete';
+
+  @override
+  String get menuToggleSidebar => 'Show/hide sidebar';
+
+  @override
+  String get menuOpenTerminal => 'Open terminal';
+
+  @override
+  String get menuSwitchChatTabs => 'Switch between chat and tabs';
+
+  @override
+  String get menuBrowser => 'Browser';
+
+  @override
+  String get menuFind => 'Find';
+
+  @override
+  String get menuZoomIn => 'Zoom in';
+
+  @override
+  String get menuZoomOut => 'Zoom out';
+
+  @override
+  String get menuActualSize => 'Actual size';
+
+  @override
+  String get menuFullScreen => 'Toggle full screen';
+
+  @override
+  String get helpDocs => 'Documentation';
+
+  @override
+  String get helpWhatsNew => 'What\'s new';
+
+  @override
+  String get helpTroubleshoot => 'Troubleshooting';
+
+  @override
+  String get helpSystemStatus => 'System status';
+
+  @override
+  String get helpFeedback => 'Feedback';
+
+  @override
+  String get helpTaskManager => 'Task manager';
+
+  @override
+  String get helpStartTrace => 'Start performance trace';
+
+  @override
+  String get helpCheckUpdates => 'Check for updates...';
 }

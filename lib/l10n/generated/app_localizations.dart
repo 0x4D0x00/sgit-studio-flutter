@@ -3634,6 +3634,144 @@ abstract class AppLocalizations {
   /// In zh, this message translates to:
   /// **'暂无已安排的任务'**
   String get tasksEmpty;
+
+  /// No description provided for @menuNewWindow.
+  ///
+  /// In zh, this message translates to:
+  /// **'新建窗口'**
+  String get menuNewWindow;
+
+  /// No description provided for @menuNewProject.
+  ///
+  /// In zh, this message translates to:
+  /// **'新建项目...'**
+  String get menuNewProject;
+
+  /// No description provided for @menuOpenFolder.
+  ///
+  /// In zh, this message translates to:
+  /// **'打开文件夹'**
+  String get menuOpenFolder;
+
+  /// No description provided for @menuClose.
+  ///
+  /// In zh, this message translates to:
+  /// **'关闭'**
+  String get menuClose;
+
+  /// No description provided for @menuQuitBrand.
+  ///
+  /// In zh, this message translates to:
+  /// **'退出 {brand}'**
+  String menuQuitBrand(String brand);
+
+  /// No description provided for @editDelete.
+  ///
+  /// In zh, this message translates to:
+  /// **'删除'**
+  String get editDelete;
+
+  /// No description provided for @menuToggleSidebar.
+  ///
+  /// In zh, this message translates to:
+  /// **'显示/隐藏侧边栏'**
+  String get menuToggleSidebar;
+
+  /// No description provided for @menuOpenTerminal.
+  ///
+  /// In zh, this message translates to:
+  /// **'打开终端'**
+  String get menuOpenTerminal;
+
+  /// No description provided for @menuSwitchChatTabs.
+  ///
+  /// In zh, this message translates to:
+  /// **'在聊天和标签页之间切换'**
+  String get menuSwitchChatTabs;
+
+  /// No description provided for @menuBrowser.
+  ///
+  /// In zh, this message translates to:
+  /// **'浏览器'**
+  String get menuBrowser;
+
+  /// No description provided for @menuFind.
+  ///
+  /// In zh, this message translates to:
+  /// **'查找'**
+  String get menuFind;
+
+  /// No description provided for @menuZoomIn.
+  ///
+  /// In zh, this message translates to:
+  /// **'放大'**
+  String get menuZoomIn;
+
+  /// No description provided for @menuZoomOut.
+  ///
+  /// In zh, this message translates to:
+  /// **'缩小'**
+  String get menuZoomOut;
+
+  /// No description provided for @menuActualSize.
+  ///
+  /// In zh, this message translates to:
+  /// **'实际大小'**
+  String get menuActualSize;
+
+  /// No description provided for @menuFullScreen.
+  ///
+  /// In zh, this message translates to:
+  /// **'切换全屏'**
+  String get menuFullScreen;
+
+  /// No description provided for @helpDocs.
+  ///
+  /// In zh, this message translates to:
+  /// **'文档'**
+  String get helpDocs;
+
+  /// No description provided for @helpWhatsNew.
+  ///
+  /// In zh, this message translates to:
+  /// **'新功能'**
+  String get helpWhatsNew;
+
+  /// No description provided for @helpTroubleshoot.
+  ///
+  /// In zh, this message translates to:
+  /// **'故障排除'**
+  String get helpTroubleshoot;
+
+  /// No description provided for @helpSystemStatus.
+  ///
+  /// In zh, this message translates to:
+  /// **'系统状态'**
+  String get helpSystemStatus;
+
+  /// No description provided for @helpFeedback.
+  ///
+  /// In zh, this message translates to:
+  /// **'反馈'**
+  String get helpFeedback;
+
+  /// No description provided for @helpTaskManager.
+  ///
+  /// In zh, this message translates to:
+  /// **'任务管理器'**
+  String get helpTaskManager;
+
+  /// No description provided for @helpStartTrace.
+  ///
+  /// In zh, this message translates to:
+  /// **'开始性能跟踪'**
+  String get helpStartTrace;
+
+  /// No description provided for @helpCheckUpdates.
+  ///
+  /// In zh, this message translates to:
+  /// **'检查更新...'**
+  String get helpCheckUpdates;
 }
 
 class _AppLocalizationsDelegate

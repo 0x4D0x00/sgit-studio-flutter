@@ -8,7 +8,9 @@ import 'package:sgit_studio_flutter/features/settings/presentation/widgets/setti
 import 'package:sgit_studio_flutter/layout/shell/side_rail.dart';
 import 'package:sgit_studio_flutter/layout/shell/window_toolbar.dart';
 import 'package:sgit_studio_flutter/router/route_names.dart';
+import 'package:sgit_studio_flutter/services/brand/brand_config.dart';
 import 'package:sgit_studio_flutter/services/chat/chat_controller.dart';
+import 'package:sgit_studio_flutter/services/theme/theme_controller.dart';
 import 'package:sgit_studio_flutter/ui/components/menu/app_menu.dart';
 
 import 'package:sgit_studio_flutter/features/chat/presentation/thread_title_bar.dart';
@@ -125,8 +127,7 @@ class _AppShellContainerState extends ConsumerState<AppShellContainer> {
     final layout = ref.watch(layoutControllerProvider);
     final ctrl = ref.read(layoutControllerProvider.notifier);
     // 中栏宽度档位。布局是 5 个横切状态之一，这一层是它在外壳上的唯一订阅点。
-    final contentMaxWidth =
-        ref.watch(transcriptWidthProvider).contentMaxWidth;
+    final contentMaxWidth = ref.watch(transcriptWidthProvider).contentMaxWidth;
 
     final artifact = layout.activeArtifact;
 
@@ -150,8 +151,9 @@ class _AppShellContainerState extends ConsumerState<AppShellContainer> {
         // 根据可用宽度动态计算右侧面板的安全宽度
         // 总宽度 - 左栏宽度(如果展开) - 中栏最小宽度 = 右侧面板可用空间
         final totalWidth = constraints.maxWidth;
-        final navActualWidth =
-            widget.showNav && layout.navExpanded ? layout.navWidth : 0;
+        final navActualWidth = widget.showNav && layout.navExpanded
+            ? layout.navWidth
+            : 0;
         final minCenterWidth = contentMaxWidth * 0.6; // 中栏至少保留 70% 的内容宽度
         final availableForOutput = totalWidth - navActualWidth - minCenterWidth;
         final safeOutputWidth = layout.outputWidth.clamp(
@@ -208,28 +210,54 @@ class _AppShellContainerState extends ConsumerState<AppShellContainer> {
           ],
         );
 
+        void notWired(String what) =>
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(l10n.commonNotWired(what)),
+                duration: const Duration(seconds: 1),
+              ),
+            );
+        // 还没有对应功能的菜单项：只弹「功能待接」。
+        AppMenuAction stub(String label, {String? shortcut}) => AppMenuAction(
+          label: label,
+          shortcut: shortcut,
+          onTap: () => notWired(label),
+        );
+        final themeCtrl = ref.read(themeControllerProvider.notifier);
+
         final menus = [
           WindowMenu(
             label: l10n.menuFile,
             entries: [
+              stub(l10n.menuNewWindow),
               AppMenuAction(
-                icon: Icons.add,
                 label: l10n.navNewChat,
+                shortcut: 'Ctrl+N',
                 onTap: () {
                   ref.read(chatControllerProvider.notifier).newChat();
                   context.go(RouteNames.home);
                 },
               ),
               AppMenuAction(
-                icon: Icons.settings_outlined,
+                label: l10n.menuNewProject,
+                onTap: () => context.go(RouteNames.projects),
+              ),
+              const AppMenuDivider(),
+              stub(l10n.menuOpenFolder, shortcut: 'Ctrl+O'),
+              AppMenuAction(
                 label: l10n.navSettings,
                 onTap: () => showSettingsDialog(context),
               ),
               const AppMenuDivider(),
+              stub(l10n.menuClose, shortcut: 'Ctrl+W'),
+              const AppMenuDivider(),
               AppMenuAction(
-                icon: Icons.logout,
                 label: l10n.navLogout,
                 onTap: () => ref.read(authControllerProvider.notifier).logout(),
+              ),
+              stub(
+                l10n.menuQuitBrand(BrandConfig.instance.name),
+                shortcut: 'Ctrl+Q',
               ),
             ],
           ),
@@ -238,12 +266,14 @@ class _AppShellContainerState extends ConsumerState<AppShellContainer> {
             entries: [
               AppMenuAction(
                 label: l10n.editUndo,
+                shortcut: 'Ctrl+Z',
                 onTap: () => _editAction(
                   const UndoTextIntent(SelectionChangedCause.toolbar),
                 ),
               ),
               AppMenuAction(
                 label: l10n.editRedo,
+                shortcut: 'Ctrl+Y',
                 onTap: () => _editAction(
                   const RedoTextIntent(SelectionChangedCause.toolbar),
                 ),
@@ -251,6 +281,7 @@ class _AppShellContainerState extends ConsumerState<AppShellContainer> {
               const AppMenuDivider(),
               AppMenuAction(
                 label: l10n.editCut,
+                shortcut: 'Ctrl+X',
                 onTap: () => _editAction(
                   const CopySelectionTextIntent.cut(
                     SelectionChangedCause.toolbar,
@@ -259,16 +290,25 @@ class _AppShellContainerState extends ConsumerState<AppShellContainer> {
               ),
               AppMenuAction(
                 label: l10n.editCopy,
+                shortcut: 'Ctrl+C',
                 onTap: () => _editAction(CopySelectionTextIntent.copy),
               ),
               AppMenuAction(
                 label: l10n.editPaste,
+                shortcut: 'Ctrl+V',
                 onTap: () => _editAction(
                   const PasteTextIntent(SelectionChangedCause.toolbar),
                 ),
               ),
               AppMenuAction(
+                label: l10n.editDelete,
+                onTap: () =>
+                    _editAction(const DeleteCharacterIntent(forward: true)),
+              ),
+              const AppMenuDivider(),
+              AppMenuAction(
                 label: l10n.editSelectAll,
+                shortcut: 'Ctrl+A',
                 onTap: () => _editAction(
                   const SelectAllTextIntent(SelectionChangedCause.toolbar),
                 ),
@@ -279,28 +319,67 @@ class _AppShellContainerState extends ConsumerState<AppShellContainer> {
             label: l10n.menuView,
             entries: [
               AppMenuAction(
-                icon: Icons.view_sidebar_outlined,
-                label: layout.navExpanded
-                    ? l10n.shellCollapseNav
-                    : l10n.shellExpandNav,
+                label: l10n.menuToggleSidebar,
+                shortcut: 'Ctrl+Shift+S',
                 onTap: ctrl.toggleNav,
               ),
-              if (widget.isConversation)
-                AppMenuAction(
-                  icon: Icons.view_sidebar_outlined,
-                  label: l10n.shellToggleOutput,
-                  onTap: ctrl.toggleOutput,
-                ),
+              stub(l10n.menuOpenTerminal, shortcut: 'Ctrl+`'),
+              stub(l10n.menuSwitchChatTabs, shortcut: 'Alt+Ctrl+B'),
+              const AppMenuDivider(),
+              AppMenuSubmenu(
+                label: l10n.menuBrowser,
+                entries: [stub(l10n.menuBrowser)],
+              ),
+              const AppMenuDivider(),
+              stub(l10n.menuFind, shortcut: 'Ctrl+F'),
+              const AppMenuDivider(),
+              AppMenuAction(
+                label: l10n.toolbarBack,
+                shortcut: 'Ctrl+[',
+                enabled: _cursor > 0,
+                onTap: () => _go(-1),
+              ),
+              AppMenuAction(
+                label: l10n.toolbarForward,
+                enabled: _cursor < _history.length - 1,
+                onTap: () => _go(1),
+              ),
+              const AppMenuDivider(),
+              AppMenuAction(
+                label: l10n.menuZoomIn,
+                shortcut: 'Ctrl+Shift+=',
+                onTap: () => themeCtrl.bumpFontScale(1),
+              ),
+              AppMenuAction(
+                label: l10n.menuZoomOut,
+                shortcut: 'Ctrl+-',
+                onTap: () => themeCtrl.bumpFontScale(-1),
+              ),
+              AppMenuAction(
+                label: l10n.menuActualSize,
+                shortcut: 'Ctrl+0',
+                onTap: themeCtrl.resetFontScale,
+              ),
+              const AppMenuDivider(),
+              stub(l10n.menuFullScreen, shortcut: 'F11'),
             ],
           ),
           WindowMenu(
             label: l10n.menuHelp,
             entries: [
-              AppMenuAction(
-                icon: Icons.language,
-                label: l10n.settingsLanguage,
-                onTap: () => showLanguageDialog(context),
-              ),
+              stub(l10n.helpDocs),
+              stub(l10n.navKeyboardShortcuts, shortcut: 'Ctrl+/'),
+              stub(l10n.helpWhatsNew),
+              const AppMenuDivider(),
+              stub(l10n.helpTroubleshoot),
+              stub(l10n.helpSystemStatus),
+              stub(l10n.helpFeedback),
+              const AppMenuDivider(),
+              stub(l10n.helpTaskManager),
+              stub(l10n.helpStartTrace),
+              const AppMenuDivider(),
+              stub(l10n.helpCheckUpdates),
+              stub(l10n.navAboutBrand(BrandConfig.instance.name)),
             ],
           ),
         ];
