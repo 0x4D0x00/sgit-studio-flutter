@@ -1938,9 +1938,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get menuBrowser => 'Browser';
 
   @override
-  String get menuFind => 'Find';
-
-  @override
   String get menuZoomIn => 'Zoom in';
 
   @override

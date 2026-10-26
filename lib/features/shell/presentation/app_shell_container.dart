@@ -328,6 +328,10 @@ class _AppShellContainerState extends ConsumerState<AppShellContainer> {
           context.go(RouteNames.home);
         }
 
+        // 与左栏的搜索按钮是同一个弹窗（左栏收起 / 无左栏时也能唤出）。
+        void openSearch() =>
+            const NavPanelContainer().openSearch(context, ref);
+
         // 关闭当前页面（回到工作台）；已经没有可关的页面就最小化客户端。
         void closePage() {
           if (widget.activePath == RouteNames.home) {
@@ -448,7 +452,11 @@ class _AppShellContainerState extends ConsumerState<AppShellContainer> {
                 entries: [stub(l10n.menuBrowser)],
               ),
               const AppMenuDivider(),
-              stub(l10n.menuFind, shortcut: 'Ctrl+F'),
+              AppMenuAction(
+                label: l10n.navSearch,
+                shortcut: 'Ctrl+F',
+                onTap: openSearch,
+              ),
               const AppMenuDivider(),
               AppMenuAction(
                 label: l10n.toolbarBack,
@@ -567,8 +575,8 @@ class _AppShellContainerState extends ConsumerState<AppShellContainer> {
                 notWired(l10n.menuOpenTerminal),
             const SingleActivator(LogicalKeyboardKey.keyB, control: true, alt: true): () =>
                 notWired(l10n.menuSwitchChatTabs),
-            const SingleActivator(LogicalKeyboardKey.keyF, control: true): () =>
-                notWired(l10n.menuFind),
+            const SingleActivator(LogicalKeyboardKey.keyF, control: true):
+                openSearch,
             const SingleActivator(LogicalKeyboardKey.bracketLeft, control: true): () =>
                 _go(-1),
             const SingleActivator(LogicalKeyboardKey.equal, control: true, shift: true): () =>

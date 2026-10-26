@@ -1895,9 +1895,6 @@ class AppLocalizationsZh extends AppLocalizations {
   String get menuBrowser => '浏览器';
 
   @override
-  String get menuFind => '查找';
-
-  @override
   String get menuZoomIn => '放大';
 
   @override

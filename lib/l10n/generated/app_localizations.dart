@@ -3695,12 +3695,6 @@ abstract class AppLocalizations {
   /// **'浏览器'**
   String get menuBrowser;
 
-  /// No description provided for @menuFind.
-  ///
-  /// In zh, this message translates to:
-  /// **'查找'**
-  String get menuFind;
-
   /// No description provided for @menuZoomIn.
   ///
   /// In zh, this message translates to:

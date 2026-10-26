@@ -338,6 +338,10 @@ class NavPanelContainer extends ConsumerWidget {
     context.go(RouteNames.home);
   }
 
+  /// 供左栏之外的入口（视图菜单 / Ctrl+F）打开同一个搜索弹窗。
+  void openSearch(BuildContext context, WidgetRef ref) =>
+      _onSearch(context, ref, ref.read(threadListProvider).items);
+
   void _onSearch(
     BuildContext context,
     WidgetRef ref,
