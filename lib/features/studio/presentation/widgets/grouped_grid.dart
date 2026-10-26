@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:sgit_studio_flutter/design/extensions/app_skin.dart';
 import 'package:sgit_studio_flutter/design/tokens/app_spacing.dart';
 import 'package:sgit_studio_flutter/domain/models/studio/studio_group.dart';
+import 'package:sgit_studio_flutter/features/studio/presentation/studio_group_style.dart';
 
 /// 分组卡片网格 —— studio 各资源页的骨架。
 ///

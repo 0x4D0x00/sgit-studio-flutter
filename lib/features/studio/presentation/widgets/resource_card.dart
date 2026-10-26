@@ -4,6 +4,7 @@ import 'package:sgit_studio_flutter/design/extensions/app_skin.dart';
 import 'package:sgit_studio_flutter/design/tokens/app_spacing.dart';
 import 'package:sgit_studio_flutter/domain/models/studio/resource_item.dart';
 import 'package:sgit_studio_flutter/domain/models/studio/studio_group.dart';
+import 'package:sgit_studio_flutter/features/studio/presentation/studio_group_style.dart';
 import 'package:sgit_studio_flutter/features/studio/studio_page_specs.dart';
 import 'package:sgit_studio_flutter/l10n/generated/app_localizations.dart';
 import 'package:sgit_studio_flutter/ui/primitives/hover_lift.dart';

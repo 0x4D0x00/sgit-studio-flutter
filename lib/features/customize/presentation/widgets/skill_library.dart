@@ -5,6 +5,7 @@ import 'package:sgit_studio_flutter/design/extensions/app_skin.dart';
 import 'package:sgit_studio_flutter/design/tokens/app_spacing.dart';
 import 'package:sgit_studio_flutter/domain/models/studio/resource_item.dart';
 import 'package:sgit_studio_flutter/domain/models/studio/studio_group.dart';
+import 'package:sgit_studio_flutter/features/studio/presentation/studio_group_style.dart';
 import 'package:sgit_studio_flutter/features/studio/application/resource_list_controller.dart';
 import 'package:sgit_studio_flutter/app/app_providers.dart';
 import 'package:sgit_studio_flutter/features/studio/studio_page_specs.dart';

@@ -7,7 +7,6 @@ import 'package:sgit_studio_flutter/features/artifacts/application/artifacts_con
 import 'package:sgit_studio_flutter/features/chat/application/composer_settings_controller.dart';
 import 'package:sgit_studio_flutter/features/chat/application/session_sync_controller.dart';
 import 'package:sgit_studio_flutter/features/chat/application/thread_list_controller.dart';
-import 'package:sgit_studio_flutter/features/chat/application/thread_repository_provider.dart';
 import 'package:sgit_studio_flutter/services/chat/chat_ports.dart';
 
 /// [ChatPorts] 的 Riverpod 实现：把接口方法转给各 feature 的 controller。

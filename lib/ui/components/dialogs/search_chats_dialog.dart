@@ -4,84 +4,14 @@ import 'package:flutter/services.dart';
 import 'package:sgit_studio_flutter/design/extensions/app_skin.dart';
 import 'package:sgit_studio_flutter/design/tokens/app_spacing.dart';
 import 'package:sgit_studio_flutter/l10n/generated/app_localizations.dart';
+import 'package:sgit_studio_flutter/ui/components/dialogs/search/search_models.dart';
+import 'package:sgit_studio_flutter/ui/components/dialogs/search/search_row_menu.dart';
+import 'package:sgit_studio_flutter/ui/components/dialogs/search/search_rows.dart';
+import 'package:sgit_studio_flutter/ui/components/dialogs/search/search_widgets.dart';
 import 'package:sgit_studio_flutter/ui/components/menu/app_menu.dart';
 
-/// 搜索条目所属的类型。决定图标、落在哪个标签下，以及行尾「⁝」里有哪些动作。
-enum SearchDialogCategory { artifact, chat, project }
-
-/// 行尾「⁝」菜单里的一项动作。对话框只回传动作，**不自己执行** ——
-/// 打开 / 改名 / 删除分别由调用方接（`ui/` 层不 import features）。
-enum SearchDialogRowAction { open, pin, rename, editDetails, copyLink, delete }
-
-/// 行动作执行完的结果。弹窗据此就地刷新列表（不关弹窗）。
-@immutable
-class SearchRowResult {
-  const SearchRowResult.removed() : removed = true, newLabel = null;
-  const SearchRowResult.renamed(String this.newLabel) : removed = false;
-
-  final bool removed;
-  final String? newLabel;
-}
-
-/// 「操作」里的一条命令。选中后先关弹窗再执行 [onRun]。
-///
-/// [featured] 的命令也会出现在「全部」标签的「操作」分组里；其余只在筛选「操作」后列出。
-@immutable
-class SearchDialogCommand {
-  const SearchDialogCommand({
-    required this.label,
-    required this.icon,
-    required this.onRun,
-    this.featured = false,
-  });
-
-  final String label;
-  final IconData icon;
-  final VoidCallback onRun;
-  final bool featured;
-}
-
-/// 搜索弹窗里的一行 —— 展示用，选中后回传 [id] 给调用方。
-@immutable
-class SearchDialogItem {
-  const SearchDialogItem({
-    required this.id,
-    required this.label,
-    required this.category,
-    this.updatedAt,
-  });
-
-  final String id;
-  final String label;
-  final SearchDialogCategory category;
-
-  /// 右侧相对时间列（今天 / 过去一周 / 过去一月 / 过去一年 / 更早）。
-  /// null = 不显示 —— 内核偶有缺时间戳的旧数据，不拿 epoch 0 顶替。
-  final DateTime? updatedAt;
-}
-
-/// 命令面板标签页。前四个是真实分类，后三个暂无数据源（保留空态，等内核接上）。
-enum _SearchTab { all, artifacts, chats, projects, sessions, tasks, scheduled }
-
-extension on _SearchTab {
-  /// 该标签要收哪些分类。空集合 = 这个标签当前没有数据源。
-  Set<SearchDialogCategory> get categories => switch (this) {
-    _SearchTab.all => SearchDialogCategory.values.toSet(),
-    _SearchTab.artifacts => const {SearchDialogCategory.artifact},
-    _SearchTab.chats => const {SearchDialogCategory.chat},
-    _SearchTab.projects => const {SearchDialogCategory.project},
-    _SearchTab.sessions || _SearchTab.tasks || _SearchTab.scheduled => const {},
-  };
-
-  bool get hasDataSource => categories.isNotEmpty;
-
-  /// 无搜索词时最多展示多少条（最近的）。null = 不限。
-  int? get recentLimit => switch (this) {
-    _SearchTab.all => 8,
-    _SearchTab.chats => 25,
-    _ => null,
-  };
-}
+// 对外 API 不变：调用方仍只 import 这一个文件。
+export 'package:sgit_studio_flutter/ui/components/dialogs/search/search_models.dart';
 
 /// 居中命令面板：搜索框 + 分类标签 + 结果列表 + 底栏快捷键。
 ///
@@ -114,72 +44,6 @@ Future<void> showSearchChatsDialog(
   );
 }
 
-/// 列表里的一行。用 sealed 是为了让渲染侧的 switch 漏分支时编译报错。
-sealed class _Row {
-  const _Row();
-}
-
-/// 分组标题（Recents / Actions）。
-class _SectionRow extends _Row {
-  const _SectionRow(this.label);
-  final String label;
-}
-
-/// 一条可打开的条目。
-class _ItemRow extends _Row {
-  const _ItemRow(this.item);
-  final SearchDialogItem item;
-}
-
-/// 一条命令（目前只有「新建对话」）。
-class _ActionRow extends _Row {
-  const _ActionRow({
-    required this.label,
-    required this.icon,
-    required this.onRun,
-  });
-  final String label;
-  final IconData icon;
-  final VoidCallback onRun;
-
-  _ActionRow.of(SearchDialogCommand c)
-    : this(label: c.label, icon: c.icon, onRun: c.onRun);
-}
-
-/// 输入 `/` 后列出的筛选项，或选完筛选键后列出的候选值。选中即回调 [onPick]。
-class _SuggestionRow extends _Row {
-  const _SuggestionRow({
-    required this.text,
-    required this.onPick,
-    this.pill,
-    this.icon,
-  });
-  final String text;
-
-  /// 文字后面的小药丸（「按 [所有者] 筛选」里的所有者）。
-  final String? pill;
-  final IconData? icon;
-  final VoidCallback onPick;
-}
-
-/// 筛选键。`owner` / `date` / `type` 要再选一个值；`archived` / `actions` 直接生效。
-enum _FilterKind { owner, date, type, archived, actions }
-
-extension on _FilterKind {
-  bool get hasValues =>
-      this == _FilterKind.owner ||
-      this == _FilterKind.date ||
-      this == _FilterKind.type;
-}
-
-/// 已生效的筛选（搜索框左侧的小标签）。[value] 是候选值的下标。
-@immutable
-class _AppliedFilter {
-  const _AppliedFilter(this.kind, [this.value]);
-  final _FilterKind kind;
-  final int? value;
-}
-
 class _SearchChatsDialog extends StatefulWidget {
   const _SearchChatsDialog({
     required this.items,
@@ -206,9 +70,9 @@ class _SearchChatsDialog extends StatefulWidget {
 class _SearchChatsDialogState extends State<_SearchChatsDialog> {
   final _ctl = TextEditingController();
   final _scroll = ScrollController();
-  final List<_AppliedFilter> _filters = [];
+  final List<SearchAppliedFilter> _filters = [];
   String _query = '';
-  _SearchTab _tab = _SearchTab.all;
+  SearchTab _tab = SearchTab.all;
 
   /// 键盘选中的行。指向 [_rows] 的下标；-1 = 没有可选项。
   ///
@@ -284,7 +148,7 @@ class _SearchChatsDialogState extends State<_SearchChatsDialog> {
         )
         .where((e) => cats.contains(e.category))
         .where((e) => q.isEmpty || e.label.toLowerCase().contains(q))
-        .where(_matchesFilters)
+        .where((e) => searchMatchesFilters(_filters, e))
         .toList();
     // 有时间戳的排前面并按时间倒序；缺时间戳的沉到末尾且保持原顺序。
     list.sort((a, b) {
@@ -303,116 +167,62 @@ class _SearchChatsDialogState extends State<_SearchChatsDialog> {
     return list;
   }
 
-  bool _has(_FilterKind kind) => _filters.any((f) => f.kind == kind);
-
-  /// 已生效的筛选是否放行该条目。
-  ///
-  /// 目前没有「所有者」「归档」的数据源：条目全是自己的、没有归档项，
-  /// 所以「我」放行全部，「与我共享」和「已归档」一条都不放行。
-  bool _matchesFilters(SearchDialogItem e) {
-    for (final f in _filters) {
-      switch (f.kind) {
-        case _FilterKind.owner:
-          if (f.value != 0) return false;
-        case _FilterKind.archived:
-          return false;
-        case _FilterKind.date:
-          final at = e.updatedAt;
-          if (at == null) return false;
-          // 与 [_timeLabel] 同一分档：只留下行尾显示该标签的条目，互不重叠。
-          final days = DateTime.now().difference(at).inDays;
-          final inBucket = switch (f.value!) {
-            0 => days < 1,
-            1 => days >= 1 && days < 7,
-            _ => days >= 7 && days < 30,
-          };
-          if (!inBucket) return false;
-        case _FilterKind.type || _FilterKind.actions:
-          break;
-      }
-    }
-    return true;
-  }
+  bool _has(SearchFilterKind kind) => _filters.any((f) => f.kind == kind);
 
   /// 当前标签下摊平后的行（含分组标题）。
-  List<_Row> _rows(AppLocalizations l10n) {
+  List<SearchRow> _rows(AppLocalizations l10n) {
     final suggestions = _suggestionRows(l10n);
     if (suggestions != null) return suggestions;
-    if (_has(_FilterKind.actions)) {
+    if (_has(SearchFilterKind.actions)) {
       final q = _query.trim().toLowerCase();
       return [
         for (final c in widget.commands)
-          if (q.isEmpty || c.label.toLowerCase().contains(q)) _ActionRow.of(c),
+          if (q.isEmpty || c.label.toLowerCase().contains(q))
+            SearchActionRow.of(c),
       ];
     }
     final items = _visibleItems;
-    if (_tab != _SearchTab.all) {
-      return [for (final i in items) _ItemRow(i)];
+    if (_tab != SearchTab.all) {
+      return [for (final i in items) SearchItemRow(i)];
     }
     return [
       if (items.isNotEmpty) ...[
-        _SectionRow(l10n.searchSectionRecents),
-        for (final i in items) _ItemRow(i),
+        SearchSectionRow(l10n.searchSectionRecents),
+        for (final i in items) SearchItemRow(i),
       ],
       // 带着筛选时只看筛选结果，不再夹带命令。
       if (_filters.isEmpty) ...[
-        _SectionRow(l10n.searchSectionActions),
+        SearchSectionRow(l10n.searchSectionActions),
         for (final c in widget.commands)
-          if (c.featured) _ActionRow.of(c),
+          if (c.featured) SearchActionRow.of(c),
       ],
     ];
   }
-
-  String _kindLabel(AppLocalizations l10n, _FilterKind kind) => switch (kind) {
-    _FilterKind.owner => l10n.searchFilterOwner,
-    _FilterKind.date => l10n.searchFilterDate,
-    _FilterKind.type => l10n.searchFilterType,
-    _FilterKind.archived => l10n.searchFilterArchived,
-    _FilterKind.actions => l10n.searchFilterActions,
-  };
-
-  /// 某个筛选键的候选值（文案）。
-  List<String> _valueLabels(AppLocalizations l10n, _FilterKind kind) =>
-      switch (kind) {
-        _FilterKind.owner => [l10n.searchOwnerMe, l10n.searchOwnerShared],
-        _FilterKind.date => [
-          l10n.searchTimeToday,
-          l10n.searchTimePastWeek,
-          l10n.searchTimePastMonth,
-        ],
-        // 「全部」不是类型。下标对应 `_SearchTab.values[i + 1]`。
-        _FilterKind.type => [
-          for (final t in _SearchTab.values.skip(1)) _tabLabel(l10n, t),
-        ],
-        _ => const [],
-      };
 
   /// 输入框里的筛选语法对应的候选行；不在筛选语法里时返回 null。
   ///
   /// - `/` 开头、没有冒号：列出筛选键（可按已输入的字过滤）
   /// - `键:`（可带 `/`）：列出该键的候选值（可按冒号后的字过滤）
-  List<_Row>? _suggestionRows(AppLocalizations l10n) {
-    if (_has(_FilterKind.actions)) return null;
+  List<SearchRow>? _suggestionRows(AppLocalizations l10n) {
+    if (_has(SearchFilterKind.actions)) return null;
     final slash = _query.startsWith('/');
     final body = (slash ? _query.substring(1) : _query).toLowerCase();
     final colon = body.indexOf(':');
 
     if (colon >= 0) {
       final key = body.substring(0, colon).trim();
-      final kind = _FilterKind.values
+      final kind = SearchFilterKind.values
           .where((k) => k.hasValues)
-          .where(
-            (k) => k.name == key || _kindLabel(l10n, k).toLowerCase() == key,
-          )
+          .where((k) => k.name == key || k.label(l10n).toLowerCase() == key)
           .firstOrNull;
       if (kind == null) return null;
       final text = body.substring(colon + 1).trim();
-      final labels = _valueLabels(l10n, kind);
+      final labels = kind.valueLabels(l10n);
       return [
-        _SectionRow(_kindLabel(l10n, kind)),
+        SearchSectionRow(kind.label(l10n)),
         for (var i = 0; i < labels.length; i++)
           if (text.isEmpty || labels[i].toLowerCase().contains(text))
-            _SuggestionRow(
+            SearchSuggestionRow(
               text: labels[i],
               onPick: () => _applyFilter(kind, i),
             ),
@@ -422,30 +232,22 @@ class _SearchChatsDialogState extends State<_SearchChatsDialog> {
     if (!slash) return null;
     final text = body.trim();
     return [
-      for (final kind in _FilterKind.values)
-        if (!_has(kind) || kind == _FilterKind.type)
+      for (final kind in SearchFilterKind.values)
+        if (!_has(kind) || kind == SearchFilterKind.type)
           if (text.isEmpty ||
               kind.name.contains(text) ||
-              _kindLabel(l10n, kind).toLowerCase().contains(text))
-            _SuggestionRow(
+              kind.label(l10n).toLowerCase().contains(text))
+            SearchSuggestionRow(
               text: l10n.searchFilterBy,
-              pill: _kindLabel(l10n, kind),
-              icon: _kindIcon(kind),
+              pill: kind.label(l10n),
+              icon: kind.icon,
               onPick: () => _pickKind(kind),
             ),
     ];
   }
 
-  IconData _kindIcon(_FilterKind kind) => switch (kind) {
-    _FilterKind.owner => Icons.person_outline,
-    _FilterKind.date => Icons.schedule,
-    _FilterKind.type => Icons.category_outlined,
-    _FilterKind.archived => Icons.archive_outlined,
-    _FilterKind.actions => Icons.keyboard_command_key,
-  };
-
   /// 选中筛选键：要选值的把输入框改成 `键:` 接着列候选，其余直接生效。
-  void _pickKind(_FilterKind kind) {
+  void _pickKind(SearchFilterKind kind) {
     if (!kind.hasValues) {
       _applyFilter(kind, null);
       return;
@@ -459,23 +261,23 @@ class _SearchChatsDialogState extends State<_SearchChatsDialog> {
   }
 
   /// 让筛选生效，并清空输入框。「类型」等价于切标签，不留小标签。
-  void _applyFilter(_FilterKind kind, int? value) {
+  void _applyFilter(SearchFilterKind kind, int? value) {
     _ctl.clear();
     setState(() {
       _query = '';
       _hovered = null;
       _keyboardMode = false;
-      if (kind == _FilterKind.type) {
-        _tab = _SearchTab.values[value! + 1];
+      if (kind == SearchFilterKind.type) {
+        _tab = SearchTab.values[value! + 1];
       } else {
         _filters.removeWhere((f) => f.kind == kind);
-        _filters.add(_AppliedFilter(kind, value));
+        _filters.add(SearchAppliedFilter(kind, value));
       }
     });
     _resetSelection();
   }
 
-  void _removeFilter(_AppliedFilter filter) {
+  void _removeFilter(SearchAppliedFilter filter) {
     setState(() {
       _filters.remove(filter);
       _hovered = null;
@@ -500,18 +302,18 @@ class _SearchChatsDialogState extends State<_SearchChatsDialog> {
   }
 
   /// 下标列表里第一条可选项。分组标题不参与键盘选择。
-  static int _firstSelectable(List<_Row> rows) {
+  static int _firstSelectable(List<SearchRow> rows) {
     for (var i = 0; i < rows.length; i++) {
-      if (rows[i] is! _SectionRow) return i;
+      if (rows[i] is! SearchSectionRow) return i;
     }
     return -1;
   }
 
   /// 从 [from] 往 [step] 方向找下一条可选项，到头则原地不动。
-  static int _nextSelectable(List<_Row> rows, int from, int step) {
+  static int _nextSelectable(List<SearchRow> rows, int from, int step) {
     var i = from + step;
     while (i >= 0 && i < rows.length) {
-      if (rows[i] is! _SectionRow) return i;
+      if (rows[i] is! SearchSectionRow) return i;
       i += step;
     }
     return from;
@@ -522,7 +324,7 @@ class _SearchChatsDialogState extends State<_SearchChatsDialog> {
   void _close() => Navigator.of(context).pop();
 
   void _changeTab(int delta) {
-    final tabs = _SearchTab.values;
+    final tabs = SearchTab.values;
     final next = (_tab.index + delta).clamp(0, tabs.length - 1);
     if (next == _tab.index) return;
     setState(() {
@@ -590,17 +392,17 @@ class _SearchChatsDialogState extends State<_SearchChatsDialog> {
     });
   }
 
-  void _activate(_Row row) {
+  void _activate(SearchRow row) {
     switch (row) {
-      case _ItemRow(:final item):
+      case SearchItemRow(:final item):
         _close();
         widget.onSelect(item.id);
-      case _ActionRow(:final onRun):
+      case SearchActionRow(:final onRun):
         _close();
         onRun();
-      case _SuggestionRow(:final onPick):
+      case SearchSuggestionRow(:final onPick):
         onPick();
-      case _SectionRow():
+      case SearchSectionRow():
         break;
     }
   }
@@ -609,7 +411,7 @@ class _SearchChatsDialogState extends State<_SearchChatsDialog> {
     final rows = _rows(AppLocalizations.of(context));
     if (index < 0 || index >= rows.length) return;
     final row = rows[index];
-    if (row is! _ItemRow) return;
+    if (row is! SearchItemRow) return;
 
     setState(() {
       _selected = index;
@@ -707,181 +509,78 @@ class _SearchChatsDialogState extends State<_SearchChatsDialog> {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            _header(skin, l10n),
-            _tabs(skin, l10n),
+            SearchHeader(
+              skin: skin,
+              l10n: l10n,
+              controller: _ctl,
+              filters: _filters,
+              hintText: _has(SearchFilterKind.actions)
+                  ? l10n.searchActionsHint
+                  : l10n.navSearch,
+              onChanged: _onQueryChanged,
+              onRemoveFilter: _removeFilter,
+              onClose: _close,
+            ),
+            SearchTabsBar(
+              skin: skin,
+              l10n: l10n,
+              selected: _tab,
+              onSelect: _selectTabByMouse,
+            ),
             Flexible(
-              child: _tab == _SearchTab.all || _tab.hasDataSource
+              child: _tab == SearchTab.all || _tab.hasDataSource
                   ? _body(skin, l10n, rows, selected)
                   : _empty(skin, l10n),
             ),
             Divider(height: 1, thickness: 1, color: skin.borderSecondary),
-            _footer(skin, l10n),
+            SearchFooter(skin: skin, l10n: l10n),
           ],
         ),
       ),
     );
   }
 
-  Widget _header(AppSkin skin, AppLocalizations l10n) => Padding(
-    padding: const EdgeInsets.fromLTRB(
-      AppSpacing.md,
-      AppSpacing.sm,
-      AppSpacing.xs,
-      AppSpacing.xxs,
-    ),
-    child: Row(
-      children: [
-        for (final f in _filters) _filterChip(skin, l10n, f),
-        Expanded(
-          child: TextField(
-            controller: _ctl,
-            autofocus: true,
-            cursorColor: skin.textSecondary,
-            onChanged: _onQueryChanged,
-            style: TextStyle(fontSize: 16, color: skin.text),
-            decoration: InputDecoration(
-              isDense: true,
-              filled: false,
-              // ⚠️ 三条都要显式置 none：主题的 `inputDecorationTheme` 给了
-              // `enabledBorder` / `focusedBorder`，只写 `border` 时它们仍会画出
-              // 一圈描边，搜索框会变成一只带框的输入框。
-              border: InputBorder.none,
-              enabledBorder: InputBorder.none,
-              focusedBorder: InputBorder.none,
-              contentPadding: const EdgeInsets.symmetric(
-                horizontal: AppSpacing.xxs,
-                vertical: AppSpacing.xs,
-              ),
-              hintText: _has(_FilterKind.actions)
-                  ? l10n.searchActionsHint
-                  : l10n.navSearch,
-              hintStyle: TextStyle(fontSize: 16, color: skin.textTertiary),
-            ),
-          ),
-        ),
-        ExcludeFocus(
-          child: IconButton(
-            icon: const Icon(Icons.close),
-            iconSize: 20,
-            color: skin.textSecondary,
-            tooltip: l10n.commonClose,
-            onPressed: _close,
-          ),
-        ),
-      ],
-    ),
+  /// 鼠标点标签：指针在标签条上，列表里不该有行是灰的，所以退出键盘模式。
+  void _selectTabByMouse(SearchTab tab) {
+    setState(() {
+      _tab = tab;
+      _selected = -1;
+      _hovered = null;
+      _keyboardMode = false;
+    });
+    _resetSelection();
+  }
+
+  /// 空态里的「搜索全部」：回到 All 并清掉筛选。
+  void _searchAll() {
+    setState(() {
+      _tab = SearchTab.all;
+      _filters.clear();
+      _selected = -1;
+      _hovered = null;
+    });
+    _resetSelection();
+  }
+
+  Widget _empty(AppSkin skin, AppLocalizations l10n) => SearchEmptyView(
+    skin: skin,
+    l10n: l10n,
+    tab: _tab,
+    onSearchAll: _searchAll,
   );
 
-  /// 搜索框左侧的已生效筛选，点 × 或在空输入框里退格即可撤掉。
-  Widget _filterChip(AppSkin skin, AppLocalizations l10n, _AppliedFilter f) {
-    final value = f.value;
-    final label = value == null
-        ? _kindLabel(l10n, f.kind)
-        : '${_kindLabel(l10n, f.kind)}: ${_valueLabels(l10n, f.kind)[value]}';
-    return Container(
-      margin: const EdgeInsets.only(right: AppSpacing.xxs),
-      padding: const EdgeInsets.only(left: AppSpacing.xs),
-      decoration: BoxDecoration(
-        color: skin.textSecondary.withValues(alpha: 0.08),
-        borderRadius: BorderRadius.circular(AppRadius.sm),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Text(label, style: TextStyle(fontSize: 13, color: skin.text)),
-          InkWell(
-            canRequestFocus: false,
-            onTap: () => _removeFilter(f),
-            child: Padding(
-              padding: const EdgeInsets.all(4),
-              child: Icon(Icons.close, size: 12, color: skin.textSecondary),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  /// 分类标签行。视觉与 [PillTabBar] 同一套（选中 = 8% 描底色 + w600），
-  /// 但这里要响应键盘切换并用滚动容器定位，所以不复用那个纯渲染组件。
-  Widget _tabs(AppSkin skin, AppLocalizations l10n) {
-    return SingleChildScrollView(
-      scrollDirection: Axis.horizontal,
-      padding: const EdgeInsets.fromLTRB(
-        AppSpacing.md,
-        0,
-        AppSpacing.md,
-        AppSpacing.xs,
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          for (final tab in _SearchTab.values)
-            Padding(
-              padding: const EdgeInsets.only(right: AppSpacing.xxs),
-              child: _tabPill(skin, l10n, tab),
-            ),
-        ],
-      ),
-    );
-  }
-
-  Widget _tabPill(AppSkin skin, AppLocalizations l10n, _SearchTab tab) {
-    final selected = tab == _tab;
-    return InkWell(
-      // 不接管焦点：否则方向键会被焦点遍历拿去，把某一行画成焦点灰底。
-      canRequestFocus: false,
-      borderRadius: BorderRadius.circular(AppRadius.sm),
-      onTap: () {
-        setState(() {
-          _tab = tab;
-          _selected = -1;
-          _hovered = null;
-          // 鼠标点的标签：指针在标签条上，列表里不该有行是灰的。
-          _keyboardMode = false;
-        });
-        _resetSelection();
-      },
-      child: Container(
-        padding: const EdgeInsets.symmetric(
-          horizontal: AppSpacing.xs,
-          vertical: 6,
-        ),
-        decoration: BoxDecoration(
-          color: selected ? skin.textSecondary.withValues(alpha: 0.08) : null,
-          borderRadius: BorderRadius.circular(AppRadius.sm),
-        ),
-        child: Text(
-          _tabLabel(l10n, tab),
-          style: TextStyle(
-            fontSize: 13,
-            fontWeight: selected ? FontWeight.w600 : FontWeight.w400,
-            color: selected ? skin.text : skin.textSecondary,
-          ),
-        ),
-      ),
-    );
-  }
-
-  String _tabLabel(AppLocalizations l10n, _SearchTab tab) => switch (tab) {
-    _SearchTab.all => l10n.searchTabAll,
-    _SearchTab.artifacts => l10n.searchTabArtifacts,
-    _SearchTab.chats => l10n.searchTabChats,
-    _SearchTab.projects => l10n.searchTabProjects,
-    _SearchTab.sessions => l10n.searchTabSessions,
-    _SearchTab.tasks => l10n.searchTabTasks,
-    _SearchTab.scheduled => l10n.searchTabScheduled,
-  };
+  /// 键盘滚动锚点：按行下标缓存。
+  GlobalKey _anchor(int index) => _rowKeys.putIfAbsent(index, GlobalKey.new);
 
   Widget _body(
     AppSkin skin,
     AppLocalizations l10n,
-    List<_Row> rows,
+    List<SearchRow> rows,
     int selected,
   ) {
     // 筛选候选行无命中时（如输入 `/zzz`）也走空态。
-    final hasRows = rows.any((r) => r is! _SectionRow);
-    if (!hasRows && (_tab != _SearchTab.all || _filters.isNotEmpty)) {
+    final hasRows = rows.any((r) => r is! SearchSectionRow);
+    if (!hasRows && (_tab != SearchTab.all || _filters.isNotEmpty)) {
       return _empty(skin, l10n);
     }
 
@@ -894,51 +593,67 @@ class _SearchChatsDialogState extends State<_SearchChatsDialog> {
         padding: EdgeInsets.zero,
         itemCount: rows.length,
         itemBuilder: (_, i) => switch (rows[i]) {
-          _SectionRow(:final label) => _sectionHeader(
-            skin,
-            label,
+          SearchSectionRow(:final label) => SearchSectionHeader(
+            skin: skin,
+            label: label,
             first: i == 0,
           ),
-          _ItemRow(:final item) => _itemRow(
+          SearchItemRow(:final item) => _itemRow(
             skin,
             l10n,
             item,
             index: i,
             selected: i == selected,
           ),
-          _ActionRow(:final label, :final icon, :final onRun) => _actionRow(
-            skin,
-            l10n,
-            label: label,
-            icon: icon,
-            onRun: onRun,
-            index: i,
-            selected: i == selected,
+          final SearchActionRow row => SearchActionTile(
+            skin: skin,
+            anchorKey: _anchor(i),
+            highlighted: _isHighlighted(i, i == selected),
+            onTap: () => _activate(row),
+            onHover: (v) => _hoverRow(i, v),
+            label: row.label,
+            icon: row.icon,
           ),
-          final _SuggestionRow row => _suggestionRow(
-            skin,
-            row,
-            index: i,
-            selected: i == selected,
+          final SearchSuggestionRow row => SearchSuggestionTile(
+            skin: skin,
+            anchorKey: _anchor(i),
+            highlighted: _isHighlighted(i, i == selected),
+            onHover: (v) => _hoverRow(i, v),
+            row: row,
           ),
         },
       ),
     );
   }
 
-  Widget _sectionHeader(AppSkin skin, String label, {required bool first}) =>
-      Padding(
-        padding: EdgeInsets.fromLTRB(
-          AppSpacing.md,
-          first ? AppSpacing.xs : AppSpacing.sm,
-          AppSpacing.md,
-          AppSpacing.xxs,
-        ),
-        child: Text(
-          label,
-          style: TextStyle(fontSize: 12, color: skin.textTertiary),
-        ),
-      );
+  /// 灰底是否点亮：键盘模式跟着选中行，否则跟着指针。
+  bool _isHighlighted(int index, bool selected) =>
+      _keyboardMode ? selected : _hovered == index;
+
+  /// 行尾菜单动作的执行：只有「打开」会关弹窗；其余动作的对话框直接叠在
+  /// 搜索弹窗之上，结果就地叠在传入的 `items` 上。
+  Future<void> _fireRowAction(
+    SearchDialogItem item,
+    SearchDialogRowAction action,
+  ) async {
+    if (action == SearchDialogRowAction.open) {
+      _close();
+      widget.onRowAction(item.id, action);
+      return;
+    }
+    final result = await widget.onRowAction(item.id, action);
+    if (!mounted || result == null) return;
+    setState(() {
+      if (result.removed) {
+        _removed.add(item.id);
+        _menuControllers.remove(item.id);
+        final last = _rows(AppLocalizations.of(context)).length - 1;
+        if (_selected > last) _selected = last;
+      } else if (result.newLabel != null) {
+        _labels[item.id] = result.newLabel!;
+      }
+    });
+  }
 
   Widget _itemRow(
     AppSkin skin,
@@ -951,8 +666,7 @@ class _SearchChatsDialogState extends State<_SearchChatsDialog> {
     //
     // 菜单开着时无条件涂灰：指针这时在浮层上，行本身收不到 hover。
     final highlighted =
-        _menuOpenId == item.id ||
-        (_keyboardMode ? selected : _hovered == index);
+        _menuOpenId == item.id || _isHighlighted(index, selected);
     // 按条目 id 持有控制器，而不是按下标 —— 过滤后下标会重排，按下标存会让
     // "打开着的菜单"漂到另一条不相干的条目上。
     final menu = _menuControllers.putIfAbsent(item.id, MenuController.new);
@@ -993,22 +707,26 @@ class _SearchChatsDialogState extends State<_SearchChatsDialog> {
           for (final c in buildAppMenuChildren(
             context,
             skin,
-            _rowEntries(l10n, item),
+            buildSearchRowMenuEntries(
+              l10n,
+              item.category,
+              (action) => _fireRowAction(item, action),
+            ),
             maxWidth: 200,
           ))
             appMenuKeepLtr(c),
         ],
         builder: (_, controller, _) => appMenuKeepLtr(
-          _rowShell(
-            skin,
-            index: index,
+          SearchRowShell(
+            skin: skin,
+            anchorKey: _anchor(index),
             highlighted: highlighted,
-            onTap: () => _activate(_ItemRow(item)),
+            onTap: () => _activate(SearchItemRow(item)),
             onHover: (v) => _hoverRow(index, v),
             child: Row(
               children: [
                 Icon(
-                  _categoryIcon(item.category),
+                  searchCategoryIcon(item.category),
                   size: 16,
                   color: skin.textSecondary,
                 ),
@@ -1022,7 +740,7 @@ class _SearchChatsDialogState extends State<_SearchChatsDialog> {
                   ),
                 ),
                 if (highlighted) ...[
-                  _rowTrailingButton(
+                  SearchRowTrailingButton(
                     icon: Icons.more_vert,
                     skin: skin,
                     tooltip: l10n.searchFooterActions,
@@ -1030,14 +748,14 @@ class _SearchChatsDialogState extends State<_SearchChatsDialog> {
                         ? controller.close
                         : controller.open,
                   ),
-                  _rowTrailingButton(
+                  SearchRowTrailingButton(
                     icon: Icons.keyboard_return,
                     skin: skin,
-                    onPressed: () => _activate(_ItemRow(item)),
+                    onPressed: () => _activate(SearchItemRow(item)),
                   ),
                 ] else if (item.updatedAt != null)
                   Text(
-                    _timeLabel(l10n, item.updatedAt!),
+                    searchTimeLabel(l10n, item.updatedAt!),
                     style: TextStyle(fontSize: 12, color: skin.textTertiary),
                   ),
                 const SizedBox(width: AppSpacing.xxs),
@@ -1048,363 +766,4 @@ class _SearchChatsDialogState extends State<_SearchChatsDialog> {
       ),
     );
   }
-
-  List<AppMenuEntry> _rowEntries(AppLocalizations l10n, SearchDialogItem item) {
-    // 只有「打开」会关弹窗；其余动作的对话框直接叠在搜索弹窗之上。
-    Future<void> fire(SearchDialogRowAction action) async {
-      if (action == SearchDialogRowAction.open) {
-        _close();
-        widget.onRowAction(item.id, action);
-        return;
-      }
-      final result = await widget.onRowAction(item.id, action);
-      if (!mounted || result == null) return;
-      setState(() {
-        if (result.removed) {
-          _removed.add(item.id);
-          _menuControllers.remove(item.id);
-          final last = _rows(AppLocalizations.of(context)).length - 1;
-          if (_selected > last) _selected = last;
-        } else if (result.newLabel != null) {
-          _labels[item.id] = result.newLabel!;
-        }
-      });
-    }
-
-    AppMenuAction open() => AppMenuAction(
-      icon: Icons.open_in_new,
-      label: l10n.searchOpen,
-      onTap: () => fire(SearchDialogRowAction.open),
-    );
-    AppMenuAction pin(String label) => AppMenuAction(
-      icon: Icons.push_pin_outlined,
-      label: label,
-      onTap: () => fire(SearchDialogRowAction.pin),
-    );
-    final delete = AppMenuAction(
-      icon: Icons.delete_outline,
-      label: l10n.commonDelete,
-      danger: true,
-      onTap: () => fire(SearchDialogRowAction.delete),
-    );
-
-    // 三类的动作集合各不一样：产物只有开关与复制链接；项目/聊天多一个置顶，
-    // 但项目走「编辑细节」、聊天走「重命名」。
-    return switch (item.category) {
-      SearchDialogCategory.artifact => [
-        open(),
-        AppMenuAction(
-          icon: Icons.link,
-          label: l10n.artifactsCopyLink,
-          onTap: () => fire(SearchDialogRowAction.copyLink),
-        ),
-      ],
-      SearchDialogCategory.project => [
-        open(),
-        pin(l10n.projectsPin),
-        AppMenuAction(
-          icon: Icons.edit_outlined,
-          label: l10n.projectsEditDetails,
-          onTap: () => fire(SearchDialogRowAction.editDetails),
-        ),
-        delete,
-      ],
-      SearchDialogCategory.chat => [
-        open(),
-        pin(l10n.navChatPin),
-        AppMenuAction(
-          icon: Icons.edit_outlined,
-          label: l10n.navChatRename,
-          onTap: () => fire(SearchDialogRowAction.rename),
-        ),
-        delete,
-      ],
-    };
-  }
-
-  Widget _actionRow(
-    AppSkin skin,
-    AppLocalizations l10n, {
-    required String label,
-    required IconData icon,
-    required VoidCallback onRun,
-    required int index,
-    required bool selected,
-  }) {
-    final highlighted = _keyboardMode ? selected : _hovered == index;
-    return _rowShell(
-      skin,
-      index: index,
-      highlighted: highlighted,
-      onTap: () =>
-          _activate(_ActionRow(label: label, icon: icon, onRun: onRun)),
-      onHover: (v) => _hoverRow(index, v),
-      child: Row(
-        children: [
-          Icon(icon, size: 16, color: skin.textSecondary),
-          const SizedBox(width: AppSpacing.xs),
-          Expanded(
-            child: Text(
-              label,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: TextStyle(fontSize: 14, color: skin.text),
-            ),
-          ),
-          if (highlighted)
-            Padding(
-              padding: const EdgeInsets.only(right: AppSpacing.xs),
-              child: Icon(
-                Icons.keyboard_return,
-                size: 14,
-                color: skin.textTertiary,
-              ),
-            ),
-          const SizedBox(width: AppSpacing.xxs),
-        ],
-      ),
-    );
-  }
-
-  /// 筛选候选行：`[图标] 筛选 [药丸]`，或只有文字的候选值。
-  Widget _suggestionRow(
-    AppSkin skin,
-    _SuggestionRow row, {
-    required int index,
-    required bool selected,
-  }) {
-    final highlighted = _keyboardMode ? selected : _hovered == index;
-    return _rowShell(
-      skin,
-      index: index,
-      highlighted: highlighted,
-      onTap: row.onPick,
-      onHover: (v) => _hoverRow(index, v),
-      child: Row(
-        children: [
-          if (row.icon != null) ...[
-            Icon(row.icon, size: 16, color: skin.textSecondary),
-            const SizedBox(width: AppSpacing.xs),
-          ],
-          Text(row.text, style: TextStyle(fontSize: 14, color: skin.text)),
-          if (row.pill != null) ...[
-            const SizedBox(width: AppSpacing.xs),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
-              decoration: BoxDecoration(
-                color: skin.textSecondary.withValues(alpha: 0.08),
-                borderRadius: BorderRadius.circular(4),
-              ),
-              child: Text(
-                row.pill!,
-                style: TextStyle(fontSize: 12, color: skin.textSecondary),
-              ),
-            ),
-          ],
-          const Spacer(),
-          if (highlighted)
-            Padding(
-              padding: const EdgeInsets.only(right: AppSpacing.xs),
-              child: Icon(
-                Icons.keyboard_return,
-                size: 14,
-                color: skin.textTertiary,
-              ),
-            ),
-          const SizedBox(width: AppSpacing.xxs),
-        ],
-      ),
-    );
-  }
-
-  /// 行外壳：悬停/选中底色、圆角、键盘滚动锚点。
-  Widget _rowShell(
-    AppSkin skin, {
-    required int index,
-    required bool highlighted,
-    required VoidCallback onTap,
-    required ValueChanged<bool> onHover,
-    required Widget child,
-  }) {
-    final key = _rowKeys.putIfAbsent(index, GlobalKey.new);
-    return KeyedSubtree(
-      key: key,
-      child: MouseRegion(
-        // onHover 而非 onEnter：键盘滚动时行从静止的指针下滑过会误触发 onEnter，抢走键盘选中。
-        onHover: (_) => onHover(true),
-        onExit: (_) => onHover(false),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xs),
-          child: Material(
-            color: highlighted
-                ? skin.textSecondary.withValues(alpha: 0.08)
-                : Colors.transparent,
-            borderRadius: BorderRadius.circular(AppRadius.sm),
-            child: InkWell(
-              canRequestFocus: false,
-              // 行底色由 [highlighted] 单独控制；InkWell 自带的 hover / focus / highlight / splash 蒙层一律关掉，避免叠出第二层灰。
-              overlayColor: const WidgetStatePropertyAll(Colors.transparent),
-              borderRadius: BorderRadius.circular(AppRadius.sm),
-              hoverColor: Colors.transparent,
-              onTap: onTap,
-              child: Container(
-                height: 40,
-                padding: const EdgeInsets.only(left: AppSpacing.xs),
-                alignment: Alignment.centerLeft,
-                child: child,
-              ),
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  /// 行尾的小图标按钮。
-  ///
-  /// ⚠️ **必须把所有 overlay 关掉**：按钮浮在已经上过色的行底之上，
-  /// `IconButton` 默认的 hover / highlight / splash 蒙层会再叠一层灰，
-  /// 看上去就是一深一浅两块灰摞在一起。行的底色本身已经是反馈了。
-  Widget _rowTrailingButton({
-    required IconData icon,
-    required AppSkin skin,
-    String? tooltip,
-    required VoidCallback onPressed,
-  }) => SizedBox(
-    width: 28,
-    height: 40,
-    child: IconButton(
-      icon: Icon(icon),
-      iconSize: 15,
-      padding: EdgeInsets.zero,
-      constraints: const BoxConstraints(),
-      color: skin.textSecondary,
-      tooltip: tooltip,
-      style: IconButton.styleFrom(
-        overlayColor: Colors.transparent,
-        hoverColor: Colors.transparent,
-        highlightColor: Colors.transparent,
-        focusColor: Colors.transparent,
-      ),
-      onPressed: onPressed,
-    ),
-  );
-
-  IconData _categoryIcon(SearchDialogCategory c) => switch (c) {
-    SearchDialogCategory.artifact => Icons.description_outlined,
-    SearchDialogCategory.chat => Icons.chat_bubble_outline,
-    SearchDialogCategory.project => Icons.inventory_2_outlined,
-  };
-
-  /// 相对时间。分档与截图一致：今天 / 过去一周 / 过去一月 / 过去一年 / 更早。
-  String _timeLabel(AppLocalizations l10n, DateTime at) {
-    final diff = DateTime.now().difference(at);
-    if (diff.inDays < 1) return l10n.searchTimeToday;
-    if (diff.inDays < 7) return l10n.searchTimePastWeek;
-    if (diff.inDays < 30) return l10n.searchTimePastMonth;
-    if (diff.inDays < 365) return l10n.searchTimePastYear;
-    return l10n.searchTimeOlder;
-  }
-
-  Widget _empty(AppSkin skin, AppLocalizations l10n) => Padding(
-    padding: const EdgeInsets.symmetric(vertical: AppSpacing.xl),
-    child: Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Text(
-          l10n.searchNoResultsIn(_tabLabel(l10n, _tab)),
-          style: TextStyle(fontSize: 14, color: skin.textSecondary),
-        ),
-        const SizedBox(height: AppSpacing.sm),
-        OutlinedButton(
-          onPressed: () {
-            setState(() {
-              _tab = _SearchTab.all;
-              _filters.clear();
-              _selected = -1;
-              _hovered = null;
-            });
-            _resetSelection();
-          },
-          style: OutlinedButton.styleFrom(
-            foregroundColor: skin.text,
-            side: BorderSide(color: skin.border),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(AppRadius.sm),
-            ),
-            padding: const EdgeInsets.symmetric(
-              horizontal: AppSpacing.md,
-              vertical: AppSpacing.xs,
-            ),
-            minimumSize: Size.zero,
-            // ⚠️ 字号写在子 Text 上，别用 `styleFrom(textStyle:)` ——
-            // 那会把主题里带 fontFamily / fontFamilyFallback 的按钮文字样式整个
-            // 替换掉，中文没了随包 CJK 兜底，直接渲染成方框。
-          ),
-          child: Text(
-            l10n.searchSearchAll,
-            style: const TextStyle(fontSize: 13),
-          ),
-        ),
-      ],
-    ),
-  );
-
-  Widget _footer(AppSkin skin, AppLocalizations l10n) => Padding(
-    padding: const EdgeInsets.symmetric(
-      horizontal: AppSpacing.md,
-      vertical: AppSpacing.xs,
-    ),
-    child: Row(
-      children: [
-        _hint(skin, l10n.searchFooterClose, const ['Esc']),
-        _hint(skin, l10n.searchFooterChangeType, const ['←', '→']),
-        _filtersHint(skin, l10n),
-        _hint(skin, l10n.searchFooterActions, const ['Alt', '↵']),
-        const Spacer(),
-        _hint(skin, l10n.searchFooterCompose, const ['Tab']),
-      ],
-    ),
-  );
-
-  Widget _hint(AppSkin skin, String label, List<String> keys) => Padding(
-    padding: const EdgeInsets.only(right: AppSpacing.md),
-    child: Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Text(label, style: TextStyle(fontSize: 12, color: skin.textTertiary)),
-        const SizedBox(width: AppSpacing.xxs),
-        for (final k in keys) _keycap(skin, k),
-      ],
-    ),
-  );
-
-  /// 「Filters /」—— 键帽仅作提示，不可点击；在搜索框里输入 `/` 才会列出筛选项。
-  Widget _filtersHint(AppSkin skin, AppLocalizations l10n) => Padding(
-    padding: const EdgeInsets.only(right: AppSpacing.md),
-    child: Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Text(
-          l10n.searchFooterFilters,
-          style: TextStyle(fontSize: 12, color: skin.textTertiary),
-        ),
-        const SizedBox(width: AppSpacing.xxs),
-        _keycap(skin, '/'),
-      ],
-    ),
-  );
-
-  Widget _keycap(AppSkin skin, String text) => Container(
-    margin: const EdgeInsets.only(left: 2),
-    padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
-    decoration: BoxDecoration(
-      border: Border.all(color: skin.border),
-      borderRadius: BorderRadius.circular(4),
-    ),
-    child: Text(
-      text,
-      style: TextStyle(fontSize: 11, color: skin.textSecondary),
-    ),
-  );
 }
