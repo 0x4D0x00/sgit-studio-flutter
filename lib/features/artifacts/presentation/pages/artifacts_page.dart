@@ -441,9 +441,7 @@ class _ArtifactsPageState extends ConsumerState<ArtifactsPage> {
         vertical: AppSpacing.xs,
       ),
       child: Center(
-        child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 1200),
-          child: Align(
+        child: Align(
             alignment: Alignment.topLeft,
             child: Wrap(
               alignment: WrapAlignment.start,
@@ -461,7 +459,6 @@ class _ArtifactsPageState extends ConsumerState<ArtifactsPage> {
             ),
           ),
         ),
-      ),
     );
   }
 
@@ -477,9 +474,7 @@ class _ArtifactsPageState extends ConsumerState<ArtifactsPage> {
         vertical: AppSpacing.xs,
       ),
       child: Center(
-        child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 1200),
-          child: ListView.separated(
+        child: ListView.separated(
             shrinkWrap: true,
             physics: const NeverScrollableScrollPhysics(),
             itemCount: items.length,
@@ -498,7 +493,6 @@ class _ArtifactsPageState extends ConsumerState<ArtifactsPage> {
             },
           ),
         ),
-      ),
     );
   }
 }

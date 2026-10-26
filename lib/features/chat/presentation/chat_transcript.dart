@@ -18,6 +18,7 @@ import 'package:sgit_studio_flutter/features/chat/application/composer_focus_con
 import 'package:sgit_studio_flutter/features/chat/application/composer_quotes_controller.dart';
 import 'package:sgit_studio_flutter/features/chat/application/composer_settings_controller.dart';
 import 'package:sgit_studio_flutter/features/chat/application/model_list_controller.dart';
+import 'package:sgit_studio_flutter/features/chat/application/transcript_selection_pin.dart';
 import 'package:sgit_studio_flutter/l10n/generated/app_localizations.dart';
 import 'package:sgit_studio_flutter/layout/metrics/workspace_metrics.dart';
 import 'package:sgit_studio_flutter/services/chat/chat_controller.dart';
@@ -94,6 +95,13 @@ class _ChatTranscriptState extends ConsumerState<ChatTranscript> {
 
   /// 选区把手。Ctrl+A 的两种走法都要直接调 `SelectableRegion`（见 [_selectAll]）。
   final _selectionKey = GlobalKey<SelectionAreaState>();
+  final _selectionFocus = PinnableFocusNode(transcriptSelectionPin, debugLabel: 'transcriptSelection');
+
+  /// 放开钉住时正文已不在焦点上 —— 补上被压住的那次「失焦清选区」。
+  void _onPinChanged() {
+    if (transcriptSelectionPin.value || _selectionFocus.hasFocus) return;
+    _selectionKey.currentState?.selectableRegion.clearSelection();
+  }
 
   /// 短会话按下 Ctrl+A 时临时为 `true`：把列表的缓存区撑到 [_materializePixels]，
   /// 让**每一条**都建出来并注册进选区，`selectAll()` 才是真的全选。
@@ -143,10 +151,18 @@ class _ChatTranscriptState extends ConsumerState<ChatTranscript> {
   void initState() {
     super.initState();
     _scroll.addListener(_onScroll);
+    transcriptSelectionPin.node = _selectionFocus;
+    transcriptSelectionPin.addListener(_onPinChanged);
   }
 
   @override
   void dispose() {
+    transcriptSelectionPin.removeListener(_onPinChanged);
+    if (transcriptSelectionPin.node == _selectionFocus) {
+      transcriptSelectionPin.value = false;
+      transcriptSelectionPin.node = null;
+    }
+    _selectionFocus.dispose();
     _dwell?.cancel();
     _replyTimer?.cancel();
     _scroll.removeListener(_onScroll);
@@ -736,6 +752,7 @@ class _ChatTranscriptState extends ConsumerState<ChatTranscript> {
                   },
                   child: SelectionArea(
                     key: _selectionKey,
+                    focusNode: _selectionFocus,
                     onSelectionChanged: _onSelectionChanged,
                     child: ListView.builder(
                       controller: _scroll,

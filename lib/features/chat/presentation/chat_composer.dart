@@ -13,6 +13,7 @@ import 'package:sgit_studio_flutter/domain/models/chat/sgcode_settings.dart';
 import 'package:sgit_studio_flutter/features/chat/application/composer_focus_controller.dart';
 import 'package:sgit_studio_flutter/features/chat/application/composer_quotes_controller.dart';
 import 'package:sgit_studio_flutter/features/chat/application/composer_settings_controller.dart';
+import 'package:sgit_studio_flutter/features/chat/application/transcript_selection_pin.dart';
 import 'package:sgit_studio_flutter/features/chat/application/model_list_controller.dart';
 import 'package:sgit_studio_flutter/features/chat/presentation/model_selector.dart';
 import 'package:sgit_studio_flutter/l10n/generated/app_localizations.dart';
@@ -92,7 +93,7 @@ class _ChatComposerState extends ConsumerState<ChatComposer> {
   bool _beamActive = false;
 
   final _ctl = TextEditingController();
-  final _focus = FocusNode();
+  final _focus = PinnableFocusNode(composerSelectionPin);
 
   // ⚠️ 选中的模型**不在这里** —— 它住在 `composerSettingsProvider`。
   //
@@ -115,6 +116,7 @@ class _ChatComposerState extends ConsumerState<ChatComposer> {
     // 用 controller 监听而不是 TextField.onChanged：`_ctl.clear()` 这种**程序化**改动
     // 也要触发重建，否则 steer 之后按钮不会从「插话」切回「停止」（被 UI 测试抓到过）。
     _ctl.addListener(_onTextChanged);
+    composerSelectionPin.node = _focus;
   }
 
   /// 首次挂载时如果**本轮已经在跑**，补一次光。
@@ -145,6 +147,10 @@ class _ChatComposerState extends ConsumerState<ChatComposer> {
   void dispose() {
     _ctl.removeListener(_onTextChanged);
     _ctl.dispose();
+    if (composerSelectionPin.node == _focus) {
+      composerSelectionPin.value = false;
+      composerSelectionPin.node = null;
+    }
     _focus.dispose();
     super.dispose();
   }

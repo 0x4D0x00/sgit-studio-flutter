@@ -3,6 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import 'package:sgit_studio_flutter/features/auth/application/auth_controller.dart';
+import 'package:sgit_studio_flutter/features/chat/application/composer_focus_controller.dart';
+import 'package:sgit_studio_flutter/features/chat/application/transcript_selection_pin.dart';
 import 'package:sgit_studio_flutter/features/settings/presentation/widgets/language_dialog.dart';
 import 'package:sgit_studio_flutter/features/settings/presentation/widgets/settings_dialog.dart';
 import 'package:sgit_studio_flutter/layout/shell/side_rail.dart';
@@ -98,10 +100,104 @@ class _AppShellContainerState extends ConsumerState<AppShellContainer> {
     context.go(_history[next]);
   }
 
-  /// 把当前焦点控件（输入框 / 可选文本）当作菜单动作的目标。
+  final _toolbarKey = GlobalKey();
+
+  /// 点菜单之前的焦点（输入框 / 会话正文的选区）。
+  ///
+  /// 点触发器、悬停菜单项都会把焦点抢走，菜单项真正被点下时
+  /// `primaryFocus` 早已是菜单自己 —— 编辑动作必须认这里记下的那个。
+  FocusNode? _editTarget;
+
+  /// 工具行里任何一次按下都先记账（此刻触发器还没来得及拿焦点）。
+  /// 焦点已经在菜单 / 触发器自己身上就不覆盖，免得把真正的目标冲掉。
+  void _captureEditTarget() {
+    final f = FocusManager.instance.primaryFocus;
+    final ctx = f?.context;
+    if (f == null || ctx == null) return;
+    final bar = _toolbarKey.currentContext;
+    var inToolbar = false;
+    ctx.visitAncestorElements((e) {
+      if (e == bar) inToolbar = true;
+      return !inToolbar;
+    });
+    if (!inToolbar) {
+      _editTarget = f;
+      // 目标是会话正文就钉住它的选区：点菜单让正文失焦，选区却要留着，
+      // 直到粘贴（正文焦点作废）才放开。
+      transcriptSelectionPin.value = f == transcriptSelectionPin.node;
+      composerSelectionPin.value = f == composerSelectionPin.node;
+    }
+  }
+
+  /// 焦点去了输入框 = 正文选区的使命结束（粘贴走的也是这条路）；
+  /// 焦点去了正文 = 输入框的选区该放开。
+  void _releasePinOnEditableFocus() {
+    final f = FocusManager.instance.primaryFocus;
+    if (transcriptSelectionPin.value && _isEditable(f)) {
+      transcriptSelectionPin.value = false;
+    }
+    if (composerSelectionPin.value && f == transcriptSelectionPin.node) {
+      composerSelectionPin.value = false;
+    }
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    FocusManager.instance.addListener(_releasePinOnEditableFocus);
+  }
+
+  @override
+  void dispose() {
+    FocusManager.instance.removeListener(_releasePinOnEditableFocus);
+    super.dispose();
+  }
+
+  bool _isEditable(FocusNode? f) =>
+      f?.context?.findAncestorWidgetOfExactType<EditableText>() != null;
+
+  /// 把记下的焦点控件（输入框 / 可选文本）当作菜单动作的目标。
+  ///
+  /// - 粘贴只对输入框有意义：目标不是输入框（比如会话正文）就送去输入框，
+  ///   焦点也留在输入框里，接着做别的操作。
+  /// - 其余动作做完把焦点还给原目标 —— 否则全选之后焦点丢了，
+  ///   再点「复制」就找不到选区。
   void _editAction(Intent intent) {
-    final ctx = FocusManager.instance.primaryFocus?.context;
-    if (ctx != null) Actions.maybeInvoke(ctx, intent);
+    var target = _editTarget;
+    if (target == null || target.context == null) {
+      target = FocusManager.instance.primaryFocus;
+    }
+
+    if (intent is PasteTextIntent && !_isEditable(target)) {
+      ref.read(composerFocusProvider.notifier).requestFocus();
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        final ctx = FocusManager.instance.primaryFocus?.context;
+        if (ctx == null || !_isEditable(FocusManager.instance.primaryFocus)) {
+          return;
+        }
+        final input = FocusManager.instance.primaryFocus!;
+        Actions.maybeInvoke(ctx, intent);
+        // 正文的焦点 / 选区到此作废；此后的编辑动作都认输入框。
+        transcriptSelectionPin.value = false;
+        _editTarget = input;
+        // 菜单收起时可能把焦点还给之前的控件，再等一帧拉回输入框。
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (input.context != null) input.requestFocus();
+        });
+        WidgetsBinding.instance.scheduleFrame();
+      });
+      WidgetsBinding.instance.scheduleFrame();
+      return;
+    }
+
+    final ctx = target?.context;
+    if (ctx == null) return;
+    Actions.maybeInvoke(ctx, intent);
+    // 菜单收起是在 onPressed 之后，焦点要等它收完再还。
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (target!.context != null && target.canRequestFocus) target.requestFocus();
+    });
+    WidgetsBinding.instance.scheduleFrame();
   }
 
   @override
@@ -403,19 +499,24 @@ class _AppShellContainerState extends ConsumerState<AppShellContainer> {
         return AppShell(
           rail: rail,
           showNav: widget.showNav,
-          toolbarBuilder: (toggleNav) => WindowToolbar(
-            canGoBack: _cursor > 0,
-            canGoForward: _cursor < _history.length - 1,
-            onBack: () => _go(-1),
-            onForward: () => _go(1),
-            onToggleNav: toggleNav,
-            navExpanded: layout.navExpanded,
-            backTooltip: l10n.toolbarBack,
-            forwardTooltip: l10n.toolbarForward,
-            toggleNavTooltip: layout.navExpanded
-                ? l10n.shellCollapseNav
-                : l10n.shellExpandNav,
-            menus: menus,
+          toolbarBuilder: (toggleNav) => Listener(
+            key: _toolbarKey,
+            behavior: HitTestBehavior.translucent,
+            onPointerDown: (_) => _captureEditTarget(),
+            child: WindowToolbar(
+              canGoBack: _cursor > 0,
+              canGoForward: _cursor < _history.length - 1,
+              onBack: () => _go(-1),
+              onForward: () => _go(1),
+              onToggleNav: toggleNav,
+              navExpanded: layout.navExpanded,
+              backTooltip: l10n.toolbarBack,
+              forwardTooltip: l10n.toolbarForward,
+              toggleNavTooltip: layout.navExpanded
+                  ? l10n.shellCollapseNav
+                  : l10n.shellExpandNav,
+              menus: menus,
+            ),
           ),
           navExpanded: layout.navExpanded,
           navWidth: layout.navWidth,
