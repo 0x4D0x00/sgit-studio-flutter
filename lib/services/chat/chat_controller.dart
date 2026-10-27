@@ -4,7 +4,6 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import 'package:sgit_studio_flutter/app/app_providers.dart';
 import 'package:sgit_studio_flutter/core/contracts/kernel_client.dart';
 import 'package:sgit_studio_flutter/core/contracts/kernel_ops.dart';
 import 'package:sgit_studio_flutter/data/mappers/kernel_frame_mapper.dart';
@@ -13,10 +12,10 @@ import 'package:sgit_studio_flutter/data/transport/kernel/kernel_client_factory.
 import 'package:sgit_studio_flutter/data/transport/kernel/kernel_frame.dart';
 import 'package:sgit_studio_flutter/domain/models/chat/chat_artifact.dart';
 import 'package:sgit_studio_flutter/domain/models/chat/chat_item.dart';
-import 'package:sgit_studio_flutter/domain/models/chat/markdown/markdown_block.dart';
-import 'package:sgit_studio_flutter/domain/models/chat/sgcode_settings.dart';
 import 'package:sgit_studio_flutter/domain/models/chat/chat_session.dart';
+import 'package:sgit_studio_flutter/services/chat/chat_item_store.dart';
 import 'package:sgit_studio_flutter/services/chat/chat_ports.dart';
+import 'package:sgit_studio_flutter/services/chat/thread_open_flow.dart';
 import 'package:sgit_studio_flutter/services/layout/layout_controller.dart';
 import 'package:sgit_studio_flutter/services/chat/workspace_mode.dart';
 
@@ -38,14 +37,13 @@ class ChatController extends Notifier<ChatSessionState> {
   /// 未注入时按平台选：Web 走 wasm→gateway，桌面暂为 mock。测试注入替身。
   late final KernelClient _client = _injected ?? createKernelClient();
 
-  /// 条目按到达顺序排列。**身份稳定** —— `ListView.builder` 靠它避免整表重建。
-  final List<ChatItem> _items = [];
+  /// 条目列表与条目级帧处理（见 [ChatItemStore]）。
+  late final ChatItemStore _store = ChatItemStore(
+    onContentStarted: _endThinking,
+  );
 
-  /// 结构版本：只在增删条目时 +1。
-  final ValueNotifier<int> itemsRevision = ValueNotifier<int>(0);
-
-  /// 当前正在流式追加的文本条目（`itemStarted` 开、`itemCompleted` 关）。
-  TextItem? _streaming;
+  /// 结构版本：只在增删条目时 +1。`ChatTranscript` 订阅它而不是 provider 的 state。
+  ValueNotifier<int> get itemsRevision => _store.revision;
 
   /// 会话代次。**每次换会话（打开历史 / 新对话）都 +1。**
   ///
@@ -62,7 +60,6 @@ class ChatController extends Notifier<ChatSessionState> {
   /// 光比 [_threadId] 不够：那只能挡住"切到别的会话"，挡不住
   /// "同一条会话被连点两次"的乱序，也挡不住 newChat 之后旧内容灌回来。
   int _openGeneration = 0;
-  final Map<int, ChatItem> _byId = {};
 
   /// 两次建连之间的最小间隔。纯粹的防呆闸门（见 [connect] 注释）。
   static const _reconnectFloor = Duration(seconds: 2);
@@ -83,12 +80,11 @@ class ChatController extends Notifier<ChatSessionState> {
   bool _dirty = false;
   bool _drainScheduled = false;
   int _reqSeq = 0;
-  int _syntheticId = -1;
 
   /// 本次会话里 drain 被执行的次数。性能基线用（契约 §8：1000 delta → < 60 次）。
   int drainCount = 0;
 
-  List<ChatItem> get items => List.unmodifiable(_items);
+  List<ChatItem> get items => _store.items;
 
   @override
   ChatSessionState build() {
@@ -114,10 +110,12 @@ class ChatController extends Notifier<ChatSessionState> {
     }
     _lastConnectAt = DateTime.now();
     state = state.copyWith(
-        connecting: true,
-        fault: null,
-        progress: const KernelConnectProgress(
-            phase: KernelConnectPhase.connecting));
+      connecting: true,
+      fault: null,
+      progress: const KernelConnectProgress(
+        phase: KernelConnectPhase.connecting,
+      ),
+    );
     try {
       // 重连前先关旧连接，别留悬空的。
       _client.close();
@@ -137,17 +135,20 @@ class ChatController extends Notifier<ChatSessionState> {
         state = state.copyWith(
           connecting: false,
           fault: FrameVersionMismatch(
-              kernel: caps.frameVersion, client: kKernelFrameVersion),
+            kernel: caps.frameVersion,
+            client: kKernelFrameVersion,
+          ),
         );
         return;
       }
       state = state.copyWith(
-          connecting: false,
-          capabilities: caps,
-          clearProgress: true,
-          // 引擎起来了但少了命令类工具 → 立刻说清楚。不是"坏了"，所以这条
-          // fault 不给重连按钮（见 LocalExecUnavailable）。
-          fault: caps.execUnavailable ? const LocalExecUnavailable() : null);
+        connecting: false,
+        capabilities: caps,
+        clearProgress: true,
+        // 引擎起来了但少了命令类工具 → 立刻说清楚。不是"坏了"，所以这条
+        // fault 不给重连按钮（见 LocalExecUnavailable）。
+        fault: caps.execUnavailable ? const LocalExecUnavailable() : null,
+      );
     } catch (e) {
       // ⚠️ 这里**必须**接住：以前是裸 await，异常直接进了未处理的 microtask，
       // 界面上一点提示都没有，用户只看到"发消息没反应"。
@@ -156,9 +157,10 @@ class ChatController extends Notifier<ChatSessionState> {
       // 却分不清是连上了还是悄悄失败了）。
       debugPrint('[kernel] 建连失败：${_stripException(e)}');
       state = state.copyWith(
-          connecting: false,
-          clearProgress: true,
-          fault: KernelUnavailable(_stripException(e)));
+        connecting: false,
+        clearProgress: true,
+        fault: KernelUnavailable(_stripException(e)),
+      );
     }
   }
 
@@ -199,19 +201,17 @@ class ChatController extends Notifier<ChatSessionState> {
       return false;
     }
 
-    _append(TextItem(
-        id: _syntheticId--,
-        role: ChatRole.user,
-        initial: trimmed,
-        createdAt: DateTime.now()));
-    // ⚠️ 本地插入的条目要自己通知列表 —— `itemsRevision` 的另一处 ++ 在 [_drainOnce]
-    // 里，那条路径只覆盖内核推来的帧。漏了这句用户气泡就不显示（被 UI 集成测试抓到过）。
-    itemsRevision.value++;
+    // 本地插入的条目由 store 自己通知列表（漏了用户气泡就不显示）。
+    _store.appendUserText(trimmed);
     // thinking 与 busy 一起开：从这一刻到**本轮第一段内容落地**（`itemStarted`
     // / `toolBegin`，见 [_endThinking]）之间，屏幕上只有用户那条气泡，
     // 不摆东西出来用户分不清"在跑"和"卡住了"。
     state = state.copyWith(
-        busy: true, thinking: true, turnId: null, clearNotice: true);
+      busy: true,
+      thinking: true,
+      turnId: null,
+      clearNotice: true,
+    );
     _client.call(KernelOp.send, {'text': trimmed, 'model': model}, ++_reqSeq);
     _armStallWatchdog();
     return true;
@@ -249,16 +249,7 @@ class ChatController extends Notifier<ChatSessionState> {
       return false;
     }
 
-    final index = _items.indexWhere((i) => i.id == itemId);
-    if (index == -1) return false;
-
-    final removed = _items.sublist(index);
-    _items.removeRange(index, _items.length);
-    for (final i in removed) {
-      _byId.remove(i.id);
-      i.dispose();
-    }
-    if (removed.contains(_streaming)) _streaming = null;
+    if (!_store.truncateFrom(itemId)) return false;
 
     return send(trimmed, model: model);
   }
@@ -328,17 +319,12 @@ class ChatController extends Notifier<ChatSessionState> {
     _closeOutputPanel();
     ref.read(workspaceModeProvider.notifier).set(WorkspaceMode.chat);
     if (state.busy) interrupt();
-    for (final i in _items) {
-      i.dispose();
-    }
-    _items.clear();
-    _byId.clear();
-    _streaming = null;
+    _store.clear();
     // 开新对话同样是"换会话"：在途的历史载入回来时必须被丢掉，
     // 否则旧会话的内容会灌进这个空白的新对话里。
     _openGeneration++;
     _client.setThread(null);
-    itemsRevision.value++;
+    _store.notifyStructure();
     // ⚠️ **必须保留 capabilities**。能力属于**连接**，不属于会话 —— 换个话题
     // 内核的能力不会变。原先这里写 `const ChatSessionState(capabilities: null)`
     // 把它一起清了，于是"新建对话"之后第一次发送就因为 caps==null 被拒，
@@ -384,65 +370,17 @@ class ChatController extends Notifier<ChatSessionState> {
   Future<void> openThreadById(String threadId) async {
     beginOpenThread(threadId);
     final gen = _openGeneration; // beginOpenThread 刚 +1，记下这次的代次
-    try {
-      final replay = await ref
-          .read(chatPortsProvider)
-          .threadRepository
-          .open(threadId);
-      // 取数期间用户换了会话 → 这份内容已经过时，丢掉（见 _openGeneration）。
-      if (_openGeneration != gen) {
-        debugPrint('[threads] $threadId 载入期间用户已换会话，丢弃这份内容');
-        return;
-      }
-      openThread(threadId, replay.events,
-          createdAt: replay.summary.createdAt);
-      unawaited(_refreshThreadFromServer(threadId, gen));
-    } catch (e) {
-      // ⚠️ **本地没有这条会话 —— 这是唯一该让用户等的情形。**
-      //
-      // 常见于"换台机器登录"：会话是在另一台设备上聊的，本机
-      // `<cid_home>/sessions/` 里压根没有这个文件。此时直接报错是错的，
-      // 那条会话明明在服务器上好好地躺着 —— 用户会以为历史丢了。
-      //
-      // 注意这跟上面那条后台刷新是**两种情形**，不能合并：
-      //
-      // ```text
-      // 本地有 → 立刻展示，后台问服务器有没有更新（不让用户等）
-      // 本地无 → 没东西可展示，只能等拉完（这一次必须等）
-      // ```
-      debugPrint('[threads] 本地打不开 $threadId（$e），试着从服务器拉一次');
-      if (_openGeneration != gen) return;
-
-      if (await _pullThreadFromServer(threadId)) {
-        if (_openGeneration != gen) return;
-        try {
-          final replay = await ref
-          .read(chatPortsProvider)
-          .threadRepository
-          .open(threadId);
-          if (_openGeneration != gen) return;
-          openThread(threadId, replay.events,
-              createdAt: replay.summary.createdAt);
-          return; // 刚拉的就是最新，不必再刷一次
-        } catch (e2) {
-          // 拉回来了还是打不开 —— 落到下面按失败处理，但报**这一次**的原因：
-          // 它比"本地没有"更接近真正的问题（文件损坏 / 版本不兼容）。
-          debugPrint('[threads] 拉回后仍打不开 $threadId：$e2');
-          if (_openGeneration != gen) return;
-          _failOpen(e2);
-          return;
-        }
-      }
-
-      // 服务器上也没有（或同步没开 / 云端模式）—— 打不开必须说，
-      // 静默停在空会话上，用户会以为历史丢了。
-      //
-      // **过时的失败不该报**：用户早换到别的会话了，弹一条"打不开 A"
-      // 只会让人莫名其妙，还会把新会话的状态搅乱。
-      if (_openGeneration != gen) return;
-      _failOpen(e);
-    }
+    await _openFlow.run(threadId, gen);
   }
+
+  /// 取数 / 判过期 / 服务器兜底的异步流程（见 [ThreadOpenFlow]）。
+  late final ThreadOpenFlow _openFlow = ThreadOpenFlow(
+    ports: ref.read(chatPortsProvider),
+    isStale: (gen) => _openGeneration != gen,
+    onLoaded: (id, replay) =>
+        openThread(id, replay.events, createdAt: replay.summary.createdAt),
+    onFailed: _failOpen,
+  );
 
   /// 退出载入态并报错。
   void _failOpen(Object e) {
@@ -452,62 +390,6 @@ class ChatController extends Notifier<ChatSessionState> {
         e.toString().replaceFirst(RegExp(r'^\w*Exception(\([^)]*\))?:\s*'), ''),
       ),
     );
-  }
-
-  /// 从服务器拉这一条会话，返回"有没有拉到东西"。
-  ///
-  /// 抽出来是因为两条路都要用它，但**等不等它是两回事**：
-  /// 本地有内容时后台拉（[_refreshThreadFromServer]），本地空时必须等着拉完。
-  Future<bool> _pullThreadFromServer(String threadId) async {
-    // ⚠️ **只在本地引擎下做**。云端模式的会话本来就在服务器上，
-    // `thread/resume` 读到的**就是**最新那份 —— 打不开就是真打不开，
-    // 把服务器文件下到本机既没用（引擎读的不是本机那份）又会误导。
-    if (ref.read(chatPortsProvider).engineMode != EngineMode.local) {
-      return false;
-    }
-    return ref.read(sessionSyncRepositoryProvider).refreshThread(threadId);
-  }
-
-  /// 本地内容已经在屏幕上之后，问一下服务器这条会话有没有更新。
-  ///
-  /// ## 为什么是"之后"而不是"之前"
-  ///
-  /// 这条会话可能是在另一台设备上聊的，本机那份 rollout 停在某个旧偏移。
-  /// 但**先等服务器再显示**就退回了原来的毛病 —— 网络慢一次，用户就又在
-  /// 干等。所以顺序是：本地秒回 → 后台问 → 真有新内容才重装。
-  ///
-  /// ## 只在真的变了才重装
-  ///
-  /// 重装会重建所有气泡、把滚动位置顶回去。绝大多数情况下服务器没有新东西
-  /// （就是本机自己聊的那条），无条件重装等于每次点开都白闪一下。
-  ///
-  /// ## 失败不管
-  ///
-  /// 仓储层已经把失败咽成 `false`（见 `refreshThread` 的注释）。用户手上那份
-  /// 是完整的本地历史，没拉到更新不值得提示，更不能把它换成错误。
-  Future<void> _refreshThreadFromServer(String threadId, int gen) async {
-    // 引擎模式的判断在 [_pullThreadFromServer] 里（云端模式恒为 false，
-    // 那边有原因）。
-    if (!await _pullThreadFromServer(threadId)) return;
-    // 用户可能已经切走了（开了新对话、点了另一条）。往一个已经换掉的会话里
-    // 灌内容比不刷新糟得多。
-    if (_openGeneration != gen) {
-      debugPrint('[threads] $threadId 有更新，但用户已切走，不重装');
-      return;
-    }
-    debugPrint('[threads] $threadId 从服务器拿到更新，重新装配');
-    try {
-      final replay = await ref
-          .read(chatPortsProvider)
-          .threadRepository
-          .open(threadId);
-      if (_openGeneration != gen) return; // 再查一次：取数期间也可能切走
-      openThread(threadId, replay.events,
-          createdAt: replay.summary.createdAt);
-    } catch (e) {
-      // 已经显示着本地那份，重装失败就维持现状。
-      debugPrint('[threads] $threadId 重装失败，保留本地内容：$e');
-    }
   }
 
   /// 清空当前内容并进入"正在载入历史会话"。[openThreadById] 的前半拍。
@@ -525,13 +407,8 @@ class ChatController extends Notifier<ChatSessionState> {
     if (state.currentThreadId != threadId) _closeOutputPanel();
     _openGeneration++;
     if (state.busy) interrupt();
-    for (final i in _items) {
-      i.dispose();
-    }
-    _items.clear();
-    _byId.clear();
-    _streaming = null;
-    itemsRevision.value++;
+    _store.clear();
+    _store.notifyStructure();
 
     // 同 openThread：capabilities 属于连接不属于会话，清掉会让首次发送被拒。
     state = ChatSessionState(
@@ -557,21 +434,16 @@ class ChatController extends Notifier<ChatSessionState> {
     DateTime? createdAt,
   }) {
     if (state.busy) interrupt();
-    for (final i in _items) {
-      i.dispose();
-    }
-    _items.clear();
-    _byId.clear();
-    _streaming = null;
+    _store.clear();
 
     for (final item in ViewEventMapper.toItems(
       replayEvents,
-      () => _syntheticId--,
+      _store.nextSyntheticId,
       createdAt: createdAt,
     )) {
-      _append(item);
+      _store.append(item);
     }
-    itemsRevision.value++;
+    _store.notifyStructure();
 
     // ⚠️ **必须保留 capabilities**。能力属于连接、不属于会话 —— 清掉的话
     // 打开历史后第一次发送就因 caps==null 被拒，还会顺带触发重连
@@ -627,20 +499,7 @@ class ChatController extends Notifier<ChatSessionState> {
       // 延后执行期间 provider 可能已经销毁（页面/测试容器先走了）。
       if (_disposed) return;
       if (_openGeneration != gen || state.currentThreadId != threadId) return;
-      final found = <FoundArtifact>[];
-      for (final it in _items) {
-        if (it is! TextItem || it.role != ChatRole.assistant || it.isEmpty) {
-          continue;
-        }
-        // ⚠️ 与聊天里画文件卡用的是**同一份文本**（[TextItem.displayText]，
-        //    已去掉开头的调用抬头）—— 否则输出物页里的 sourceStart 会和
-        //    聊天里那张卡对不上，点卡片定位不到。
-        final text = it.displayText;
-        final blocks = MarkdownParser.parse(text);
-        for (final a in ChatArtifact.fromBlocks(blocks, text)) {
-          found.add((artifact: a, at: it.createdAt));
-        }
-      }
+      final found = _store.collectArtifacts();
       ref.read(chatPortsProvider).replaceArtifacts(threadId, found);
     });
   }
@@ -707,82 +566,29 @@ class ChatController extends Notifier<ChatSessionState> {
     var structural = false;
     for (final f in batch.frames) {
       // 丢帧按帧归属：算在**此刻正在流的那条**身上，不是整批算一次。
-      if (f.droppedBefore > 0) structural |= _onDropped(f.droppedBefore);
+      if (f.droppedBefore > 0) structural |= _store.onDropped(f.droppedBefore);
       structural |= _apply(f);
     }
-    if (structural) itemsRevision.value++;
+    if (structural) _store.notifyStructure();
   }
 
   /// 返回 true 表示列表结构变了（增删条目）。
+  ///
+  /// 条目级的帧交给 [ChatItemStore]；这里只处理要写**会话状态**的帧
+  /// （turn 起止、用量、断线）。两边的 switch 都是穷尽的，漏 kind 编译就报错。
   bool _apply(KernelFrame f) {
     switch (f.kind) {
       case KernelFrameKind.itemDelta:
-        // 热路径：一次 UTF-8 解码，不 jsonDecode，不动列表。
-        _streaming?.append(KernelFrameMapper.text(f));
-        return false;
-
       case KernelFrameKind.processOutput:
-        final tool = _byId[f.itemId];
-        if (tool is ToolItem) {
-          tool.output = (tool.output ?? '') + KernelFrameMapper.text(f);
-          tool.revision.value++;
-        }
-        return false;
-
       case KernelFrameKind.itemStarted:
-        _endThinking();
-        final item = TextItem(
-            id: f.itemId, role: ChatRole.assistant, createdAt: DateTime.now());
-        _streaming = item;
-        _append(item);
-        return true;
-
       case KernelFrameKind.itemCompleted:
-        _streaming?.markDone();
-        _streaming = null;
-        return false;
-
       case KernelFrameKind.toolBegin:
-        // 模型直接决定调工具、一个字正文都没吐 —— 工具卡本身就是"在干活"的证据，
-        // 思考行该让位。少这一步的话，一条纯工具轮的思考行会一直转到 turn 结束。
-        _endThinking();
-        final j = KernelFrameMapper.json(f);
-        _append(ToolItem(
-          id: f.itemId,
-          name: KernelFrameMapper.str(j, 'name', 'tool'),
-          argsSummary: KernelFrameMapper.str(j, 'args'),
-        ));
-        return true;
-
       case KernelFrameKind.toolEnd:
-        final j = KernelFrameMapper.json(f);
-        final tool = _byId[f.itemId];
-        if (tool is ToolItem) {
-          tool.complete(
-            output: KernelFrameMapper.str(j, 'output'),
-            elapsedMs: KernelFrameMapper.intOrNull(j, 'duration_ms'),
-            status: KernelFrameMapper.str(j, 'status'),
-            truncated: f.truncated,
-          );
-        }
-        return false;
-
       case KernelFrameKind.approval:
-        // ⚠️ 审批帧的 item_id 指向**被审批的那条工具 item**，内核不重复带命令内容
-        // （契约 §2.1.0）。所以挂到已有的工具卡上，别自己再显示一份。
-        final j = KernelFrameMapper.json(f);
-        final tool = _byId[f.itemId];
-        final approval = ApprovalItem(
-          // 用合成 id：这条卡片和工具卡是两个条目，不能共用 id。
-          id: _syntheticId--,
-          reqId: KernelFrameMapper.intOrNull(j, 'req_id') ?? 0,
-          kind: KernelFrameMapper.str(j, 'kind'),
-          reason: KernelFrameMapper.str(j, 'reason'),
-          // 命令/补丁全文取自那条工具卡，没有就退回空（不编内容）。
-          target: tool is ToolItem ? tool : null,
-        );
-        _append(approval);
-        return true;
+      case KernelFrameKind.compacted:
+      case KernelFrameKind.modelRerouted:
+      case KernelFrameKind.error:
+        return _store.apply(f);
 
       case KernelFrameKind.turnStarted:
         // 真开跑了，撤看门狗。
@@ -793,15 +599,15 @@ class ChatController extends Notifier<ChatSessionState> {
           turnId: KernelFrameMapper.str(startedJson, 'turn_id'),
           // 新对话的 thread 是内核在首个 turn 上建的，客户端事先不知道 id。
           // 帧里带了就记下，中栏标题栏靠它认出"当前是哪条会话"。
-          currentThreadId: state.currentThreadId ??
+          currentThreadId:
+              state.currentThreadId ??
               KernelFrameMapper.str(startedJson, 'thread_id'),
         );
         return false;
 
       case KernelFrameKind.turnCompleted:
         final j = KernelFrameMapper.json(f);
-        _streaming?.markDone();
-        _streaming = null;
+        _store.finishStreaming();
         state = state.copyWith(
           busy: false,
           turnId: null,
@@ -834,20 +640,9 @@ class ChatController extends Notifier<ChatSessionState> {
         );
         return false;
 
-      case KernelFrameKind.compacted:
-        return _notice(NoticeKind.compacted);
-
-      case KernelFrameKind.modelRerouted:
-        return _notice(NoticeKind.modelRerouted,
-            detail: KernelFrameMapper.str(KernelFrameMapper.json(f), 'to'));
-
-      case KernelFrameKind.error:
-        return _notice(NoticeKind.error,
-            detail: KernelFrameMapper.str(KernelFrameMapper.json(f), 'message'));
-
       case KernelFrameKind.disconnected:
         state = state.copyWith(busy: false, turnId: null);
-        return _notice(NoticeKind.disconnected);
+        return _store.notice(NoticeKind.disconnected);
 
       case KernelFrameKind.hello:
       case KernelFrameKind.callResult:
@@ -877,38 +672,13 @@ class ChatController extends Notifier<ChatSessionState> {
     );
   }
 
-  /// native 因背压丢过 delta。**必须显形**：给当前条目打标 + 插一条提示。
-  /// 契约 §3 要求「不许假装没发生」。返回 true（插了条目 = 结构变化）。
-  bool _onDropped(int count) {
-    final streaming = _streaming;
-    if (streaming != null) {
-      streaming.truncated = true;
-      streaming.revision.value++;
-    }
-    return _notice(NoticeKind.dropped, count: count);
-  }
-
-  bool _notice(NoticeKind kind, {String detail = '', int count = 0}) {
-    _append(NoticeItem(
-        id: _syntheticId--, kind: kind, detail: detail, count: count));
-    return true;
-  }
-
-  void _append(ChatItem item) {
-    _items.add(item);
-    _byId[item.id] = item;
-  }
-
   bool _disposed = false;
 
   void _disposeAll() {
     _disposed = true;
     _stallTimer?.cancel();
     _client.close();
-    for (final i in _items) {
-      i.dispose();
-    }
-    itemsRevision.dispose();
+    _store.dispose();
   }
 }
 

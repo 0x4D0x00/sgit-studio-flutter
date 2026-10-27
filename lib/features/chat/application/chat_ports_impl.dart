@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'package:sgit_studio_flutter/app/app_providers.dart';
 import 'package:sgit_studio_flutter/data/repositories/thread_repository.dart';
 import 'package:sgit_studio_flutter/domain/models/chat/sgcode_settings.dart';
 import 'package:sgit_studio_flutter/domain/models/chat/thread_summary.dart';
@@ -24,6 +25,10 @@ class FeatureChatPorts implements ChatPorts {
 
   @override
   ThreadRepository get threadRepository => _ref.read(threadRepositoryProvider);
+
+  @override
+  Future<bool> refreshThread(String threadId) =>
+      _ref.read(sessionSyncRepositoryProvider).refreshThread(threadId);
 
   @override
   Future<void> syncNow() => _ref.read(sessionSyncProvider).syncNow();

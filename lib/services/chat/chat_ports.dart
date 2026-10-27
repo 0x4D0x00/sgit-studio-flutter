@@ -23,6 +23,9 @@ abstract interface class ChatPorts {
   /// 会话仓储。**跟着引擎模式重建**，所以每次用都重新取，别缓存。
   ThreadRepository get threadRepository;
 
+  /// 只把这一条会话的服务器新增部分拉到本地，返回「有没有拉到新东西」。失败一律 false。
+  Future<bool> refreshThread(String threadId);
+
   /// 立即跑一次会话同步；未启用时是 no-op。
   Future<void> syncNow();
 
