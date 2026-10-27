@@ -6,12 +6,14 @@ import 'package:sgit_studio_flutter/design/tokens/app_spacing.dart';
 import 'package:sgit_studio_flutter/design/tokens/bubble_metrics.dart';
 import 'package:sgit_studio_flutter/domain/models/chat/chat_artifact.dart';
 import 'package:sgit_studio_flutter/domain/models/chat/markdown/markdown_block.dart';
+import 'package:sgit_studio_flutter/domain/models/chat/markdown/markdown_find.dart';
 import 'package:sgit_studio_flutter/domain/models/chat/markdown/markdown_inline.dart';
 import 'package:sgit_studio_flutter/l10n/generated/app_localizations.dart';
 import 'package:sgit_studio_flutter/ui/components/chat/artifact_chip.dart';
 import 'package:sgit_studio_flutter/ui/components/chat/markdown/code_block_card.dart';
 import 'package:sgit_studio_flutter/ui/components/chat/markdown/horizontal_scroll_area.dart';
 import 'package:sgit_studio_flutter/ui/components/chat/markdown/markdown_spans.dart';
+import 'package:sgit_studio_flutter/ui/components/find/find_highlight.dart';
 
 /// Markdown 块级渲染器 —— 块 AST → Widget。
 ///
@@ -31,6 +33,7 @@ class MarkdownView extends StatelessWidget {
     this.artifacts = const [],
     this.onOpenArtifact,
     this.onDownloadArtifact,
+    this.find,
   });
 
   final List<MarkdownBlock> blocks;
@@ -51,6 +54,13 @@ class MarkdownView extends StatelessWidget {
 
   /// 点击 Download。
   final void Function(ChatArtifact artifact)? onDownloadArtifact;
+
+  /// 页内查找的高亮（没在查找就是 null）。
+  ///
+  /// ⚠️ 它是**有状态的计数器**：每画一个匹配编号就 +1，所以叶子文本必须按
+  /// 与 `MarkdownFind` 计数相同的顺序创建 —— 下面各 `_xxx` 都是在本次 `build`
+  /// 里同步、按块序调用的，别把它们挪进延迟构建的闭包里。
+  final FindHighlight? find;
 
   /// 按偏移找这条围栏对应的产物。找不到（短块）返回 null。
   ChatArtifact? artifactFor(MdCodeFence fence) {
@@ -116,6 +126,7 @@ class MarkdownView extends StatelessWidget {
       inlines,
       context,
       recognizers,
+      find: find,
       baseStyle: TextStyle(fontSize: 14, height: 1.6, color: skin.text),
     );
 
@@ -132,6 +143,7 @@ class MarkdownView extends StatelessWidget {
       inlines,
       context,
       recognizers,
+      find: find,
       baseStyle: TextStyle(
         fontSize: size,
         height: 1.3,
@@ -164,6 +176,7 @@ class MarkdownView extends StatelessWidget {
       inlines,
       context,
       recognizers,
+      find: find,
       baseStyle: TextStyle(fontSize: 14, height: 1.6, color: skin.text),
     );
 
@@ -200,6 +213,8 @@ class MarkdownView extends StatelessWidget {
   /// 直接抛布局异常。左边框随内容自动等高，还省掉一层 `IntrinsicHeight`。
   Widget _quote(BuildContext context, MdQuote q) {
     final skin = AppSkin.of(context);
+    final childFind = find?.branch();
+    find?.skip(MarkdownFind.countBlocks(q.children, find!.query));
     return Container(
       padding: const EdgeInsets.only(
         left: ChatBubbleMetrics.quoteBarGap,
@@ -214,7 +229,12 @@ class MarkdownView extends StatelessWidget {
           ),
         ),
       ),
-      child: MarkdownView(blocks: q.children, recognizers: recognizers),
+      child: MarkdownView(
+        blocks: q.children,
+        recognizers: recognizers,
+        // 子树另起计数器，父级按它的匹配数跳过，编号才连得上。
+        find: childFind,
+      ),
     );
   }
 
@@ -277,6 +297,7 @@ class MarkdownView extends StatelessWidget {
       MarkdownInlineParser.parse(text),
       context,
       recognizers,
+      find: find,
       baseStyle: style.copyWith(color: skin.text),
     );
 

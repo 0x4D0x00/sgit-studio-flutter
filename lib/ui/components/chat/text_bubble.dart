@@ -14,6 +14,7 @@ import 'package:sgit_studio_flutter/services/export/artifact_exporter.dart';
 import 'package:sgit_studio_flutter/ui/components/chat/bubble_actions_row.dart';
 import 'package:sgit_studio_flutter/ui/components/chat/markdown/markdown_view.dart';
 import 'package:sgit_studio_flutter/ui/components/chat/markdown/markdown_view_cache.dart';
+import 'package:sgit_studio_flutter/ui/components/find/find_highlight.dart';
 
 /// 文本气泡。**流式期间只有它自己重建。**
 ///
@@ -37,9 +38,14 @@ class TextBubble extends StatefulWidget {
     this.replyComplete = false,
     this.onEditSave,
     this.onOpenArtifact,
+    this.findStart,
   });
 
   final TextItem item;
+
+  /// 页内查找：这一条的第一个匹配在转录里的全局序号。null = 不参与高亮
+  ///（不在转录里用的气泡）。序号怎么来的见 `TranscriptFindMixin`。
+  final int? findStart;
 
   /// 「内容可能不完整」提示文案（native 背压丢过 delta 时显示）。
   final String truncatedHint;
@@ -91,6 +97,10 @@ class _TextBubbleState extends State<TextBubble> {
   /// 新列表由 [MarkdownSpans.build] 填充 —— 不释放就每条 delta 泄漏几个。
   var _recognizers = <TapGestureRecognizer>[];
 
+  /// 本次 build 的查找高亮。在 builder 里赋值、同一次 build 内的 [_body] 用完，
+  /// 不跨 build 保留（它的计数器是一次性的）。
+  FindHighlight? _find;
+
   void _startEdit(String text) {
     setState(() => _editCtl = TextEditingController(text: text)
       ..selection = TextSelection.collapsed(offset: text.length));
@@ -132,6 +142,16 @@ class _TextBubbleState extends State<TextBubble> {
       child: ValueListenableBuilder<int>(
         valueListenable: item.revision,
         builder: (context, _, _) {
+          final scope = FindScope.maybeOf(context);
+          final findStart = widget.findStart;
+          _find = scope == null || !scope.active || findStart == null
+              ? null
+              : FindHighlight(
+                  query: scope.query,
+                  start: findStart,
+                  current: scope.transcriptCurrent,
+                  colors: FindColors.of(context),
+                );
           // 产物从**已经解析好的块**里提取，不另扫一遍原文 —— 围栏识别只有
           // 解析器一处实现。流式期也提取：卡片头要跟着 delta 一起长出来。
           // ⚠️ 用 [TextItem.displayText] 而不是 `item.text`：助手回复开头的
@@ -284,14 +304,12 @@ class _TextBubbleState extends State<TextBubble> {
         // `SelectionArea` 统一管（见 `ChatTranscript`）。`SelectableText`
         // 每个实例自带 `EditableText` 和一套独立选区，Ctrl+A 只能选中自己，
         // 这正是"只能选一行"的成因。
-        ? Text(
-            item.displayText,
-            style: TextStyle(fontSize: 14, height: 1.6, color: skin.text),
-          )
+        ? _userText(item.displayText, skin)
         : MarkdownView(
             blocks: blocks,
             recognizers: _recognizers,
             artifacts: artifacts,
+            find: _find,
             onOpenArtifact: _openArtifact,
             onDownloadArtifact: _downloadArtifact,
           );
@@ -312,6 +330,14 @@ class _TextBubbleState extends State<TextBubble> {
         //    代码块原来的位置（替代正文）。这里再排一列会让同一份产物出现两次。
       ],
     );
+  }
+
+  Widget _userText(String text, AppSkin skin) {
+    final style = TextStyle(fontSize: 14, height: 1.6, color: skin.text);
+    final find = _find;
+    return find == null
+        ? Text(text, style: style)
+        : Text.rich(find.span(text, style));
   }
 
   /// 打开产物到右侧面板。

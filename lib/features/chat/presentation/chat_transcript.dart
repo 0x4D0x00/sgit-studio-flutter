@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'package:sgit_studio_flutter/features/chat/presentation/transcript/transcript_find_mixin.dart';
 import 'package:sgit_studio_flutter/features/chat/presentation/transcript/transcript_reply_mixin.dart';
 import 'package:sgit_studio_flutter/features/chat/presentation/transcript/transcript_reveal_mixin.dart';
 import 'package:sgit_studio_flutter/features/chat/presentation/transcript/transcript_selection_mixin.dart';
@@ -12,6 +13,7 @@ import 'package:sgit_studio_flutter/features/chat/presentation/transcript/transc
 import 'package:sgit_studio_flutter/design/tokens/bubble_metrics.dart';
 import 'package:sgit_studio_flutter/domain/models/chat/chat_item.dart';
 import 'package:sgit_studio_flutter/features/artifacts/application/artifacts_controller.dart';
+import 'package:sgit_studio_flutter/features/find/application/find_controller.dart';
 import 'package:sgit_studio_flutter/l10n/generated/app_localizations.dart';
 import 'package:sgit_studio_flutter/layout/metrics/workspace_metrics.dart';
 import 'package:sgit_studio_flutter/services/chat/chat_controller.dart';
@@ -56,6 +58,7 @@ class ChatTranscript extends ConsumerStatefulWidget {
 class _ChatTranscriptState extends ConsumerState<ChatTranscript>
     with
         TranscriptRevealMixin<ChatTranscript>,
+        TranscriptFindMixin<ChatTranscript>,
         TranscriptSelectionMixin<ChatTranscript>,
         TranscriptReplyMixin<ChatTranscript> {
   @override
@@ -85,6 +88,7 @@ class _ChatTranscriptState extends ConsumerState<ChatTranscript>
   void dispose() {
     disposeSelection();
     disposeReply();
+    clearFindReport();
     _dwell?.cancel();
     scroll.removeListener(_onScroll);
     scroll.dispose();
@@ -219,10 +223,20 @@ class _ChatTranscriptState extends ConsumerState<ChatTranscript>
       if (was == true && now == false) scheduleReveal();
     });
 
+    // 页内查找：只订「正在查什么」，匹配序号变化只重画高亮，不重建列表。
+    final findQuery = ref.watch(
+      findControllerProvider.select((s) => s.open ? s.query : ''),
+    );
+    ref.listen(
+      findControllerProvider.select((s) => s.revealTick),
+      (_, _) => scheduleFindReveal(),
+    );
+
     return ValueListenableBuilder<int>(
       valueListenable: ctrl.itemsRevision,
       builder: (context, _, _) {
         final items = ctrl.items;
+        syncFind(items, findQuery);
         // 回收已不在列表里的条目的 key（会话切换 / 编辑重发会丢条目）。
         final live = {for (final it in items) it.id};
         itemKeys.removeWhere((id, _) => !live.contains(id));
@@ -353,6 +367,7 @@ class _ChatTranscriptState extends ConsumerState<ChatTranscript>
                               // 一条**用户**消息：在它之前的都跑完了；在它之后
                               // 的属于本轮，而本轮只要 [busy] 就还没结束。
                               replyComplete: !busy || at <= lastUserId,
+                              findStart: findStarts[item.id],
                             ),
                           ),
                         );

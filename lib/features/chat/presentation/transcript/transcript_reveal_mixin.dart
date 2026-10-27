@@ -85,15 +85,24 @@ mixin TranscriptRevealMixin<T extends ConsumerStatefulWidget>
       return;
     }
 
-    if (++_revealSteps > _maxRevealSteps || !scroll.hasClients) {
-      _finishReveal();
-      return;
-    }
-    final p = scroll.position;
-    if (!p.hasContentDimensions) {
+    if (stepToward(items, idx)) {
       scheduleReveal();
-      return;
+    } else {
+      _finishReveal();
     }
+  }
+
+  /// 本次定位重新计步（发起一次新的定位请求时调）。
+  void resetRevealSteps() => _revealSteps = 0;
+
+  /// 朝第 [idx] 条还没建出来的条目走一步（跳一段，等下一帧建出新条目再判断）。
+  ///
+  /// 返回 true = 还没到、下一帧该再来一步；false = 放弃（步数用完 / 列表没挂载）。
+  /// 「查找」定位到某条匹配时共用这一套。
+  bool stepToward(List<ChatItem> items, int idx) {
+    if (++_revealSteps > _maxRevealSteps || !scroll.hasClients) return false;
+    final p = scroll.position;
+    if (!p.hasContentDimensions) return true;
 
     // 目标在列表里的位置（反向列表：越靠上越大）与当前已建出的范围。
     final targetPos = items.length - 1 - idx;
@@ -124,11 +133,10 @@ mixin TranscriptRevealMixin<T extends ConsumerStatefulWidget>
     );
     if (next == p.pixels) {
       // 已经顶到头还没建出来：内容高度还没算全，等下一帧。
-      scheduleReveal();
-      return;
+      return true;
     }
     scroll.jumpTo(next);
-    scheduleReveal();
+    return true;
   }
 
   void _finishReveal() {

@@ -5,6 +5,7 @@ import 'package:sgit_studio_flutter/design/extensions/app_skin.dart';
 import 'package:sgit_studio_flutter/design/tokens/app_typography.dart';
 import 'package:sgit_studio_flutter/domain/models/chat/markdown/markdown_inline.dart';
 import 'package:sgit_studio_flutter/ui/components/chat/bubble_actions_row.dart';
+import 'package:sgit_studio_flutter/ui/components/find/find_highlight.dart';
 
 /// 行内 Markdown 节点 → Flutter [TextSpan]。
 ///
@@ -28,13 +29,25 @@ class MarkdownSpans {
     BuildContext context,
     List<TapGestureRecognizer> recognizers, {
     TextStyle? baseStyle,
+    FindHighlight? find,
   }) {
     final skin = AppSkin.of(context);
     final scheme = Theme.of(context).colorScheme;
     final base = baseStyle ?? TextStyle(fontSize: 14, height: 1.6, color: skin.text);
 
-    return nodes.map((n) => _nodeToSpan(n, base, skin, scheme, context, recognizers)).toList();
+    return nodes.map((n) => _nodeToSpan(n, base, skin, scheme, context, recognizers, find)).toList();
   }
+
+  /// 叶子文本。查找开着时按匹配切段高亮，否则就是一个普通 [TextSpan]。
+  static TextSpan _leaf(
+    String text,
+    TextStyle style,
+    FindHighlight? find, {
+    GestureRecognizer? recognizer,
+  }) =>
+      find == null
+          ? TextSpan(text: text, style: style, recognizer: recognizer)
+          : find.span(text, style, recognizer: recognizer);
 
   static InlineSpan _nodeToSpan(
     MarkdownInline node,
@@ -43,19 +56,21 @@ class MarkdownSpans {
     ColorScheme scheme,
     BuildContext context,
     List<TapGestureRecognizer> recognizers,
+    FindHighlight? find,
   ) {
     switch (node.kind) {
       case MdInlineKind.text:
-        return TextSpan(text: node.text, style: base);
+        return _leaf(node.text, base, find);
 
       case MdInlineKind.code:
-        return TextSpan(
-          text: node.text,
-          style: base.copyWith(
+        return _leaf(
+          node.text,
+          base.copyWith(
             fontFamily: AppTypography.monospace,
             fontSize: base.fontSize! * 0.9,
             backgroundColor: skin.containerBgSecondary,
           ),
+          find,
         );
 
       case MdInlineKind.link:
@@ -69,37 +84,38 @@ class MarkdownSpans {
             );
           };
         recognizers.add(rec);
-        return TextSpan(
-          text: node.text,
-          style: base.copyWith(
+        return _leaf(
+          node.text,
+          base.copyWith(
             color: scheme.primary,
             decoration: TextDecoration.underline,
           ),
+          find,
           recognizer: rec,
         );
 
       case MdInlineKind.bold:
         final children = node.children!;
         return TextSpan(
-          children: children.map((c) => _nodeToSpan(c, base.copyWith(fontWeight: FontWeight.w700), skin, scheme, context, recognizers)).toList(),
+          children: children.map((c) => _nodeToSpan(c, base.copyWith(fontWeight: FontWeight.w700), skin, scheme, context, recognizers, find)).toList(),
         );
 
       case MdInlineKind.italic:
         final children = node.children!;
         return TextSpan(
-          children: children.map((c) => _nodeToSpan(c, base.copyWith(fontStyle: FontStyle.italic), skin, scheme, context, recognizers)).toList(),
+          children: children.map((c) => _nodeToSpan(c, base.copyWith(fontStyle: FontStyle.italic), skin, scheme, context, recognizers, find)).toList(),
         );
 
       case MdInlineKind.boldItalic:
         final children = node.children!;
         return TextSpan(
-          children: children.map((c) => _nodeToSpan(c, base.copyWith(fontWeight: FontWeight.w700, fontStyle: FontStyle.italic), skin, scheme, context, recognizers)).toList(),
+          children: children.map((c) => _nodeToSpan(c, base.copyWith(fontWeight: FontWeight.w700, fontStyle: FontStyle.italic), skin, scheme, context, recognizers, find)).toList(),
         );
 
       case MdInlineKind.strikethrough:
         final children = node.children!;
         return TextSpan(
-          children: children.map((c) => _nodeToSpan(c, base.copyWith(decoration: TextDecoration.lineThrough), skin, scheme, context, recognizers)).toList(),
+          children: children.map((c) => _nodeToSpan(c, base.copyWith(decoration: TextDecoration.lineThrough), skin, scheme, context, recognizers, find)).toList(),
         );
     }
   }

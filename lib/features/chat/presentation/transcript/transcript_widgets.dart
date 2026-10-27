@@ -22,12 +22,14 @@ Widget buildTranscriptCard(
   ChatItem item, {
   required bool isLastAnswer,
   required bool replyComplete,
+  int? findStart,
 }) => switch (item) {
   final TextItem t => TextBubble(
     item: t,
     truncatedHint: l10n.chatTextTruncated,
     isLastAnswer: isLastAnswer,
     replyComplete: replyComplete,
+    findStart: findStart,
     onOpenArtifact: ref.read(layoutControllerProvider.notifier).showArtifact,
     onEditSave: t.role == ChatRole.user
         // 编辑的只是正文，原消息带的引用要原样带上。
