@@ -8,6 +8,7 @@ import 'package:sgit_studio_flutter/domain/models/chat/sgcode_settings.dart';
 import 'package:sgit_studio_flutter/features/chat/application/composer_settings_controller.dart';
 import 'package:sgit_studio_flutter/features/chat/application/model_list_controller.dart';
 import 'package:sgit_studio_flutter/features/chat/presentation/model_selector.dart';
+import 'package:sgit_studio_flutter/features/settings/presentation/pages/memory/memory_disable_dialog.dart';
 import 'package:sgit_studio_flutter/l10n/generated/app_localizations.dart';
 import 'package:sgit_studio_flutter/router/route_names.dart';
 import 'package:sgit_studio_flutter/services/chat/chat_controller.dart';
@@ -111,7 +112,10 @@ class ComposerPlusMenu extends ConsumerWidget {
           icon: Icons.psychology_outlined,
           label: l10n.chatMemory,
           value: settings.memoryEnabled,
-          onChanged: notifier.setMemoryEnabled,
+          // 关闭要先确认（暂停 / 重置），与设置弹窗同一入口；开启直接落盘。
+          onChanged: (on) => on
+              ? notifier.setMemoryEnabled(true)
+              : requestDisableMemory(context, ref),
         ),
         const AppMenuDivider(),
         AppMenuAction(

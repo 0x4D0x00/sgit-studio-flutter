@@ -47,32 +47,34 @@ void main() {
   });
 
   Widget harness(ComposerVariant variant) => ProviderScope(
-        overrides: [
- chatPortsOverride,
-          chatControllerProvider.overrideWith(
-            () => ChatController(client: MockKernelClient()),
-          ),
-          // 模型列表走 kernelClientProvider → GatewayRepository，与 chatController
-          // 不是同一条路，必须单独注入（同 layout_test.dart 的教训）。
-          kernelClientProvider.overrideWithValue(MockKernelClient()),
-          settingsRepositoryProvider.overrideWithValue(settings),
-        ],
-        child: MaterialApp(
-          theme: AppTheme.dark(
-            primary: AppColors.defaultPrimary,
-            secondary: AppColors.defaultSecondary,
-          ),
-          locale: const Locale('zh'),
-          supportedLocales: AppLocalizations.supportedLocales,
-          localizationsDelegates: const [
-            AppLocalizations.delegate,
-            GlobalMaterialLocalizations.delegate,
-            GlobalWidgetsLocalizations.delegate,
-            GlobalCupertinoLocalizations.delegate,
-          ],
-          home: Scaffold(body: Center(child: ChatComposer(variant: variant))),
-        ),
-      );
+    overrides: [
+      chatPortsOverride,
+      chatControllerProvider.overrideWith(
+        () => ChatController(client: MockKernelClient()),
+      ),
+      // 模型列表走 kernelClientProvider → GatewayRepository，与 chatController
+      // 不是同一条路，必须单独注入（同 layout_test.dart 的教训）。
+      kernelClientProvider.overrideWithValue(MockKernelClient()),
+      settingsRepositoryProvider.overrideWithValue(settings),
+    ],
+    child: MaterialApp(
+      theme: AppTheme.dark(
+        primary: AppColors.defaultPrimary,
+        secondary: AppColors.defaultSecondary,
+      ),
+      locale: const Locale('zh'),
+      supportedLocales: AppLocalizations.supportedLocales,
+      localizationsDelegates: const [
+        AppLocalizations.delegate,
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+      ],
+      home: Scaffold(
+        body: Center(child: ChatComposer(variant: variant)),
+      ),
+    ),
+  );
 
   group('两态结构（照搬 studio 的两套动作栏配置）', () {
     testWidgets('空态：没有控制条，模型名显示在右下', (tester) async {
@@ -80,8 +82,11 @@ void main() {
       await tester.pump();
 
       expect(find.byType(ComposerShell), findsOneWidget);
-      expect(find.byType(ComposerControlBar), findsNothing,
-          reason: 'studio 首页 showControlBar={false}');
+      expect(
+        find.byType(ComposerControlBar),
+        findsNothing,
+        reason: 'studio 首页 showControlBar={false}',
+      );
       // 模型名是文字形态（不是会话态那个图标形态），且显示的是**实际会用的那个模型**。
       expect(find.text('GLM-4'), findsOneWidget);
     });
@@ -289,6 +294,13 @@ void main() {
       await tester.tap(find.text('记忆'));
       await tester.pumpAndSettle();
 
+      // 关记忆要先过确认框（暂停 / 重置），确认前不落盘。
+      expect(
+        settings.calls,
+        isNot(contains('setToolConfig:memories.use_memories=false')),
+      );
+      await tester.tap(find.text('暂停记忆').last);
+      await tester.pumpAndSettle();
       // ⚠️ 不是 memories.enabled —— 引擎的 MemoriesToml 里没那个键。
       expect(
         settings.calls,

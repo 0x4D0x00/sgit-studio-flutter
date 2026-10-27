@@ -65,28 +65,13 @@ class _MemoryPageState extends ConsumerState<MemoryPage> {
     Future<void> setEnabled(bool value) =>
         ref.read(composerSettingsProvider.notifier).setMemoryEnabled(value);
 
-    /// 关开关：先问「暂停」还是「重置」，确认后再落盘。
-    Future<void> requestDisable() async {
-      // 弹窗关掉后本组件可能已经不在树上，先把 messenger 抓在手里 ——
-      // 跨过 await 再去问 context 是不安全的。
-      final messenger = ScaffoldMessenger.of(context);
-      final choice = await showMemoryDisableDialog(context);
-      if (choice == null) return;
-      await setEnabled(false);
-      if (choice == MemoryDisableChoice.reset) {
-        // 引擎侧没有「清空记忆」的入口（本 fork 的 memories 扩展返回空列表）
-        // TODO: 记忆清空待接通
-        messenger.showSnackBar(
-          SnackBar(
-            content: Text(l10n.commonNotWired(l10n.memoryResetMemory)),
-            duration: const Duration(seconds: 1),
-          ),
-        );
-      }
-    }
-
     return enabled
-        ? _enabledView(l10n, theme, skin, onDisable: requestDisable)
+        ? _enabledView(
+            l10n,
+            theme,
+            skin,
+            onDisable: () => requestDisableMemory(context, ref),
+          )
         : _disabledView(l10n, theme, onEnable: () => setEnabled(true));
   }
 

@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:sgit_studio_flutter/features/chat/application/composer_settings_controller.dart';
 
 import 'package:sgit_studio_flutter/design/extensions/app_skin.dart';
 import 'package:sgit_studio_flutter/design/tokens/app_spacing.dart';
@@ -23,6 +25,27 @@ Future<MemoryDisableChoice?> showMemoryDisableDialog(BuildContext context) {
     context: context,
     builder: (_) => const MemoryDisableDialog(),
   );
+}
+
+/// 关记忆的统一入口（设置页与输入框 `+` 菜单共用）：先弹确认框，确认后再落盘。
+Future<void> requestDisableMemory(BuildContext context, WidgetRef ref) async {
+  // 弹窗关掉后调用方可能已不在树上，先把 messenger 与 l10n 抓在手里 ——
+  // 跨过 await 再去问 context 是不安全的。
+  final messenger = ScaffoldMessenger.of(context);
+  final l10n = AppLocalizations.of(context);
+  final choice = await showMemoryDisableDialog(context);
+  if (choice == null) return;
+  await ref.read(composerSettingsProvider.notifier).setMemoryEnabled(false);
+  if (choice == MemoryDisableChoice.reset) {
+    // 引擎侧没有「清空记忆」的入口（本 fork 的 memories 扩展返回空列表）
+    // TODO: 记忆清空待接通
+    messenger.showSnackBar(
+      SnackBar(
+        content: Text(l10n.commonNotWired(l10n.memoryResetMemory)),
+        duration: const Duration(seconds: 1),
+      ),
+    );
+  }
 }
 
 class MemoryDisableDialog extends StatefulWidget {
