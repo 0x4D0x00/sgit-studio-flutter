@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
 
@@ -8,10 +7,8 @@ import 'package:sgit_studio_flutter/layout/metrics/workspace_metrics.dart';
 import 'package:sgit_studio_flutter/layout/panels/models/nav_entry.dart';
 import 'package:sgit_studio_flutter/layout/panels/nav_row.dart';
 import 'package:sgit_studio_flutter/layout/panels/nav_section_header.dart';
-import 'package:sgit_studio_flutter/layout/panels/nav_user_area.dart';
 import 'package:sgit_studio_flutter/domain/models/find/find_matcher.dart';
 import 'package:sgit_studio_flutter/ui/components/find/find_highlight.dart';
-import 'package:sgit_studio_flutter/ui/components/menu/app_menu.dart';
 
 /// 左侧导航栏 —— 重构
 ///
@@ -21,7 +18,6 @@ import 'package:sgit_studio_flutter/ui/components/menu/app_menu.dart';
 /// 2. 导航行（新对话、输出物、智能体）—— NavRow
 /// 3. 置顶区域（带 Pin 提示）—— NavRow
 /// 4. 历史对话列表（可折叠、可滚动）—— NavRow
-/// 5. 用户区域（点击显示菜单）—— NavUserArea
 /// ```
 /// ⚠️ **纯展示组件**：不 import 状态管理库、不 import features、不判 `isDark`。
 /// 数据与回调全部由 `features/shell/presentation/nav_panel_container.dart` 注入。
@@ -33,11 +29,6 @@ class NavPanel extends StatefulWidget {
     required this.sections,
     required this.activeId,
     required this.onSelect,
-    required this.userName,
-    required this.downloadTooltip,
-    this.avatarBytes,
-    this.userMenu = const [],
-    this.onDownload,
     this.onFindCount,
   });
 
@@ -46,17 +37,6 @@ class NavPanel extends StatefulWidget {
   final List<NavSection> sections;
   final String? activeId;
   final ValueChanged<String> onSelect;
-  final String userName;
-  final Uint8List? avatarBytes;
-
-  /// 用户区右侧下载按钮的 tooltip。
-  final String downloadTooltip;
-
-  /// 用户菜单内容（设置、退出登录）。容器注入，由
-  /// `features/shell/presentation/nav_panel_container.dart` 管业务。
-  final List<AppMenuEntry> userMenu;
-
-  final VoidCallback? onDownload;
 
   /// 页内查找：历史对话标题里的匹配总数变了就报一次（没在查找时报 0）。
   final ValueChanged<int>? onFindCount;
@@ -142,18 +122,6 @@ class _NavPanelState extends State<NavPanel> {
               ),
             ),
           ),
-
-          // 5. 分割线
-          _divider(skin),
-
-          // 6. 用户区域
-          NavUserArea(
-            userName: widget.userName,
-            avatarBytes: widget.avatarBytes,
-            userMenu: widget.userMenu,
-            downloadTooltip: widget.downloadTooltip,
-            onDownload: widget.onDownload,
-          ),
         ],
       ),
     );
@@ -231,15 +199,6 @@ class _NavPanelState extends State<NavPanel> {
         height: 1,
         color: skin.text,
       ),
-    ),
-  );
-
-  Widget _divider(AppSkin skin) => Padding(
-    padding: const EdgeInsets.symmetric(horizontal: 12),
-    child: Container(
-      height: 1,
-      margin: const EdgeInsets.only(bottom: 8),
-      color: skin.borderSecondary,
     ),
   );
 }

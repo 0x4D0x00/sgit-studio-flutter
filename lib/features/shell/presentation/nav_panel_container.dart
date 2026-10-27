@@ -59,8 +59,8 @@ class NavPanelContainer extends ConsumerWidget {
     // 时在此重新 watch 一份 scenes，**不要**改用下面这份 threads。
     final threads = ref.watch(threadListProvider).items;
 
-    // 从用户配置状态中读取用户名
-    final userProfile = ref.watch(userProfileControllerProvider);
+    // 从用户配置状态中读取用户名（用于左侧工具列的头像菜单）
+    // final userProfile = ref.watch(userProfileControllerProvider);
 
     // 排序和分组状态
     final sortGroupState = ref.watch(historySortGroupControllerProvider);
@@ -125,69 +125,6 @@ class NavPanelContainer extends ConsumerWidget {
       ],
       onSelect: (id) => _onSelect(context, ref, l10n, id),
       onFindCount: ref.read(findControllerProvider.notifier).setNavCount,
-      userName: userProfile.username,
-      avatarBytes: userProfile.avatarBytes,
-      downloadTooltip: l10n.navGetApps,
-      userMenu: [
-        AppMenuLabel(userProfile.username),
-        const AppMenuDivider(),
-        AppMenuAction(
-          icon: Icons.settings_outlined,
-          label: l10n.navSettings,
-          onTap: () => showSettingsDialog(context),
-        ),
-        AppMenuAction(
-          icon: Icons.language,
-          label: l10n.settingsLanguage,
-          onTap: () => showLanguageDialog(context),
-        ),
-        AppMenuAction(
-          icon: Icons.help_outline,
-          label: l10n.navGetHelp,
-          onTap: () => showNavNotWired(context, l10n, 'get-help'),
-        ),
-        const AppMenuDivider(),
-        AppMenuSubmenu(
-          icon: Icons.info_outline,
-          label: l10n.navLearnMore,
-          entries: [
-            AppMenuAction(
-              label: l10n.navAboutBrand(BrandConfig.instance.name),
-              onTap: () => showNavNotWired(context, l10n, 'about'),
-            ),
-            const AppMenuDivider(),
-            AppMenuAction(
-              label: l10n.navUsagePolicy,
-              onTap: () => showNavNotWired(context, l10n, 'usage-policy'),
-            ),
-            AppMenuAction(
-              label: l10n.navPrivacyPolicy,
-              onTap: () => showNavNotWired(context, l10n, 'privacy-policy'),
-            ),
-            AppMenuAction(
-              label: l10n.navTermsOfService,
-              onTap: () => showNavNotWired(context, l10n, 'terms'),
-            ),
-            AppMenuAction(
-              label: l10n.navPrivacyChoices,
-              onTap: () => showNavNotWired(context, l10n, 'privacy-choices'),
-            ),
-            const AppMenuDivider(),
-            AppMenuAction(
-              label: l10n.navKeyboardShortcuts,
-              shortcut: 'Ctrl+/',
-              onTap: () => showNavNotWired(context, l10n, 'shortcuts'),
-            ),
-          ],
-        ),
-        const AppMenuDivider(),
-        AppMenuAction(
-          icon: Icons.logout,
-          label: l10n.navLogout,
-          onTap: () => ref.read(authControllerProvider.notifier).logout(),
-        ),
-      ],
-      onDownload: () => showNavNotWired(context, l10n, 'get-apps'),
     );
   }
 
@@ -332,4 +269,77 @@ class NavPanelContainer extends ConsumerWidget {
     ref.read(threadListProvider).items,
     onSelect: (id) => _onSelect(context, ref, AppLocalizations.of(context), id),
   );
+
+  /// 构建用户菜单，供 SideRail 底部的头像使用。
+  static List<AppMenuEntry> buildUserMenu(
+    BuildContext context,
+    WidgetRef ref,
+  ) {
+    final l10n = AppLocalizations.of(context);
+    final userProfile = ref.watch(userProfileControllerProvider);
+
+    return [
+      AppMenuLabel(userProfile.username),
+      const AppMenuDivider(),
+      AppMenuAction(
+        icon: Icons.settings_outlined,
+        label: l10n.navSettings,
+        onTap: () => showSettingsDialog(context),
+      ),
+      AppMenuAction(
+        icon: Icons.language,
+        label: l10n.settingsLanguage,
+        onTap: () => showLanguageDialog(context),
+      ),
+      AppMenuAction(
+        icon: Icons.help_outline,
+        label: l10n.navGetHelp,
+        onTap: () => showNavNotWired(context, l10n, 'get-help'),
+      ),
+      const AppMenuDivider(),
+      AppMenuSubmenu(
+        icon: Icons.info_outline,
+        label: l10n.navLearnMore,
+        entries: [
+          AppMenuAction(
+            label: l10n.navAboutBrand(BrandConfig.instance.name),
+            onTap: () => showNavNotWired(context, l10n, 'about'),
+          ),
+          const AppMenuDivider(),
+          AppMenuAction(
+            label: l10n.navUsagePolicy,
+            onTap: () => showNavNotWired(context, l10n, 'usage-policy'),
+          ),
+          AppMenuAction(
+            label: l10n.navPrivacyPolicy,
+            onTap: () => showNavNotWired(context, l10n, 'privacy-policy'),
+          ),
+          AppMenuAction(
+            label: l10n.navTermsOfService,
+            onTap: () => showNavNotWired(context, l10n, 'terms'),
+          ),
+          AppMenuAction(
+            label: l10n.navPrivacyChoices,
+            onTap: () => showNavNotWired(context, l10n, 'privacy-choices'),
+          ),
+          AppMenuAction(
+            label: l10n.navGetApps,
+            onTap: () => showNavNotWired(context,l10n,'get-apps'),
+          ),
+          const AppMenuDivider(),
+          AppMenuAction(
+            label: l10n.navKeyboardShortcuts,
+            shortcut: 'Ctrl+/',
+            onTap: () => showNavNotWired(context, l10n, 'shortcuts'),
+          ),
+        ],
+      ),
+      const AppMenuDivider(),
+      AppMenuAction(
+        icon: Icons.logout,
+        label: l10n.navLogout,
+        onTap: () => ref.read(authControllerProvider.notifier).logout(),
+      ),
+    ];
+  }
 }

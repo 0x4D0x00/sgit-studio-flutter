@@ -21,6 +21,7 @@ import 'package:sgit_studio_flutter/ui/components/menu/app_menu.dart';
 
 import 'package:sgit_studio_flutter/features/chat/presentation/thread_title_bar.dart';
 import 'package:sgit_studio_flutter/features/shell/presentation/nav_panel_container.dart';
+import 'package:sgit_studio_flutter/features/settings/application/user_profile_controller.dart';
 import 'package:sgit_studio_flutter/l10n/generated/app_localizations.dart';
 import 'package:sgit_studio_flutter/layout/metrics/workspace_metrics.dart';
 import 'package:sgit_studio_flutter/layout/panels/artifact_output_panel.dart';
@@ -29,6 +30,7 @@ import 'package:sgit_studio_flutter/layout/shell/app_shell.dart';
 import 'package:sgit_studio_flutter/services/layout/layout_controller.dart';
 import 'package:sgit_studio_flutter/services/layout/transcript_width.dart';
 import 'package:sgit_studio_flutter/ui/components/chat/artifact/artifact_viewer.dart';
+import 'package:sgit_studio_flutter/design/extensions/app_skin.dart';
 
 /// 外壳容器 —— 把布局状态与回调喂给纯组件 `AppShell`。
 ///
@@ -308,6 +310,7 @@ class _AppShellContainerState extends ConsumerState<AppShellContainer> {
               ],
             ),
           ],
+          bottom: _buildUserAvatar(context, ref),
         );
 
         void notWired(String what) =>
@@ -604,6 +607,35 @@ class _AppShellContainerState extends ConsumerState<AppShellContainer> {
           child: FindHost(child: shell),
         );
       },
+    );
+  }
+
+  /// 构建用户头像，显示在 SideRail 底部。
+  Widget _buildUserAvatar(BuildContext context, WidgetRef ref) {
+    final userProfile = ref.watch(userProfileControllerProvider);
+    final skin = AppSkin.of(context);
+    final userMenu = NavPanelContainer.buildUserMenu(context, ref);
+
+    return Material(
+      color: Colors.transparent,
+      borderRadius: BorderRadius.circular(WorkspaceMetrics.navItemRadius),
+      child: AppMenuAnchor(
+        align: AppMenuAlign.above,
+        entries: userMenu,
+        child: Padding(
+          padding: const EdgeInsets.all(4),
+          child: CircleAvatar(
+            radius: 16,
+            backgroundColor: skin.navItemActive,
+            backgroundImage: userProfile.avatarBytes != null
+                ? MemoryImage(userProfile.avatarBytes!)
+                : null,
+            child: userProfile.avatarBytes == null
+                ? Icon(Icons.person_rounded, size: 18, color: skin.text)
+                : null,
+          ),
+        ),
+      ),
     );
   }
 }
