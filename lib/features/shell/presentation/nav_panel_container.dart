@@ -6,15 +6,9 @@ import 'package:go_router/go_router.dart';
 
 import 'package:sgit_studio_flutter/features/artifacts/application/artifacts_controller.dart';
 import 'package:sgit_studio_flutter/features/auth/application/auth_controller.dart';
-import 'package:sgit_studio_flutter/domain/models/chat/thread_summary.dart';
-import 'package:sgit_studio_flutter/features/chat/application/composer_focus_controller.dart';
-import 'package:sgit_studio_flutter/features/customize/application/customize_page_controller.dart';
 import 'package:sgit_studio_flutter/features/chat/application/thread_list_controller.dart';
-import 'package:sgit_studio_flutter/features/chat/presentation/thread_actions.dart';
 import 'package:sgit_studio_flutter/features/projects/application/projects_controller.dart';
 import 'package:sgit_studio_flutter/features/projects/presentation/widgets/create_project_dialog.dart';
-import 'package:sgit_studio_flutter/features/projects/presentation/widgets/edit_project_dialog.dart';
-import 'package:sgit_studio_flutter/ui/feedback/confirm.dart';
 import 'package:sgit_studio_flutter/l10n/generated/app_localizations.dart';
 import 'package:sgit_studio_flutter/layout/panels/models/nav_entry.dart';
 import 'package:sgit_studio_flutter/layout/panels/nav_panel.dart';
@@ -25,7 +19,10 @@ import 'package:sgit_studio_flutter/router/route_names.dart';
 import 'package:sgit_studio_flutter/services/chat/chat_controller.dart';
 import 'package:sgit_studio_flutter/services/brand/brand_config.dart';
 import 'package:sgit_studio_flutter/services/layout/layout_controller.dart';
-import 'package:sgit_studio_flutter/ui/components/dialogs/search_chats_dialog.dart';
+import 'package:sgit_studio_flutter/features/shell/presentation/nav/nav_common.dart';
+import 'package:sgit_studio_flutter/features/shell/presentation/nav/nav_history_sections.dart';
+import 'package:sgit_studio_flutter/features/shell/presentation/nav/nav_search_actions.dart';
+import 'package:sgit_studio_flutter/features/shell/presentation/nav/nav_thread_actions.dart';
 import 'package:sgit_studio_flutter/ui/components/menu/app_menu.dart';
 import 'package:sgit_studio_flutter/features/shell/application/history_sort_group_controller.dart';
 
@@ -39,41 +36,11 @@ class NavPanelContainer extends ConsumerWidget {
   /// 当前激活的导航项 id（产物页 / 智能体子页 / null=工作台）。
   final String? activeNavId;
 
-  // 非 studio 的固定项 id。用常量而非字面量，避免和 studio key 撞。
-  static const String _idNewChat = 'nav.new-chat';
-  static const String idArtifacts = 'nav.artifacts';
-  static const String idProjects = 'nav.projects';
-  static const String idCustomize = 'nav.customize';
-  static const String idHistory = 'nav.history';
-  static const String _idAgent = 'nav.agent';
-  static const String _idHistoryMore = 'nav.history-more';
-
-  /// 左栏历史对话最多显示这么多条，超出的用「查看全部」行代替（跳去全量列表页）。
-  static const int _historyLimit = 20;
-
-  /// 助理项的 id 前缀，避免与 studio 的 key 撞。
-  ///
-  /// **只给助理用**。选中它 = 用该场景开一轮新对话（`newChatWithScene`），
-  /// 语义上就不该载入任何历史消息 —— 别把历史条目也挂到这个前缀上。
-  static const String _assistantPrefix = 'assistant:';
-
-  /// 历史会话项的 id 前缀。
-  ///
-  /// ⚠️ 历史区原先复用 `_assistantPrefix` —— 因为它列的是**场景标签而不是会话**。
-  /// 后果不止显示错：点进去走 `newChatWithScene` 开的是**空的新对话**（点"历史
-  /// 对话"却看不到任何历史），删除走 `resourceListProvider(scenes).remove()`
-  /// **删掉的是场景定义本身**。
-  ///
-  /// 所以两个前缀必须泾渭分明：`_onSelect` 靠前缀分派，**漏改一处就会把
-  /// threadId 当 sceneId 用** —— 而 sgcode 两边的 id 都是 UUID 形态，
-  /// 不会报错，只会静默走错分支。
-  static const String _threadPrefix = 'thread:';
-
-  /// 搜索弹窗里的产物项前缀。点开走右侧产物面板，不进 `_onSelect` 的导航分支。
-  static const String _artifactPrefix = 'artifact:';
-
-  /// 搜索弹窗里的项目项前缀。点开落在 Projects 页。
-  static const String _projectPrefix = 'project:';
+  // 路由层（`app_router`）需要这几个 id 来点亮当前页；其余 id 与前缀见 [NavIds]。
+  static const String idArtifacts = NavIds.artifacts;
+  static const String idProjects = NavIds.projects;
+  static const String idCustomize = NavIds.customize;
+  static const String idHistory = NavIds.history;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -106,8 +73,8 @@ class NavPanelContainer extends ConsumerWidget {
     final effectiveActiveId =
         activeNavId ??
         (currentThreadId == null
-            ? _idNewChat
-            : '$_threadPrefix$currentThreadId');
+            ? NavIds.newChat
+            : NavIds.thread(currentThreadId));
 
     return NavPanel(
       brandName: BrandConfig.instance.name,
@@ -118,7 +85,7 @@ class NavPanelContainer extends ConsumerWidget {
       // （`StudioPlacement.settingsDialog` / `.none`），左栏这一行已经没有
       // 任何可列的子项，留着就是一个点开什么也没有的悬停菜单。
       header: [
-        NavEntry(id: _idNewChat, icon: Icons.add, label: l10n.navNewChat),
+        NavEntry(id: NavIds.newChat, icon: Icons.add, label: l10n.navNewChat),
         NavEntry(
           id: idArtifacts,
           icon: Icons.widgets_outlined,
@@ -139,7 +106,21 @@ class NavPanelContainer extends ConsumerWidget {
         // TODO: 接置顶对话列表（内核还没放开 thread/pin），目前恒为空。
         NavSection(title: l10n.navChatPin, entries: const []),
         // 历史对话：标题带收起箭头，右侧是菜单/排序项。
-        ..._buildHistorySections(l10n, ref, threads, sortGroupState, context),
+        ...buildNavHistorySections(
+          l10n: l10n,
+          threads: threads,
+          state: sortGroupState,
+          controller: ref.read(historySortGroupControllerProvider.notifier),
+          onViewAll: () => _onViewAllHistory(context),
+          onSearch: () => showNavSearch(
+            context,
+            ref,
+            threads,
+            onSelect: (id) => _onSelect(context, ref, l10n, id),
+          ),
+          onNotWired: (id) => showNavNotWired(context, l10n, id),
+          chatItemMenu: (t) => buildChatItemMenu(context, ref, l10n, t),
+        ),
       ],
       onSelect: (id) => _onSelect(context, ref, l10n, id),
       userName: userProfile.username,
@@ -161,7 +142,7 @@ class NavPanelContainer extends ConsumerWidget {
         AppMenuAction(
           icon: Icons.help_outline,
           label: l10n.navGetHelp,
-          onTap: () => _notWired(context, l10n, 'get-help'),
+          onTap: () => showNavNotWired(context, l10n, 'get-help'),
         ),
         const AppMenuDivider(),
         AppMenuSubmenu(
@@ -170,30 +151,30 @@ class NavPanelContainer extends ConsumerWidget {
           entries: [
             AppMenuAction(
               label: l10n.navAboutBrand(BrandConfig.instance.name),
-              onTap: () => _notWired(context, l10n, 'about'),
+              onTap: () => showNavNotWired(context, l10n, 'about'),
             ),
             const AppMenuDivider(),
             AppMenuAction(
               label: l10n.navUsagePolicy,
-              onTap: () => _notWired(context, l10n, 'usage-policy'),
+              onTap: () => showNavNotWired(context, l10n, 'usage-policy'),
             ),
             AppMenuAction(
               label: l10n.navPrivacyPolicy,
-              onTap: () => _notWired(context, l10n, 'privacy-policy'),
+              onTap: () => showNavNotWired(context, l10n, 'privacy-policy'),
             ),
             AppMenuAction(
               label: l10n.navTermsOfService,
-              onTap: () => _notWired(context, l10n, 'terms'),
+              onTap: () => showNavNotWired(context, l10n, 'terms'),
             ),
             AppMenuAction(
               label: l10n.navPrivacyChoices,
-              onTap: () => _notWired(context, l10n, 'privacy-choices'),
+              onTap: () => showNavNotWired(context, l10n, 'privacy-choices'),
             ),
             const AppMenuDivider(),
             AppMenuAction(
               label: l10n.navKeyboardShortcuts,
               shortcut: 'Ctrl+/',
-              onTap: () => _notWired(context, l10n, 'shortcuts'),
+              onTap: () => showNavNotWired(context, l10n, 'shortcuts'),
             ),
           ],
         ),
@@ -204,7 +185,7 @@ class NavPanelContainer extends ConsumerWidget {
           onTap: () => ref.read(authControllerProvider.notifier).logout(),
         ),
       ],
-      onDownload: () => _notWired(context, l10n, 'get-apps'),
+      onDownload: () => showNavNotWired(context, l10n, 'get-apps'),
     );
   }
 
@@ -216,7 +197,7 @@ class NavPanelContainer extends ConsumerWidget {
   ) {
     // 用 switch 而非 if-else 链：将来接上剩下的项时，漏改一个分支会在这里显形。
     switch (id) {
-      case _idNewChat:
+      case NavIds.newChat:
         // 清空当前会话 + 让下次发消息新建 thread，然后回到工作台。
         ref.read(chatControllerProvider.notifier).newChat();
         context.go(RouteNames.home);
@@ -226,37 +207,41 @@ class NavPanelContainer extends ConsumerWidget {
             duration: const Duration(seconds: 1),
           ),
         );
-      case idArtifacts:
+      case NavIds.artifacts:
         context.go(RouteNames.artifacts);
-      case idProjects:
+      case NavIds.projects:
         context.go(RouteNames.projects);
-      case idCustomize:
+      case NavIds.customize:
         context.go(RouteNames.customize);
-      case _idHistoryMore:
+      case NavIds.historyMore:
         // 「查看全部」占位行 —— 跳转至历史列表页
         _onViewAllHistory(context);
-      case _idAgent:
+      case NavIds.agent:
         // 走不到这里 —— 这一行挂的是悬停菜单，`NavPanel` 不给带菜单的行接
         // onSelect。留着分支是为了万一将来把菜单摘掉时，这里不会静默变成
         // default 分支跳到 `/studio/nav.agent`。
-        _notWired(context, l10n, id);
-      case final String a when a.startsWith(_assistantPrefix):
+        showNavNotWired(context, l10n, id);
+      case final String a when a.startsWith(NavIds.assistantPrefix):
         // 切助理 = 用该场景开一轮新对话。场景 id 即 thread 的归属，
         // 由内核决定怎么用（我们只负责把选择传下去）。
         ref
             .read(chatControllerProvider.notifier)
-            .newChatWithScene(a.substring(_assistantPrefix.length));
+            .newChatWithScene(a.substring(NavIds.assistantPrefix.length));
         context.go(RouteNames.home);
-      case final String t when t.startsWith(_threadPrefix):
-        // ⚠️ 这个分支必须排在 `_assistantPrefix` **之后**只是巧合上无所谓
+      case final String t when t.startsWith(NavIds.threadPrefix):
+        // ⚠️ 这个分支必须排在 `NavIds.assistantPrefix` **之后**只是巧合上无所谓
         //（两个前缀互不为前缀），但顺序一旦被改成某个前缀是另一个的前缀，
         // switch 的先到先得会静默吃掉后一个 —— 加新前缀时先确认互不包含。
-        _onOpenThread(context, ref, t.substring(_threadPrefix.length));
-      case final String a when a.startsWith(_artifactPrefix):
+        _onOpenThread(context, ref, t.substring(NavIds.threadPrefix.length));
+      case final String a when a.startsWith(NavIds.artifactPrefix):
         // 与输出物页的 `_open` 同一条路：先切会话（切会话会关右面板），
         // 再开面板，最后回工作台。内容已在列表里，不必等会话载完。
-        _onOpenArtifact(context, ref, a.substring(_artifactPrefix.length));
-      case final String p when p.startsWith(_projectPrefix):
+        _onOpenArtifact(
+          context,
+          ref,
+          a.substring(NavIds.artifactPrefix.length),
+        );
+      case final String p when p.startsWith(NavIds.projectPrefix):
         context.go(RouteNames.projects);
       default:
         context.go(RouteNames.studio(id));
@@ -339,583 +324,10 @@ class NavPanelContainer extends ConsumerWidget {
   }
 
   /// 供左栏之外的入口（视图菜单 / Ctrl+F）打开同一个搜索弹窗。
-  void openSearch(BuildContext context, WidgetRef ref) =>
-      _onSearch(context, ref, ref.read(threadListProvider).items);
-
-  void _onSearch(
-    BuildContext context,
-    WidgetRef ref,
-    List<ThreadSummary> threads,
-  ) {
-    final l10n = AppLocalizations.of(context);
-    showSearchChatsDialog(
-      context,
-      // 三类数据一次摊平给弹窗：弹窗自己不碰 provider（`ui/` 层不依赖状态库），
-      // 这里按 category 标好，标签页过滤就只剩一次 where。
-      items: [
-        for (final t in threads)
-          SearchDialogItem(
-            id: '$_threadPrefix${t.id}',
-            // 标题的回落（用户改的名字 > 首条消息摘要 > "新对话"）在 Rust 侧
-            // `thread_ops::display_title` 算好了，这边不再自己来一套 ——
-            // 两边各算各的必然漂。
-            label: t.title,
-            category: SearchDialogCategory.chat,
-            updatedAt: t.updatedAt ?? t.createdAt,
-          ),
-        for (final a in ref.read(artifactsControllerProvider).items)
-          SearchDialogItem(
-            id: '$_artifactPrefix${a.id}',
-            label: a.title,
-            category: SearchDialogCategory.artifact,
-            updatedAt: a.updatedAt,
-          ),
-        for (final p in ref.read(projectsControllerProvider))
-          SearchDialogItem(
-            id: '$_projectPrefix${p.id}',
-            label: p.name,
-            category: SearchDialogCategory.project,
-            updatedAt: p.updatedAt,
-          ),
-      ],
-      onSelect: (id) => _onSelect(context, ref, l10n, id),
-      onRowAction: (id, action) =>
-          _onSearchRowAction(context, ref, l10n, id, action),
-      commands: _searchCommands(context, ref, l10n),
-      onCompose: () {
-        context.go(RouteNames.home);
-        ref.read(composerFocusProvider.notifier).requestFocus();
-      },
-    );
-  }
-
-  /// 搜索弹窗「操作」筛选里的命令。只收有现成落点的：跳页、开设置、折叠导航
-  List<SearchDialogCommand> _searchCommands(
-    BuildContext context,
-    WidgetRef ref,
-    AppLocalizations l10n,
-  ) {
-    SearchDialogCommand go(String label, IconData icon, String route) =>
-        SearchDialogCommand(
-          label: label,
-          icon: icon,
-          onRun: () => context.go(route),
-        );
-    SearchDialogCommand settings(String page, SettingsTab tab) =>
-        SearchDialogCommand(
-          label: '${l10n.navSettings} → $page',
-          icon: Icons.settings_outlined,
-          onRun: () => showSettingsDialog(context, initialTab: tab),
-        );
-    SearchDialogCommand customize(String page, CustomizeTab tab) =>
-        SearchDialogCommand(
-          label: '${l10n.navCustomize} → $page',
-          icon: Icons.tune,
-          onRun: () {
-            ref.read(customizeTabControllerProvider.notifier).setTab(tab);
-            context.go(RouteNames.customize);
-          },
-        );
-
-    return [
-      go(l10n.searchCmdAllChats, Icons.chat_bubble_outline, RouteNames.history),
-      SearchDialogCommand(
-        label: l10n.searchNewChat,
-        icon: Icons.add_circle_outline,
-        featured: true,
-        onRun: () {
-          ref.read(chatControllerProvider.notifier).newChat();
-          context.go(RouteNames.home);
-        },
-      ),
-      go(l10n.navProjects, Icons.inventory_2_outlined, RouteNames.projects),
-      go(l10n.artifactsTitle, Icons.description_outlined, RouteNames.artifacts),
-      SearchDialogCommand(
-        label: l10n.searchCmdToggleSidebar,
-        icon: Icons.view_sidebar_outlined,
-        onRun: () => ref.read(layoutControllerProvider.notifier).toggleNav(),
-      ),
-      settings(l10n.settingsGeneral, SettingsTab.general),
-      settings(l10n.settingsAccount, SettingsTab.account),
-      settings(l10n.settingsPrivacy, SettingsTab.privacy),
-      settings(l10n.settingsBilling, SettingsTab.billing),
-      settings(l10n.settingsCapabilities, SettingsTab.capabilities),
-      settings(l10n.settingsMemory, SettingsTab.memory),
-      settings(l10n.settingsClaudeCode, SettingsTab.claudeCode),
-      customize(l10n.studioSkill, CustomizeTab.skills),
-      customize(l10n.customizeTabConnectors, CustomizeTab.connectors),
-      customize(l10n.customizeTabPlugins, CustomizeTab.plugins),
-    ];
-  }
-
-  /// 搜索弹窗行尾「⁝」的动作。改名 / 删除 / 编辑细节的对话框直接叠在搜索弹窗之上，
-  /// 结果回给弹窗就地刷新；置顶 / 复制链接没有对应内核接口，只弹「未接入」。
-  Future<SearchRowResult?> _onSearchRowAction(
-    BuildContext context,
-    WidgetRef ref,
-    AppLocalizations l10n,
-    String id,
-    SearchDialogRowAction action,
-  ) async {
-    final isThread = id.startsWith(_threadPrefix);
-    final threadId = isThread ? id.substring(_threadPrefix.length) : null;
-    final projectId = id.startsWith(_projectPrefix)
-        ? id.substring(_projectPrefix.length)
-        : null;
-    switch (action) {
-      case SearchDialogRowAction.open:
-        _onSelect(context, ref, l10n, id);
-        return null;
-      case SearchDialogRowAction.pin:
-        _notWired(context, l10n, 'pin');
-        return null;
-      case SearchDialogRowAction.copyLink:
-        _notWired(context, l10n, 'copyLink');
-        return null;
-      case SearchDialogRowAction.editDetails:
-        if (projectId == null) return null;
-        final project = ref
-            .read(projectsControllerProvider)
-            .where((p) => p.id == projectId)
-            .firstOrNull;
-        if (project == null) return null;
-        final edit = await showEditProjectDialog(
-          context,
-          name: project.name,
-          description: project.description,
-        );
-        if (edit == null || edit.name.isEmpty) return null;
-        ref
-            .read(projectsControllerProvider.notifier)
-            .updateProject(projectId, edit.name, edit.description);
-        return SearchRowResult.renamed(edit.name);
-      case SearchDialogRowAction.rename:
-        if (threadId == null) return null;
-        final thread = ref
-            .read(threadListProvider)
-            .items
-            .where((t) => t.id == threadId)
-            .firstOrNull;
-        final name = await renameThreadWithDialog(
-          context,
-          ref,
-          threadId,
-          thread?.title ?? '',
-        );
-        // 空串会回落成首条消息摘要，弹窗里拿不到那个值，就先保持原样。
-        if (name == null || name.isEmpty) return null;
-        return SearchRowResult.renamed(name);
-      case SearchDialogRowAction.delete:
-        if (projectId != null) {
-          final project = ref
-              .read(projectsControllerProvider)
-              .where((p) => p.id == projectId)
-              .firstOrNull;
-          final ok = await confirmDanger(
-            context,
-            title: l10n.studioRemoveConfirm(project?.name ?? ''),
-            confirmText: l10n.commonDelete,
-          );
-          if (!ok) return null;
-          ref
-              .read(projectsControllerProvider.notifier)
-              .deleteProject(projectId);
-          return const SearchRowResult.removed();
-        }
-        if (threadId == null) {
-          _notWired(context, l10n, 'delete');
-          return null;
-        }
-        final thread = ref
-            .read(threadListProvider)
-            .items
-            .where((t) => t.id == threadId)
-            .firstOrNull;
-        final deleted = await deleteThreadWithConfirm(
-          context,
-          ref,
-          threadId,
-          thread?.title ?? '',
-        );
-        if (deleted &&
-            ref.read(chatControllerProvider).currentThreadId == threadId) {
-          ref.read(chatControllerProvider.notifier).newChat();
-        }
-        return deleted ? const SearchRowResult.removed() : null;
-    }
-  }
-
-  /// 历史对话项行尾「⁝」菜单。Rename / Delete 都真落地（`thread/name/set`、
-  /// `thread/delete`）；Pin 没有对应内核能力，见下方注释。
-  List<AppMenuEntry> _chatItemMenu(
-    BuildContext context,
-    WidgetRef ref,
-    AppLocalizations l10n,
-    ThreadSummary t,
-  ) {
-    return [
-      AppMenuAction(
-        icon: Icons.push_pin_outlined,
-        label: l10n.navChatPin,
-        shortcut: 'P',
-        // TODO:sgcode 没有置顶能力（React studio 的「收藏」存在 gateway 自己的
-        // per-cid KV 里，客户端这条路还没接）
-        onTap: () => _notWired(context, l10n, 'pin'),
-      ),
-      AppMenuAction(
-        icon: Icons.edit_outlined,
-        label: l10n.navChatRename,
-        shortcut: 'R',
-        onTap: () => _onRenameChat(context, ref, l10n, t.id, t.title),
-      ),
-      AppMenuAction(
-        icon: Icons.delete_outline,
-        label: l10n.commonDelete,
-        shortcut: 'D',
-        danger: true,
-        onTap: () => _onDeleteChat(context, ref, l10n, t.id, t.title),
-      ),
-    ];
-  }
-
-  /// 改标题。走 sgcode 的 `thread/name/set`（controller 内部乐观更新 + 失败回滚）。
-  Future<void> _onRenameChat(
-    BuildContext context,
-    WidgetRef ref,
-    AppLocalizations l10n,
-    String threadId,
-    String current,
-  ) => renameThreadWithDialog(context, ref, threadId, current);
-
-  Future<void> _onDeleteChat(
-    BuildContext context,
-    WidgetRef ref,
-    AppLocalizations l10n,
-    String threadId,
-    String label,
-  ) async {
-    final deleted = await deleteThreadWithConfirm(
-      context,
-      ref,
-      threadId,
-      label,
-    );
-    // 删的正是当前打开的会话：中栏不能还挂着它，回到干净的新对话。
-    if (deleted &&
-        ref.read(chatControllerProvider).currentThreadId == threadId) {
-      ref.read(chatControllerProvider.notifier).newChat();
-    }
-  }
-
-  void _notWired(BuildContext context, AppLocalizations l10n, String id) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(l10n.commonNotWired(id)),
-        duration: const Duration(seconds: 1),
-      ),
-    );
-  }
-
-  /// 构建历史对话区域（可能包含多个分组）
-  List<NavSection> _buildHistorySections(
-    AppLocalizations l10n,
-    WidgetRef ref,
-    List<ThreadSummary> threads,
-    HistorySortGroupState sortGroupState,
-    BuildContext context,
-  ) {
-    // 获取当前排序和分组的标签
-    final sortLabel = switch (sortGroupState.sortBy) {
-      ChatSortBy.lastActivity => l10n.chatSortLastActivity,
-      ChatSortBy.name => l10n.chatSortName,
-    };
-
-    final groupLabel = switch (sortGroupState.groupBy) {
-      ChatGroupBy.none => l10n.chatGroupNone,
-      ChatGroupBy.date => l10n.chatGroupDate,
-      ChatGroupBy.assistant => l10n.chatGroupAssistant,
-    };
-
-    // 按照当前排序和分组设置处理数据
-    final grouped = sortAndGroupHistory(
-      threads,
-      sortGroupState.sortBy,
-      sortGroupState.groupBy,
-      (key) => _getGroupTitle(key, l10n),
-    );
-
-    // 如果不分组，返回单个 section
-    if (sortGroupState.groupBy == ChatGroupBy.none) {
-      final items = grouped.first.items;
-      return [
-        NavSection(
-          title: l10n.navHistory,
-          collapsible: true,
-          viewAllTooltip: l10n.navViewAll,
-          onViewAll: () => _onViewAllHistory(context),
-          action: NavSectionAction.menu,
-          searchTooltip: l10n.navSearch,
-          onSearch: () => _onSearch(context, ref, threads),
-          actionTooltip: l10n.chatSortBy,
-          menu: [
-            AppMenuSubmenu(
-              label: l10n.chatGroupBy,
-              trailingValue: groupLabel,
-              entries: [
-                AppMenuAction(
-                  label: l10n.chatGroupNone,
-                  checked: sortGroupState.groupBy == ChatGroupBy.none,
-                  onTap: () => ref
-                      .read(historySortGroupControllerProvider.notifier)
-                      .setGroupBy(ChatGroupBy.none),
-                ),
-                AppMenuAction(
-                  label: l10n.chatGroupDate,
-                  checked: sortGroupState.groupBy == ChatGroupBy.date,
-                  onTap: () => ref
-                      .read(historySortGroupControllerProvider.notifier)
-                      .setGroupBy(ChatGroupBy.date),
-                ),
-                AppMenuAction(
-                  label: l10n.chatGroupAssistant,
-                  checked: sortGroupState.groupBy == ChatGroupBy.assistant,
-                  onTap: () => _notWired(context, l10n, 'group-by-assistant'),
-                ),
-              ],
-            ),
-            AppMenuSubmenu(
-              label: l10n.chatSortBy,
-              trailingValue: sortLabel,
-              entries: [
-                AppMenuAction(
-                  label: l10n.chatSortName,
-                  checked: sortGroupState.sortBy == ChatSortBy.name,
-                  onTap: () => ref
-                      .read(historySortGroupControllerProvider.notifier)
-                      .setSortBy(ChatSortBy.name),
-                ),
-                AppMenuAction(
-                  label: l10n.chatSortLastActivity,
-                  checked: sortGroupState.sortBy == ChatSortBy.lastActivity,
-                  onTap: () => ref
-                      .read(historySortGroupControllerProvider.notifier)
-                      .setSortBy(ChatSortBy.lastActivity),
-                ),
-              ],
-            ),
-          ],
-          entries: [
-            for (final t in items.take(_historyLimit))
-              NavEntry(
-                // 前缀换成 `_threadPrefix`：这条 id 会原样回到 `_onSelect`，
-                // 走错前缀就会把 threadId 喂给 `newChatWithScene`。
-                id: '$_threadPrefix${t.id}',
-                icon: Icons.chat_bubble_outline,
-                // 回落已由 Rust 侧 `thread_ops::display_title` 算好，不再自己来一套。
-                label: t.title,
-                trailingMenu: _chatItemMenu(context, ref, l10n, t),
-              ),
-            if (threads.length > _historyLimit)
-              NavEntry(
-                id: _idHistoryMore,
-                icon: Icons.more_horiz,
-                label: l10n.navViewAll,
-                isSpecialAction: true,
-              ),
-          ],
-        ),
-      ];
-    }
-
-    // 分组模式：第一个section是主标题，后续的是各个日期分组
-    final sections = <NavSection>[];
-
-    // 主标题section（不可折叠，带菜单和查看全部按钮）
-    sections.add(
-      NavSection(
-        title: l10n.navHistory,
-        collapsible: false,
-        viewAllTooltip: l10n.navViewAll,
-        onViewAll: () => _onViewAllHistory(context),
-        searchTooltip: l10n.navSearch,
-        onSearch: () => _onSearch(context, ref, threads),
-        actionTooltip: l10n.chatSortBy,
-        action: NavSectionAction.menu,
-        menu: [
-          AppMenuSubmenu(
-            label: l10n.chatGroupBy,
-            trailingValue: groupLabel,
-            entries: [
-              AppMenuAction(
-                label: l10n.chatGroupNone,
-                checked: sortGroupState.groupBy == ChatGroupBy.none,
-                onTap: () => ref
-                    .read(historySortGroupControllerProvider.notifier)
-                    .setGroupBy(ChatGroupBy.none),
-              ),
-              AppMenuAction(
-                label: l10n.chatGroupDate,
-                checked: sortGroupState.groupBy == ChatGroupBy.date,
-                onTap: () => ref
-                    .read(historySortGroupControllerProvider.notifier)
-                    .setGroupBy(ChatGroupBy.date),
-              ),
-              AppMenuAction(
-                label: l10n.chatGroupAssistant,
-                checked: sortGroupState.groupBy == ChatGroupBy.assistant,
-                onTap: () => _notWired(context, l10n, 'group-by-assistant'),
-              ),
-            ],
-          ),
-          AppMenuSubmenu(
-            label: l10n.chatSortBy,
-            trailingValue: sortLabel,
-            entries: [
-              AppMenuAction(
-                label: l10n.chatSortName,
-                checked: sortGroupState.sortBy == ChatSortBy.name,
-                onTap: () => ref
-                    .read(historySortGroupControllerProvider.notifier)
-                    .setSortBy(ChatSortBy.name),
-              ),
-              AppMenuAction(
-                label: l10n.chatSortLastActivity,
-                checked: sortGroupState.sortBy == ChatSortBy.lastActivity,
-                onTap: () => ref
-                    .read(historySortGroupControllerProvider.notifier)
-                    .setSortBy(ChatSortBy.lastActivity),
-              ),
-            ],
-          ),
-        ],
-        entries: const [], // 主标题section不显示任何条目
-      ),
-    );
-
-    // 为每个日期分组创建可折叠的section
-    for (var i = 0; i < grouped.length; i++) {
-      final group = grouped[i];
-      final isCollapsed = sortGroupState.collapsedGroups.contains(
-        group.groupKey,
-      );
-      final isFirstGroup = i == 0; // 第一个分组
-      final hasMore = group.items.length > _historyLimit; // 该分组是否超过20条
-
-      sections.add(
-        NavSection(
-          title: group.groupTitle,
-          collapsible: true, // 每个日期分组都可折叠
-          isCollapsed: isCollapsed, // 传入折叠状态
-          // 只有第一个分组需要"查看全部"和菜单按钮
-          viewAllTooltip: isFirstGroup ? l10n.navViewAll : null,
-          onViewAll: isFirstGroup ? () => _onViewAllHistory(context) : null,
-          action: isFirstGroup ? NavSectionAction.menu : NavSectionAction.none,
-          actionTooltip: isFirstGroup ? l10n.chatSortBy : null,
-          searchTooltip: isFirstGroup ? l10n.navSearch : null,
-          onSearch:
-              isFirstGroup ? () => _onSearch(context, ref, threads) : null,
-          menu: isFirstGroup
-              ? [
-                  AppMenuSubmenu(
-                    label: l10n.chatGroupBy,
-                    trailingValue: groupLabel,
-                    entries: [
-                      AppMenuAction(
-                        label: l10n.chatGroupNone,
-                        checked: sortGroupState.groupBy == ChatGroupBy.none,
-                        onTap: () => ref
-                            .read(historySortGroupControllerProvider.notifier)
-                            .setGroupBy(ChatGroupBy.none),
-                      ),
-                      AppMenuAction(
-                        label: l10n.chatGroupDate,
-                        checked: sortGroupState.groupBy == ChatGroupBy.date,
-                        onTap: () => ref
-                            .read(historySortGroupControllerProvider.notifier)
-                            .setGroupBy(ChatGroupBy.date),
-                      ),
-                      AppMenuAction(
-                        label: l10n.chatGroupAssistant,
-                        checked:
-                            sortGroupState.groupBy == ChatGroupBy.assistant,
-                        onTap: () =>
-                            _notWired(context, l10n, 'group-by-assistant'),
-                      ),
-                    ],
-                  ),
-                  AppMenuSubmenu(
-                    label: l10n.chatSortBy,
-                    trailingValue: sortLabel,
-                    entries: [
-                      AppMenuAction(
-                        label: l10n.chatSortName,
-                        checked: sortGroupState.sortBy == ChatSortBy.name,
-                        onTap: () => ref
-                            .read(historySortGroupControllerProvider.notifier)
-                            .setSortBy(ChatSortBy.name),
-                      ),
-                      AppMenuAction(
-                        label: l10n.chatSortLastActivity,
-                        checked:
-                            sortGroupState.sortBy == ChatSortBy.lastActivity,
-                        onTap: () => ref
-                            .read(historySortGroupControllerProvider.notifier)
-                            .setSortBy(ChatSortBy.lastActivity),
-                      ),
-                    ],
-                  ),
-                ]
-              : [],
-          onToggleCollapse: () => ref
-              .read(historySortGroupControllerProvider.notifier)
-              .toggleGroupCollapse(group.groupKey),
-          entries: isCollapsed
-              ? []
-              : [
-                  // 最多显示20条
-                  for (final t in group.items.take(_historyLimit))
-                    NavEntry(
-                      // 同上：分组模式是历史区的**另一条**渲染路径，
-                      // 两处前缀必须一起改 —— 只改一处的话，换个分组方式
-                      // 就又会把 threadId 当 sceneId 用。
-                      id: '$_threadPrefix${t.id}',
-                      icon: Icons.chat_bubble_outline,
-                      label: t.title,
-                      trailingMenu: _chatItemMenu(context, ref, l10n, t),
-                    ),
-                  // 超过20条时显示"查看全部"
-                  if (hasMore)
-                    NavEntry(
-                      id: _idHistoryMore,
-                      icon: Icons.more_horiz,
-                      label: l10n.navViewAll,
-                      isSpecialAction: true,
-                    ),
-                ],
-        ),
-      );
-    }
-
-    return sections;
-  }
-
-  /// 分组标题。三档：今天 / 昨天 / 更早，外加一个"时间未知"兜底。
-  String _getGroupTitle(String key, AppLocalizations l10n) {
-    switch (key) {
-      case 'today':
-        return l10n.chatGroupToday;
-      case 'yesterday':
-        return l10n.chatGroupYesterday;
-      case 'older':
-        return l10n.chatGroupOlder;
-      case 'unknown':
-        return l10n.chatGroupUnknown;
-    }
-    if (key.startsWith('assistant_')) {
-      // 按助理分组要先有 thread → agent 归属映射（服务端 `topic_owner` 有，
-      // 客户端还取不到）。菜单里那项也标着未接。
-      return key.substring('assistant_'.length);
-    }
-    return key;
-  }
+  void openSearch(BuildContext context, WidgetRef ref) => showNavSearch(
+    context,
+    ref,
+    ref.read(threadListProvider).items,
+    onSelect: (id) => _onSelect(context, ref, AppLocalizations.of(context), id),
+  );
 }
