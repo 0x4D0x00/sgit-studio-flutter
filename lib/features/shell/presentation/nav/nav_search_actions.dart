@@ -20,7 +20,7 @@ import 'package:sgit_studio_flutter/services/layout/layout_controller.dart';
 import 'package:sgit_studio_flutter/ui/components/dialogs/search_chats_dialog.dart';
 import 'package:sgit_studio_flutter/ui/feedback/confirm.dart';
 
-/// 打开搜索弹窗（左栏历史区的搜索图标、视图菜单、Ctrl+F 都走这里）。
+/// 打开搜索弹窗（左栏历史区的搜索图标、Ctrl+K 都走这里）。
 ///
 /// [onSelect] 是左栏导航的分派函数 —— 搜索结果的 id 与导航项 id 同一套前缀
 /// （见 [NavIds]），所以选中一项等价于点了左栏对应的行。

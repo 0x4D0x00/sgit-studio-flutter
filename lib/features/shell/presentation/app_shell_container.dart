@@ -4,6 +4,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import 'package:sgit_studio_flutter/features/auth/application/auth_controller.dart';
+import 'package:sgit_studio_flutter/features/find/application/find_controller.dart';
+import 'package:sgit_studio_flutter/features/find/presentation/find_host.dart';
 import 'package:sgit_studio_flutter/features/chat/application/composer_focus_controller.dart';
 import 'package:sgit_studio_flutter/features/chat/application/transcript_selection_pin.dart';
 import 'package:sgit_studio_flutter/features/settings/presentation/widgets/language_dialog.dart';
@@ -328,7 +330,7 @@ class _AppShellContainerState extends ConsumerState<AppShellContainer> {
           context.go(RouteNames.home);
         }
 
-        // 与左栏的搜索按钮是同一个弹窗（左栏收起 / 无左栏时也能唤出）。
+        // 与左栏的搜索按钮是同一个弹窗（左栏收起 / 无左栏时也能唤出），快捷键 Ctrl+K。
         void openSearch() =>
             const NavPanelContainer().openSearch(context, ref);
 
@@ -453,9 +455,9 @@ class _AppShellContainerState extends ConsumerState<AppShellContainer> {
               ),
               const AppMenuDivider(),
               AppMenuAction(
-                label: l10n.navSearch,
+                label: l10n.menuFind,
                 shortcut: 'Ctrl+F',
-                onTap: openSearch,
+                onTap: ref.read(findControllerProvider.notifier).show,
               ),
               const AppMenuDivider(),
               AppMenuAction(
@@ -575,7 +577,10 @@ class _AppShellContainerState extends ConsumerState<AppShellContainer> {
                 notWired(l10n.menuOpenTerminal),
             const SingleActivator(LogicalKeyboardKey.keyB, control: true, alt: true): () =>
                 notWired(l10n.menuSwitchChatTabs),
+            // 查找（页内）与搜索（聊天 / 项目 / 产物的命令面板）是两件事。
             const SingleActivator(LogicalKeyboardKey.keyF, control: true):
+                ref.read(findControllerProvider.notifier).show,
+            const SingleActivator(LogicalKeyboardKey.keyK, control: true):
                 openSearch,
             const SingleActivator(LogicalKeyboardKey.bracketLeft, control: true): () =>
                 _go(-1),
@@ -596,7 +601,7 @@ class _AppShellContainerState extends ConsumerState<AppShellContainer> {
             const SingleActivator(LogicalKeyboardKey.slash, control: true): () =>
                 notWired(l10n.navKeyboardShortcuts),
           },
-          child: shell,
+          child: FindHost(child: shell),
         );
       },
     );

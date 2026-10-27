@@ -1907,6 +1907,21 @@ class AppLocalizationsZh extends AppLocalizations {
   String get menuFullScreen => '切换全屏';
 
   @override
+  String get menuFind => '查找';
+
+  @override
+  String get findHint => '在页面中查找';
+
+  @override
+  String get findPrevious => '上一个';
+
+  @override
+  String get findNext => '下一个';
+
+  @override
+  String get findClose => '关闭查找';
+
+  @override
   String get helpDocs => '文档';
 
   @override

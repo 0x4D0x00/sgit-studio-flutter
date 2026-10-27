@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:sgit_studio_flutter/design/extensions/app_skin.dart';
 import 'package:sgit_studio_flutter/layout/metrics/workspace_metrics.dart';
 import 'package:sgit_studio_flutter/layout/panels/models/nav_entry.dart';
+import 'package:sgit_studio_flutter/domain/models/find/find_matcher.dart';
+import 'package:sgit_studio_flutter/ui/components/find/find_highlight.dart';
 import 'package:sgit_studio_flutter/ui/components/menu/app_menu.dart';
 
 /// 一条导航行：品牌下的顶部导航、置顶项、历史对话item 通用。
@@ -26,6 +28,7 @@ class NavRow extends StatefulWidget {
     required this.onMenuOpenChanged,
     this.isHeader = false,
     this.isChatItem = false,
+    this.findStart,
   });
 
   final NavEntry entry;
@@ -43,6 +46,9 @@ class NavRow extends StatefulWidget {
   /// 历史对话列表项，采用无序列表样式（圆点 + 文字）。
   final bool isChatItem;
 
+  /// 页内查找：本行标题的第一个匹配在左栏里的序号。null = 不参与高亮。
+  final int? findStart;
+
   @override
   State<NavRow> createState() => _NavRowState();
 }
@@ -50,6 +56,9 @@ class NavRow extends StatefulWidget {
 class _NavRowState extends State<NavRow> {
   /// 鼠标是否停在这一行上。只用来决定「⁝」按钮露不露出，不影响选中态。
   bool _hovering = false;
+
+  /// 上一次因为「当前匹配在这一行」而滚动到的匹配序号，避免每次重建都滚。
+  int? _revealedFind;
 
   @override
   Widget build(BuildContext context) {
@@ -73,6 +82,45 @@ class _NavRowState extends State<NavRow> {
         ? (selected || _hovering || menuOpen)
         : (highlighted || _hovering);
     final fg = highlighted ? skin.text : skin.textSecondary;
+    final labelStyle = TextStyle(
+      fontSize: 14,
+      fontWeight:
+          // highlighted &&
+          //     !isChatItem
+          // ? FontWeight.w600
+          // : FontWeight.w400,
+          FontWeight.w400,
+      color: fg,
+    );
+    final scope = FindScope.maybeOf(context);
+    final findStart = widget.findStart;
+    final finding = scope != null && scope.active && findStart != null;
+    final findLabel = finding
+        ? FindMatcher.snippet(entry.label, scope.query)
+        : entry.label;
+
+    // 当前匹配就在这一行：列表是可滚动的，行在视口外时要把它带进来。
+    if (finding) {
+      final n = FindMatcher.count(entry.label, scope.query);
+      final cur = scope.navCurrent;
+      if (cur >= findStart && cur < findStart + n) {
+        if (_revealedFind != cur) {
+          _revealedFind = cur;
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            if (!mounted) return;
+            Scrollable.ensureVisible(
+              context,
+              alignment: 0.5,
+              duration: const Duration(milliseconds: 150),
+            );
+          });
+        }
+      } else {
+        _revealedFind = null;
+      }
+    } else {
+      _revealedFind = null;
+    }
 
     // 整行右边距 —— 有 trailingMenu 时右边距挪给按钮那个 SizedBox。
     final core = Padding(
@@ -102,21 +150,23 @@ class _NavRowState extends State<NavRow> {
           if (!isChatItem || entry.isSpecialAction)
             const SizedBox(width: WorkspaceMetrics.navItemGap),
           Expanded(
-            child: Text(
-              entry.label,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: TextStyle(
-                fontSize: 14,
-                fontWeight:
-                    // highlighted &&
-                    //     !isChatItem
-                    // ? FontWeight.w600
-                    // : FontWeight.w400,
-                    FontWeight.w400,
-                color: fg,
-              ),
-            ),
+            child: finding
+                ? Text.rich(
+                    FindHighlight(
+                      query: scope.query,
+                      start: findStart,
+                      current: scope.navCurrent,
+                      colors: FindColors.of(context),
+                    ).span(findLabel, labelStyle),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  )
+                : Text(
+                    entry.label,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: labelStyle,
+                  ),
           ),
           // 有子菜单就给个「往右还有」的提示，否则用户不知道这行能悬停。
           if (entry.hasMenu)

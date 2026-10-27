@@ -1950,6 +1950,21 @@ class AppLocalizationsEn extends AppLocalizations {
   String get menuFullScreen => 'Toggle full screen';
 
   @override
+  String get menuFind => 'Find';
+
+  @override
+  String get findHint => 'Find in page';
+
+  @override
+  String get findPrevious => 'Previous match';
+
+  @override
+  String get findNext => 'Next match';
+
+  @override
+  String get findClose => 'Close find';
+
+  @override
   String get helpDocs => 'Documentation';
 
   @override

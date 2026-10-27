@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
@@ -8,6 +9,8 @@ import 'package:sgit_studio_flutter/layout/panels/models/nav_entry.dart';
 import 'package:sgit_studio_flutter/layout/panels/nav_row.dart';
 import 'package:sgit_studio_flutter/layout/panels/nav_section_header.dart';
 import 'package:sgit_studio_flutter/layout/panels/nav_user_area.dart';
+import 'package:sgit_studio_flutter/domain/models/find/find_matcher.dart';
+import 'package:sgit_studio_flutter/ui/components/find/find_highlight.dart';
 import 'package:sgit_studio_flutter/ui/components/menu/app_menu.dart';
 
 /// 左侧导航栏 —— 重构
@@ -35,6 +38,7 @@ class NavPanel extends StatefulWidget {
     this.avatarBytes,
     this.userMenu = const [],
     this.onDownload,
+    this.onFindCount,
   });
 
   final String brandName;
@@ -54,6 +58,9 @@ class NavPanel extends StatefulWidget {
 
   final VoidCallback? onDownload;
 
+  /// 页内查找：历史对话标题里的匹配总数变了就报一次（没在查找时报 0）。
+  final ValueChanged<int>? onFindCount;
+
   @override
   State<NavPanel> createState() => _NavPanelState();
 }
@@ -67,9 +74,39 @@ class _NavPanelState extends State<NavPanel> {
   /// 鼠标当前停留的分组下标（驱动标题行的悬停显示）。
   int? _hoveredSection;
 
+  /// 页内查找：本次 build 里下一个历史对话行的第一个匹配序号（行间累加）。
+  int _findNext = 0;
+  String _findQuery = '';
+  int _findReported = 0;
+
+  @override
+  void dispose() {
+    // 左栏收起 / 卸载后，它那份匹配数就不该再算进总数。
+    final report = widget.onFindCount;
+    if (_findReported != 0 && report != null) {
+      scheduleMicrotask(() {
+        try {
+          report(0);
+        } catch (_) {
+          // 容器已随应用一起销毁。
+        }
+      });
+    }
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
     final skin = AppSkin.of(context);
+    final scope = FindScope.maybeOf(context);
+    _findQuery = scope?.active == true ? scope!.query : '';
+    _findNext = 0;
+    // 行是在下面 Column 里同步建出来的（`_row` 累加 [_findNext]），帧末再报总数。
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted || _findNext == _findReported) return;
+      _findReported = _findNext;
+      widget.onFindCount?.call(_findReported);
+    });
 
     return Padding(
       padding: const EdgeInsets.symmetric(
@@ -161,8 +198,14 @@ class _NavPanelState extends State<NavPanel> {
     );
   }
 
-  Widget _row(NavEntry e, {bool isHeader = false, bool isChatItem = false}) =>
-      NavRow(
+  Widget _row(NavEntry e, {bool isHeader = false, bool isChatItem = false}) {
+    // 只有历史对话标题参与查找（顶部固定导航与「查看全部」不算）。
+    int? findStart;
+    if (isChatItem && !e.isSpecialAction && _findQuery.isNotEmpty) {
+      findStart = _findNext;
+      _findNext += FindMatcher.count(e.label, _findQuery);
+    }
+    return NavRow(
         entry: e,
         selected: widget.activeId == e.id,
         menuOpen: _openMenuId == e.id,
@@ -171,7 +214,9 @@ class _NavPanelState extends State<NavPanel> {
             setState(() => _openMenuId = open ? e.id : null),
         isHeader: isHeader,
         isChatItem: isChatItem,
+        findStart: findStart,
       );
+  }
 
   /// 品牌行：字标。（收起/展开左栏的入口在窗口左上角工具行。）
   Widget _brand(AppSkin skin) => Padding(

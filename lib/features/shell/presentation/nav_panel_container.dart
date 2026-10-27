@@ -7,6 +7,7 @@ import 'package:go_router/go_router.dart';
 import 'package:sgit_studio_flutter/features/artifacts/application/artifacts_controller.dart';
 import 'package:sgit_studio_flutter/features/auth/application/auth_controller.dart';
 import 'package:sgit_studio_flutter/features/chat/application/thread_list_controller.dart';
+import 'package:sgit_studio_flutter/features/find/application/find_controller.dart';
 import 'package:sgit_studio_flutter/features/projects/application/projects_controller.dart';
 import 'package:sgit_studio_flutter/features/projects/presentation/widgets/create_project_dialog.dart';
 import 'package:sgit_studio_flutter/l10n/generated/app_localizations.dart';
@@ -123,6 +124,7 @@ class NavPanelContainer extends ConsumerWidget {
         ),
       ],
       onSelect: (id) => _onSelect(context, ref, l10n, id),
+      onFindCount: ref.read(findControllerProvider.notifier).setNavCount,
       userName: userProfile.username,
       avatarBytes: userProfile.avatarBytes,
       downloadTooltip: l10n.navGetApps,

@@ -3719,6 +3719,36 @@ abstract class AppLocalizations {
   /// **'切换全屏'**
   String get menuFullScreen;
 
+  /// No description provided for @menuFind.
+  ///
+  /// In zh, this message translates to:
+  /// **'查找'**
+  String get menuFind;
+
+  /// No description provided for @findHint.
+  ///
+  /// In zh, this message translates to:
+  /// **'在页面中查找'**
+  String get findHint;
+
+  /// No description provided for @findPrevious.
+  ///
+  /// In zh, this message translates to:
+  /// **'上一个'**
+  String get findPrevious;
+
+  /// No description provided for @findNext.
+  ///
+  /// In zh, this message translates to:
+  /// **'下一个'**
+  String get findNext;
+
+  /// No description provided for @findClose.
+  ///
+  /// In zh, this message translates to:
+  /// **'关闭查找'**
+  String get findClose;
+
   /// No description provided for @helpDocs.
   ///
   /// In zh, this message translates to:
