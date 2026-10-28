@@ -492,7 +492,11 @@ class _AppShellContainerState extends ConsumerState<AppShellContainer> {
                 onTap: themeCtrl.resetFontScale,
               ),
               const AppMenuDivider(),
-              stub(l10n.menuFullScreen, shortcut: 'F11'),
+              AppMenuAction(
+                label: l10n.menuFullScreen,
+                shortcut: 'F11',
+                onTap: toggleFullScreen,
+              ),
             ],
           ),
           WindowMenu(
@@ -602,7 +606,7 @@ class _AppShellContainerState extends ConsumerState<AppShellContainer> {
                 themeCtrl.bumpFontScale(-1),
             const SingleActivator(LogicalKeyboardKey.digit0, control: true):
                 themeCtrl.resetFontScale,
-            const SingleActivator(LogicalKeyboardKey.f11): () => notWired(l10n.menuFullScreen),
+            const SingleActivator(LogicalKeyboardKey.f11): toggleFullScreen,
             // 帮助
             const SingleActivator(LogicalKeyboardKey.slash, control: true): () =>
                 notWired(l10n.navKeyboardShortcuts),

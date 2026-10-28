@@ -306,6 +306,8 @@ class _ProjectCardState extends State<ProjectCard> {
         AppMenuAction(
           icon: Icons.push_pin_outlined,
           label: l10n.projectsPin,
+          shortcut: kMenuPinShortcutLabel,
+          shortcutActivator: kMenuPinActivator,
           onTap: widget.onPin,
         ),
         AppMenuAction(

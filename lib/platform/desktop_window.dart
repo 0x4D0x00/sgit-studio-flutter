@@ -29,6 +29,11 @@ Future<void> minimizeClient() async {
   if (_isDesktop) await minimizeWindow();
 }
 
+/// 切换全屏（桌面版）。Web 无全屏窗口概念，空操作。
+Future<void> toggleFullScreen() async {
+  if (_isDesktop) await toggleFullScreenWindow();
+}
+
 /// 退出客户端（桌面版）或退出应用（Web）。
 Future<void> quitClient() async {
   if (_isDesktop) await quitApp();

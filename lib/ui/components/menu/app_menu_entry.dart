@@ -1,4 +1,19 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+
+/// 会话菜单里「置顶 / 重命名」的统一快捷键（所有会话菜单共用，保持一致）。
+const kMenuPinActivator = SingleActivator(
+  LogicalKeyboardKey.keyP,
+  control: true,
+  alt: true,
+);
+const kMenuRenameActivator = SingleActivator(
+  LogicalKeyboardKey.keyR,
+  control: true,
+  alt: true,
+);
+const kMenuPinShortcutLabel = 'Ctrl+Alt+P';
+const kMenuRenameShortcutLabel = 'Ctrl+Alt+R';
 
 /// 弹出菜单的一项（**纯数据**，不含业务语义、不引状态库）。
 ///
@@ -19,6 +34,7 @@ class AppMenuAction extends AppMenuEntry {
     this.icon,
     this.onTap,
     this.shortcut,
+    this.shortcutActivator,
     this.trailingValue,
     this.checked = false,
     this.danger = false,
@@ -35,6 +51,11 @@ class AppMenuAction extends AppMenuEntry {
   /// 真正的键盘绑定不在菜单里做 —— 菜单关掉后快捷键也该生效，
   /// 那是页面级 `Shortcuts` 的事。
   final String? shortcut;
+
+  /// 菜单**打开期间**生效的真实按键，由 `AppMenuAnchor` 监听，菜单关掉即注销。
+  /// 不用 `MenuItemButton.shortcut`：它会自己再画一份「Alt+Ctrl+P」标签。
+  /// 常驻的全局快捷键仍走页面级 `Shortcuts`。
+  final SingleActivator? shortcutActivator;
 
   /// 右侧当前值，如 Group by 的 `None`、Sort by 的 `Last activity`。
   final String? trailingValue;

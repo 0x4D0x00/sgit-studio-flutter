@@ -5,4 +5,6 @@ Future<void> openNewWindow() async {}
 
 Future<void> minimizeWindow() async {}
 
+Future<void> toggleFullScreenWindow() async {}
+
 Future<void> quitApp() async {}

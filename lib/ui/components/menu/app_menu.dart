@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import 'package:sgit_studio_flutter/design/extensions/app_skin.dart';
 import 'package:sgit_studio_flutter/design/tokens/app_spacing.dart';
@@ -111,8 +112,25 @@ class _AppMenuAnchorState extends State<AppMenuAnchor> {
 
   @override
   void dispose() {
+    HardwareKeyboard.instance.removeHandler(_onKey);
     _closeTimer?.cancel();
     super.dispose();
+  }
+
+  /// 菜单打开期间匹配各项的 [AppMenuAction.shortcutActivator]，命中则关菜单并触发该项。
+  bool _onKey(KeyEvent event) {
+    if (event is! KeyDownEvent) return false;
+    for (final e in widget.entries) {
+      if (e is! AppMenuAction) continue;
+      final a = e.shortcutActivator;
+      if (a == null || !e.enabled || e.onTap == null) continue;
+      if (a.accepts(event, HardwareKeyboard.instance)) {
+        _controller.close();
+        e.onTap!();
+        return true;
+      }
+    }
+    return false;
   }
 
   @override
@@ -134,8 +152,12 @@ class _AppMenuAnchorState extends State<AppMenuAnchor> {
         },
       ),
       alignmentOffset: _offset,
-      onOpen: () => widget.onOpenChanged?.call(true),
+      onOpen: () {
+        HardwareKeyboard.instance.addHandler(_onKey);
+        widget.onOpenChanged?.call(true);
+      },
       onClose: () {
+        HardwareKeyboard.instance.removeHandler(_onKey);
         _pinned = false;
         submenuPinned.value = false;
         widget.onOpenChanged?.call(false);

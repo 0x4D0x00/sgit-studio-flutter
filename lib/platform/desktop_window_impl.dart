@@ -65,5 +65,11 @@ Future<void> openNewWindow() async {
 
 Future<void> minimizeWindow() => windowManager.minimize();
 
+/// 切换全屏。全屏时隐藏系统任务栏/菜单栏，退出后回到原来的最大化/恢复态。
+Future<void> toggleFullScreenWindow() async {
+  final isFull = await windowManager.isFullScreen();
+  await windowManager.setFullScreen(!isFull);
+}
+
 /// 关闭客户端（退出进程）。
 Future<void> quitApp() => windowManager.destroy();

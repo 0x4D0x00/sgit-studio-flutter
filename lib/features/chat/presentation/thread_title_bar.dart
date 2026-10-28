@@ -44,7 +44,8 @@ class ThreadTitleBar extends ConsumerWidget {
             AppMenuAction(
               icon: Icons.push_pin_outlined,
               label: l10n.navChatPin,
-              shortcut: 'P',
+              shortcut: kMenuPinShortcutLabel,
+              shortcutActivator: kMenuPinActivator,
               onTap: () => ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
                   // TODO：置顶功能待接
@@ -56,14 +57,14 @@ class ThreadTitleBar extends ConsumerWidget {
             AppMenuAction(
               icon: Icons.edit_outlined,
               label: l10n.navChatRename,
-              shortcut: 'R',
+              shortcut: kMenuRenameShortcutLabel,
+              shortcutActivator: kMenuRenameActivator,
               onTap: () => renameThreadWithDialog(
                   context, ref, thread.id, thread.title),
             ),
             AppMenuAction(
               icon: Icons.delete_outline,
               label: l10n.commonDelete,
-              shortcut: 'D',
               danger: true,
               onTap: () async {
                 final deleted = await deleteThreadWithConfirm(

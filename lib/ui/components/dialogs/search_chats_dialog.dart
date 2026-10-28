@@ -99,6 +99,9 @@ class _SearchChatsDialogState extends State<_SearchChatsDialog> {
   ///菜单开着的期间由它把灰底锁住；菜单关闭（选项被点、点到外面的空白、按 Esc）时 `onClose` 会把它清掉，锁定随之解除。
   String? _menuOpenId;
 
+  /// 当前打开的行菜单的条目，用来在 [_onKey] 里匹配「置顶 / 重命名」快捷键。
+  List<AppMenuEntry> _openMenuEntries = const [];
+
   /// 行动作（改名 / 删除…）不关弹窗，结果就地叠在传入的 `items` 上。
   final Set<String> _removed = {};
   final Map<String, String> _labels = {};
@@ -437,6 +440,18 @@ class _SearchChatsDialogState extends State<_SearchChatsDialog> {
     if (!mounted) return false;
     // 改名 / 删除等对话框叠在上面时，键盘归它们，搜索弹窗不抢。
     if (ModalRoute.of(context)?.isCurrent == false) return false;
+    // 行菜单开着时，先认菜单项的快捷键（Ctrl+Alt+P / R）。
+    if (_menuOpenId != null) {
+      for (final e in _openMenuEntries) {
+        final a = e is AppMenuAction ? e.shortcutActivator : null;
+        if (e is! AppMenuAction || a == null || e.onTap == null) continue;
+        if (a.accepts(event, HardwareKeyboard.instance)) {
+          _menuControllers[_menuOpenId]?.close();
+          e.onTap!();
+          return true;
+        }
+      }
+    }
     final key = event.logicalKey;
     final rows = _rows(AppLocalizations.of(context));
 
@@ -683,6 +698,11 @@ class _SearchChatsDialogState extends State<_SearchChatsDialog> {
         controller: menu,
         onOpen: () => setState(() {
           _menuOpenId = item.id;
+          _openMenuEntries = buildSearchRowMenuEntries(
+            l10n,
+            item.category,
+            (action) => _fireRowAction(item, action),
+          );
           // 不碰 `_keyboardMode`：点「⋯」打开的菜单，关闭后灰底必须跟着消失；
           // 键盘（Alt+↵）打开的路径在 [_openRowMenu] 里已经自己置过了。
           _selected = index;

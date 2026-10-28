@@ -18,6 +18,8 @@ List<AppMenuEntry> buildSearchRowMenuEntries(
   AppMenuAction pin(String label) => AppMenuAction(
     icon: Icons.push_pin_outlined,
     label: label,
+    shortcut: kMenuPinShortcutLabel,
+    shortcutActivator: kMenuPinActivator,
     onTap: () => fire(SearchDialogRowAction.pin),
   );
   final delete = AppMenuAction(
@@ -54,6 +56,8 @@ List<AppMenuEntry> buildSearchRowMenuEntries(
       AppMenuAction(
         icon: Icons.edit_outlined,
         label: l10n.navChatRename,
+        shortcut: kMenuRenameShortcutLabel,
+        shortcutActivator: kMenuRenameActivator,
         onTap: () => fire(SearchDialogRowAction.rename),
       ),
       delete,

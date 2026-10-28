@@ -20,7 +20,8 @@ List<AppMenuEntry> buildChatItemMenu(
     AppMenuAction(
       icon: Icons.push_pin_outlined,
       label: l10n.navChatPin,
-      shortcut: 'P',
+      shortcut: kMenuPinShortcutLabel,
+      shortcutActivator: kMenuPinActivator,
       // TODO:sgcode 没有置顶能力（React studio 的「收藏」存在 gateway 自己的
       // per-cid KV 里，客户端这条路还没接）
       onTap: () => showNavNotWired(context, l10n, 'pin'),
@@ -28,14 +29,14 @@ List<AppMenuEntry> buildChatItemMenu(
     AppMenuAction(
       icon: Icons.edit_outlined,
       label: l10n.navChatRename,
-      shortcut: 'R',
+      shortcut: kMenuRenameShortcutLabel,
+      shortcutActivator: kMenuRenameActivator,
       // 改标题。走 sgcode 的 `thread/name/set`（controller 内部乐观更新 + 失败回滚）。
       onTap: () => renameThreadWithDialog(context, ref, t.id, t.title),
     ),
     AppMenuAction(
       icon: Icons.delete_outline,
       label: l10n.commonDelete,
-      shortcut: 'D',
       danger: true,
       onTap: () => deleteThreadResettingIfCurrent(context, ref, t.id, t.title),
     ),

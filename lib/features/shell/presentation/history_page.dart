@@ -489,19 +489,20 @@ class _HistoryRowState extends State<_HistoryRow> {
                       AppMenuAction(
                         icon: Icons.push_pin_outlined,
                         label: l10n.navChatPin,
-                        shortcut: 'P',
+                        shortcut: kMenuPinShortcutLabel,
+                        shortcutActivator: kMenuPinActivator,
                         onTap: () => widget.onMenuAction('pin'),
                       ),
                       AppMenuAction(
                         icon: Icons.edit_outlined,
                         label: l10n.navChatRename,
-                        shortcut: 'R',
+                        shortcut: kMenuRenameShortcutLabel,
+                        shortcutActivator: kMenuRenameActivator,
                         onTap: () => widget.onMenuAction('rename'),
                       ),
                       AppMenuAction(
                         icon: Icons.delete_outline,
                         label: l10n.commonDelete,
-                        shortcut: 'D',
                         danger: true,
                         onTap: () => widget.onMenuAction('delete'),
                       ),
