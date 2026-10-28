@@ -284,6 +284,7 @@ class NavPanelContainer extends ConsumerWidget {
       AppMenuAction(
         icon: Icons.settings_outlined,
         label: l10n.navSettings,
+        shortcut: 'Ctrl+,',
         onTap: () => showSettingsDialog(context),
       ),
       AppMenuAction(

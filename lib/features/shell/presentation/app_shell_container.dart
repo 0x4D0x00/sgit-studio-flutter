@@ -367,6 +367,7 @@ class _AppShellContainerState extends ConsumerState<AppShellContainer> {
               stub(l10n.menuOpenFolder, shortcut: 'Ctrl+O'),
               AppMenuAction(
                 label: l10n.navSettings,
+                shortcut: 'Ctrl+,',
                 onTap: () => showSettingsDialog(context),
               ),
               const AppMenuDivider(),
@@ -563,6 +564,8 @@ class _AppShellContainerState extends ConsumerState<AppShellContainer> {
             const SingleActivator(LogicalKeyboardKey.keyN, control: true): newChat,
             const SingleActivator(LogicalKeyboardKey.keyO, control: true): () =>
                 notWired(l10n.menuOpenFolder),
+            const SingleActivator(LogicalKeyboardKey.comma, control: true): () =>
+                showSettingsDialog(context),
             const SingleActivator(LogicalKeyboardKey.keyW, control: true): closePage,
             const SingleActivator(LogicalKeyboardKey.keyQ, control: true): quitClient,
             const SingleActivator(LogicalKeyboardKey.keyY, control: true): () {
