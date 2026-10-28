@@ -59,6 +59,13 @@
   "chatGroupOlder": "Older",
   "chatGroupUnknown": "Unknown date",
   "chatRenameHint": "Keep it short and recognizable.",
+  "chatRenameTitle": "Rename chat",
+  "chatDeleteTitle": "Delete chat?",
+  "chatDeleteMessage": "This will permanently delete “{name}”. This action cannot be undone.",
+  "@chatDeleteMessage": {
+    "placeholders": { "name": { "type": "String" } }
+  },
+  "chatDeleteAction": "Delete chat",
   "chatHistoryEmptyAction": "Start a new chat",
   "shellExpandNav": "Expand navigation",
   "shellCollapseNav": "Collapse navigation",

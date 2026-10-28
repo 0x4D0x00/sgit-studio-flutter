@@ -11,6 +11,7 @@ import 'package:sgit_studio_flutter/app/app_providers.dart';
 import 'package:sgit_studio_flutter/features/studio/studio_page_specs.dart';
 import 'package:sgit_studio_flutter/l10n/generated/app_localizations.dart';
 import 'package:sgit_studio_flutter/ui/feedback/async_view.dart';
+import 'package:sgit_studio_flutter/ui/feedback/confirm.dart';
 import 'package:sgit_studio_flutter/ui/primitives/hover_lift.dart';
 
 import 'package:sgit_studio_flutter/ui/primitives/responsive_card_wrap.dart';
@@ -64,26 +65,12 @@ class SkillLibraryGrid extends ConsumerWidget {
     final ctrl = ref.read(resourceListProvider(StudioPageSpecs.skill).notifier);
     final title = item.name.isNotEmpty ? item.name : item.id.split('/').last;
 
-    final ok = await showDialog<bool>(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        content: Text(l10n.studioRemoveConfirm(title)),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx, false),
-            child: Text(l10n.commonCancel),
-          ),
-          FilledButton(
-            style: FilledButton.styleFrom(
-              backgroundColor: Theme.of(ctx).colorScheme.error,
-            ),
-            onPressed: () => Navigator.pop(ctx, true),
-            child: Text(l10n.studioRemove),
-          ),
-        ],
-      ),
+    final ok = await confirmDanger(
+      context,
+      title: l10n.studioRemoveConfirm(title),
+      confirmText: l10n.studioRemove,
     );
-    if (ok != true) return;
+    if (!ok) return;
 
     try {
       await repo.removeFromPage('skill', item.id);

@@ -60,6 +60,13 @@
   "chatGroupOlder": "之前",
   "chatGroupUnknown": "时间未知",
   "chatRenameHint": "保持简短且易于识别。",
+  "chatRenameTitle": "重命名聊天",
+  "chatDeleteTitle": "删除聊天?",
+  "chatDeleteMessage": "这将永久删除“{name}”。此操作无法撤销。",
+  "@chatDeleteMessage": {
+    "placeholders": { "name": { "type": "String" } }
+  },
+  "chatDeleteAction": "删除聊天",
   "chatHistoryEmptyAction": "开启新对话",
   "shellExpandNav": "展开导航",
   "shellCollapseNav": "收起导航",

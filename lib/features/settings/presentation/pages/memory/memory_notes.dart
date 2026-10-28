@@ -10,6 +10,7 @@ import 'package:sgit_studio_flutter/app/app_providers.dart';
 import 'package:sgit_studio_flutter/features/studio/studio_page_specs.dart';
 import 'package:sgit_studio_flutter/l10n/generated/app_localizations.dart';
 import 'package:sgit_studio_flutter/ui/feedback/async_view.dart';
+import 'package:sgit_studio_flutter/ui/feedback/confirm.dart';
 
 /// 记忆笔记列表。
 ///
@@ -110,28 +111,12 @@ class MemoryNoteList extends ConsumerWidget {
       resourceListProvider(StudioPageSpecs.memory).notifier,
     );
 
-    final ok = await showDialog<bool>(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        content: Text(
-          l10n.studioRemoveConfirm(item.name.isNotEmpty ? item.name : item.id),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx, false),
-            child: Text(l10n.commonCancel),
-          ),
-          FilledButton(
-            style: FilledButton.styleFrom(
-              backgroundColor: Theme.of(ctx).colorScheme.error,
-            ),
-            onPressed: () => Navigator.pop(ctx, true),
-            child: Text(l10n.studioRemove),
-          ),
-        ],
-      ),
+    final ok = await confirmDanger(
+      context,
+      title: l10n.studioRemoveConfirm(item.name.isNotEmpty ? item.name : item.id),
+      confirmText: l10n.studioRemove,
     );
-    if (ok != true) return;
+    if (!ok) return;
 
     try {
       // 桌面走 `sgit_studio_remove('memory', id)` → `settings::delete_raw`

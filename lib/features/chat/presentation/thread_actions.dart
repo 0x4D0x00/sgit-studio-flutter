@@ -2,8 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:sgit_studio_flutter/features/chat/application/thread_list_controller.dart';
+import 'package:sgit_studio_flutter/design/extensions/app_skin.dart';
+import 'package:sgit_studio_flutter/design/tokens/app_spacing.dart';
 import 'package:sgit_studio_flutter/l10n/generated/app_localizations.dart';
-import 'package:sgit_studio_flutter/ui/feedback/confirm.dart';
+import 'package:sgit_studio_flutter/ui/components/dialogs/app_dialog_shell.dart';
 
 /// 会话的改名 / 删除交互。
 ///
@@ -35,15 +37,33 @@ Future<bool> deleteThreadWithConfirm(
   String threadId,
   String label,
 ) async {
-  final l10n = AppLocalizations.of(context);
-  final ok = await confirmDanger(
-    context,
-    title: l10n.studioRemoveConfirm(label),
-    confirmText: l10n.commonDelete,
-  );
-  if (!ok) return false;
+  if (!await confirmDeleteThread(context, label)) return false;
   await ref.read(threadListProvider.notifier).remove(threadId);
   return true;
+}
+
+/// 只弹「删除聊天?」确认框，不执行删除。历史页要在删除前后做额外处理，单独复用这一步。
+Future<bool> confirmDeleteThread(BuildContext context, String label) async {
+  final l10n = AppLocalizations.of(context);
+  final ok = await showDialog<bool>(
+    context: context,
+    builder: (ctx) => AppDialogShell(
+      title: l10n.chatDeleteTitle,
+      subtitle: l10n.chatDeleteMessage(label),
+      actions: [
+        AppDialogButton(
+          label: l10n.commonCancel,
+          onPressed: () => Navigator.of(ctx).pop(false),
+        ),
+        AppDialogButton(
+          label: l10n.chatDeleteAction,
+          kind: AppDialogButtonKind.danger,
+          onPressed: () => Navigator.of(ctx).pop(true),
+        ),
+      ],
+    ),
+  );
+  return ok == true;
 }
 
 /// controller 由对话框自己的 State 持有：pop 之后退场动画还会重建 TextField，
@@ -69,22 +89,39 @@ class _RenameDialogState extends State<_RenameDialog> {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
-    return AlertDialog(
-      title: Text(l10n.navChatRename),
-      content: TextField(
+    final skin = AppSkin.of(context);
+    final primary = Theme.of(context).colorScheme.primary;
+    OutlineInputBorder border(Color c, [double w = 1]) => OutlineInputBorder(
+      borderRadius: BorderRadius.circular(AppRadius.md),
+      borderSide: BorderSide(color: c, width: w),
+    );
+    return AppDialogShell(
+      title: l10n.chatRenameTitle,
+      subtitle: l10n.chatRenameHint,
+      width: 480,
+      body: TextField(
         controller: _controller,
         autofocus: true,
-        decoration: InputDecoration(hintText: l10n.chatRenameHint),
+        style: TextStyle(color: skin.text, fontSize: 15),
         onSubmitted: (v) => Navigator.of(context).pop(v),
+        decoration: InputDecoration(
+          contentPadding: const EdgeInsets.symmetric(
+            horizontal: 16,
+            vertical: 14,
+          ),
+          enabledBorder: border(skin.border),
+          focusedBorder: border(primary, 1.5),
+        ),
       ),
       actions: [
-        TextButton(
+        AppDialogButton(
+          label: l10n.commonCancel,
           onPressed: () => Navigator.of(context).pop(),
-          child: Text(l10n.commonCancel),
         ),
-        FilledButton(
+        AppDialogButton(
+          label: l10n.commonSave,
+          kind: AppDialogButtonKind.primary,
           onPressed: () => Navigator.of(context).pop(_controller.text),
-          child: Text(l10n.commonConfirm),
         ),
       ],
     );

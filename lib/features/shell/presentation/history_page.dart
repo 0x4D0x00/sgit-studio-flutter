@@ -8,6 +8,7 @@ import 'package:intl/intl.dart';
 import 'package:sgit_studio_flutter/design/extensions/app_skin.dart';
 import 'package:sgit_studio_flutter/design/tokens/app_spacing.dart';
 import 'package:sgit_studio_flutter/features/chat/application/thread_list_controller.dart';
+import 'package:sgit_studio_flutter/features/chat/presentation/thread_actions.dart';
 import 'package:sgit_studio_flutter/l10n/generated/app_localizations.dart';
 import 'package:sgit_studio_flutter/router/route_names.dart';
 import 'package:sgit_studio_flutter/services/chat/chat_controller.dart';
@@ -350,32 +351,7 @@ class _HistoryPageState extends ConsumerState<HistoryPage> {
     String threadId,
     String current,
   ) async {
-    final controller = TextEditingController(text: current);
-    final name = await showDialog<String>(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: Text(l10n.navChatRename),
-        content: TextField(
-          controller: controller,
-          autofocus: true,
-          decoration: InputDecoration(hintText: l10n.chatRenameHint),
-          onSubmitted: (v) => Navigator.of(ctx).pop(v),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(ctx).pop(),
-            child: Text(l10n.commonCancel),
-          ),
-          FilledButton(
-            onPressed: () => Navigator.of(ctx).pop(controller.text),
-            child: Text(l10n.commonConfirm),
-          ),
-        ],
-      ),
-    );
-    controller.dispose();
-    if (name == null) return; // 取消
-    await ref.read(threadListProvider.notifier).rename(threadId, name.trim());
+    await renameThreadWithDialog(context, ref, threadId, current);
   }
 
   Future<void> _deleteSingle(
@@ -384,12 +360,7 @@ class _HistoryPageState extends ConsumerState<HistoryPage> {
     String threadId,
     String label,
   ) async {
-    final ok = await confirmDanger(
-      context,
-      title: l10n.studioRemoveConfirm(label),
-      confirmText: l10n.commonDelete,
-    );
-    if (!ok) return;
+    if (!await confirmDeleteThread(context, label)) return;
 
     // ⚠️ **这里就是"删历史条目删掉场景定义"的修复点。**
     await ref.read(threadListProvider.notifier).remove(threadId);

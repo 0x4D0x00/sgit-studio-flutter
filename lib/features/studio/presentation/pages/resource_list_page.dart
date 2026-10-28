@@ -13,6 +13,7 @@ import 'package:sgit_studio_flutter/features/studio/application/resource_list_co
 import 'package:sgit_studio_flutter/features/studio/studio_page_specs.dart';
 import 'package:sgit_studio_flutter/l10n/generated/app_localizations.dart';
 import 'package:sgit_studio_flutter/ui/feedback/async_view.dart';
+import 'package:sgit_studio_flutter/ui/feedback/confirm.dart';
 
 /// 通用资源列表页 —— **7 个 studio 子页共用这一个**，各页只是一份
 /// [ResourcePageSpec]（见 memory `flutter-studio-pages-personal-only`）。
@@ -201,25 +202,11 @@ class ResourceListPage extends ConsumerWidget {
     ResourceItem item,
   ) async {
     // 删除不可逆，必须确认 —— 列表里误点一下就没了是最容易挨骂的交互。
-    final ok = await showDialog<bool>(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        content: Text(l10n.studioRemoveConfirm(item.name)),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx, false),
-            child: Text(l10n.commonCancel),
-          ),
-          FilledButton(
-            style: FilledButton.styleFrom(
-              backgroundColor: Theme.of(ctx).colorScheme.error,
-            ),
-            onPressed: () => Navigator.pop(ctx, true),
-            child: Text(l10n.studioRemove),
-          ),
-        ],
-      ),
+    final ok = await confirmDanger(
+      context,
+      title: l10n.studioRemoveConfirm(item.name),
+      confirmText: l10n.studioRemove,
     );
-    if (ok == true) await ctrl.remove(item.id);
+    if (ok) await ctrl.remove(item.id);
   }
 }

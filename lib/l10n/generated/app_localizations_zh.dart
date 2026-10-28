@@ -163,6 +163,20 @@ class AppLocalizationsZh extends AppLocalizations {
   String get chatRenameHint => '保持简短且易于识别。';
 
   @override
+  String get chatRenameTitle => '重命名聊天';
+
+  @override
+  String get chatDeleteTitle => '删除聊天?';
+
+  @override
+  String chatDeleteMessage(String name) {
+    return '这将永久删除“$name”。此操作无法撤销。';
+  }
+
+  @override
+  String get chatDeleteAction => '删除聊天';
+
+  @override
   String get chatHistoryEmptyAction => '开启新对话';
 
   @override

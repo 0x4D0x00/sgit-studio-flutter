@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'package:sgit_studio_flutter/l10n/generated/app_localizations.dart';
+import 'package:sgit_studio_flutter/ui/components/dialogs/app_dialog_shell.dart';
 
 /// 危险动作确认框。**删除、同步、批量覆盖一律走这里**。
 ///
@@ -18,29 +19,23 @@ Future<bool> confirmDanger(
   bool danger = true,
 }) async {
   final l10n = AppLocalizations.of(context);
-  final scheme = Theme.of(context).colorScheme;
 
   final ok = await showDialog<bool>(
     context: context,
-    builder: (ctx) => AlertDialog(
-      title: Text(title, style: const TextStyle(fontSize: 15)),
-      content: message == null
-          ? null
-          : SizedBox(
-              width: 400,
-              child: Text(message, style: const TextStyle(fontSize: 13)),
-            ),
+    builder: (ctx) => AppDialogShell(
+      title: title,
+      subtitle: message,
       actions: [
-        TextButton(
+        AppDialogButton(
+          label: l10n.commonCancel,
           onPressed: () => Navigator.of(ctx).pop(false),
-          child: Text(l10n.commonCancel),
         ),
-        FilledButton(
-          style: danger
-              ? FilledButton.styleFrom(backgroundColor: scheme.error)
-              : null,
+        AppDialogButton(
+          label: confirmText ?? l10n.commonConfirm,
+          kind: danger
+              ? AppDialogButtonKind.danger
+              : AppDialogButtonKind.primary,
           onPressed: () => Navigator.of(ctx).pop(true),
-          child: Text(confirmText ?? l10n.commonConfirm),
         ),
       ],
     ),

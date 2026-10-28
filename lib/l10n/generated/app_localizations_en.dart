@@ -163,6 +163,20 @@ class AppLocalizationsEn extends AppLocalizations {
   String get chatRenameHint => 'Keep it short and recognizable.';
 
   @override
+  String get chatRenameTitle => 'Rename chat';
+
+  @override
+  String get chatDeleteTitle => 'Delete chat?';
+
+  @override
+  String chatDeleteMessage(String name) {
+    return 'This will permanently delete “$name”. This action cannot be undone.';
+  }
+
+  @override
+  String get chatDeleteAction => 'Delete chat';
+
+  @override
   String get chatHistoryEmptyAction => 'Start a new chat';
 
   @override

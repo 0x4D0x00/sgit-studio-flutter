@@ -398,6 +398,30 @@ abstract class AppLocalizations {
   /// **'保持简短且易于识别。'**
   String get chatRenameHint;
 
+  /// No description provided for @chatRenameTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'重命名聊天'**
+  String get chatRenameTitle;
+
+  /// No description provided for @chatDeleteTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'删除聊天?'**
+  String get chatDeleteTitle;
+
+  /// No description provided for @chatDeleteMessage.
+  ///
+  /// In zh, this message translates to:
+  /// **'这将永久删除“{name}”。此操作无法撤销。'**
+  String chatDeleteMessage(String name);
+
+  /// No description provided for @chatDeleteAction.
+  ///
+  /// In zh, this message translates to:
+  /// **'删除聊天'**
+  String get chatDeleteAction;
+
   /// No description provided for @chatHistoryEmptyAction.
   ///
   /// In zh, this message translates to:
