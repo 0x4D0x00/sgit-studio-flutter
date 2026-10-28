@@ -97,12 +97,12 @@ class _PluginsSettingsPageState extends State<PluginsSettingsPage> {
               tabs: PillTabBar(
                 tabs: [
                   PillTab(
-                    label: 'Yours',
+                    label: l10n.customizeTabYours,
                     selected: _isYoursView,
                     onTap: () => setState(() => _isYoursView = true),
                   ),
                   PillTab(
-                    label: 'Discover',
+                    label: l10n.customizeTabDiscover,
                     selected: !_isYoursView,
                     onTap: () => setState(() => _isYoursView = false),
                   ),
