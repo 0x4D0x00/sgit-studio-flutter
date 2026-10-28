@@ -24,6 +24,7 @@ import 'package:sgit_studio_flutter/features/shell/presentation/nav/nav_common.d
 import 'package:sgit_studio_flutter/features/shell/presentation/nav/nav_history_sections.dart';
 import 'package:sgit_studio_flutter/features/shell/presentation/nav/nav_search_actions.dart';
 import 'package:sgit_studio_flutter/features/shell/presentation/nav/nav_thread_actions.dart';
+import 'package:sgit_studio_flutter/ui/components/dialogs/keyboard_shortcuts_dialog.dart';
 import 'package:sgit_studio_flutter/ui/components/menu/app_menu.dart';
 import 'package:sgit_studio_flutter/features/shell/application/history_sort_group_controller.dart';
 
@@ -331,7 +332,7 @@ class NavPanelContainer extends ConsumerWidget {
           AppMenuAction(
             label: l10n.navKeyboardShortcuts,
             shortcut: 'Ctrl+/',
-            onTap: () => showNavNotWired(context, l10n, 'shortcuts'),
+            onTap: () => showKeyboardShortcutsDialog(context),
           ),
         ],
       ),

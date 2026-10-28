@@ -17,6 +17,7 @@ import 'package:sgit_studio_flutter/router/route_names.dart';
 import 'package:sgit_studio_flutter/services/brand/brand_config.dart';
 import 'package:sgit_studio_flutter/services/chat/chat_controller.dart';
 import 'package:sgit_studio_flutter/services/theme/theme_controller.dart';
+import 'package:sgit_studio_flutter/ui/components/dialogs/keyboard_shortcuts_dialog.dart';
 import 'package:sgit_studio_flutter/ui/components/menu/app_menu.dart';
 
 import 'package:sgit_studio_flutter/features/chat/presentation/thread_title_bar.dart';
@@ -503,7 +504,11 @@ class _AppShellContainerState extends ConsumerState<AppShellContainer> {
             label: l10n.menuHelp,
             entries: [
               stub(l10n.helpDocs),
-              stub(l10n.navKeyboardShortcuts, shortcut: 'Ctrl+/'),
+              AppMenuAction(
+                label: l10n.navKeyboardShortcuts,
+                shortcut: 'Ctrl+/',
+                onTap: () => showKeyboardShortcutsDialog(context),
+              ),
               stub(l10n.helpWhatsNew),
               const AppMenuDivider(),
               stub(l10n.helpTroubleshoot),
@@ -609,7 +614,7 @@ class _AppShellContainerState extends ConsumerState<AppShellContainer> {
             const SingleActivator(LogicalKeyboardKey.f11): toggleFullScreen,
             // 帮助
             const SingleActivator(LogicalKeyboardKey.slash, control: true): () =>
-                notWired(l10n.navKeyboardShortcuts),
+                showKeyboardShortcutsDialog(context),
           },
           child: FindHost(child: shell),
         );

@@ -109,6 +109,18 @@ class AppLocalizationsZh extends AppLocalizations {
   String get navKeyboardShortcuts => '键盘快捷键';
 
   @override
+  String get shortcutsGroupChat => '聊天';
+
+  @override
+  String get shortcutsSendMessage => '发送消息';
+
+  @override
+  String get shortcutsSearchHint => '搜索快捷键';
+
+  @override
+  String get shortcutsEmpty => '未找到匹配的快捷键';
+
+  @override
   String get navSettings => '设置';
 
   @override

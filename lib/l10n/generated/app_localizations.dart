@@ -290,6 +290,30 @@ abstract class AppLocalizations {
   /// **'键盘快捷键'**
   String get navKeyboardShortcuts;
 
+  /// No description provided for @shortcutsGroupChat.
+  ///
+  /// In zh, this message translates to:
+  /// **'聊天'**
+  String get shortcutsGroupChat;
+
+  /// No description provided for @shortcutsSendMessage.
+  ///
+  /// In zh, this message translates to:
+  /// **'发送消息'**
+  String get shortcutsSendMessage;
+
+  /// No description provided for @shortcutsSearchHint.
+  ///
+  /// In zh, this message translates to:
+  /// **'搜索快捷键'**
+  String get shortcutsSearchHint;
+
+  /// No description provided for @shortcutsEmpty.
+  ///
+  /// In zh, this message translates to:
+  /// **'未找到匹配的快捷键'**
+  String get shortcutsEmpty;
+
   /// No description provided for @navSettings.
   ///
   /// In zh, this message translates to:

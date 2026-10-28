@@ -109,6 +109,18 @@ class AppLocalizationsEn extends AppLocalizations {
   String get navKeyboardShortcuts => 'Keyboard shortcuts';
 
   @override
+  String get shortcutsGroupChat => 'Chat';
+
+  @override
+  String get shortcutsSendMessage => 'Send message';
+
+  @override
+  String get shortcutsSearchHint => 'Search shortcuts';
+
+  @override
+  String get shortcutsEmpty => 'No matching shortcuts';
+
+  @override
   String get navSettings => 'Settings';
 
   @override
