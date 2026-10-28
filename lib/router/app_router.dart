@@ -1,4 +1,4 @@
-import 'package:flutter/foundation.dart';
+import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
@@ -14,7 +14,29 @@ import 'package:sgit_studio_flutter/features/shell/presentation/history_page.dar
 import 'package:sgit_studio_flutter/features/shell/presentation/nav_panel_container.dart';
 import 'package:sgit_studio_flutter/features/studio/presentation/pages/studio_page.dart';
 import 'package:sgit_studio_flutter/features/workspace/presentation/pages/workspace_page.dart';
+import 'package:sgit_studio_flutter/layout/metrics/workspace_metrics.dart';
 import 'package:sgit_studio_flutter/router/route_names.dart';
+
+/// 中栏页面（输出物 / Projects / 历史会话）默认宽度：
+/// 限宽到中栏最大宽度 960 并居中，窗口更窄时自然收缩。
+class _CenterColumn extends StatelessWidget {
+  const _CenterColumn({required this.child});
+
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    return Align(
+      alignment: Alignment.topCenter,
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(
+          maxWidth: WorkspaceMetrics.transcriptWideWidth,
+        ),
+        child: child,
+      ),
+    );
+  }
+}
 
 /// GoRouter 配置。ShellRoute 承载常驻工作台外壳（窗口 bar + 左右栏），登录页独立。
 ///
@@ -65,11 +87,11 @@ final routerProvider = Provider<GoRouter>((ref) {
           ),
           GoRoute(
             path: RouteNames.artifacts,
-            builder: (_, _) => const ArtifactsPage(),
+            builder: (_, _) => const _CenterColumn(child: ArtifactsPage()),
           ),
           GoRoute(
             path: RouteNames.projects,
-            builder: (_, _) => const ProjectsPage(),
+            builder: (_, _) => const _CenterColumn(child: ProjectsPage()),
           ),
           GoRoute(
             path: RouteNames.customize,
@@ -86,7 +108,7 @@ final routerProvider = Provider<GoRouter>((ref) {
           ),
           GoRoute(
             path: RouteNames.history,
-            builder: (_, _) => const HistoryPage(),
+            builder: (_, _) => const _CenterColumn(child: HistoryPage()),
           ),
           GoRoute(
             path: '${RouteNames.studioPrefix}/:key',
