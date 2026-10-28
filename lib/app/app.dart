@@ -59,7 +59,9 @@ class SgitStudioApp extends ConsumerWidget {
               child: Stack(
                 children: [
                   child ?? const SizedBox.shrink(),
-                  const TaskSurfaceOverlay(),
+                  // 卡片层自带 Overlay（见 TaskSurfaceOverlay 注释），用 Positioned.fill
+                  // 给它一个有界区域；它内部用 Positioned 把卡片摆到右下角。
+                  const Positioned.fill(child: TaskSurfaceOverlay()),
                 ],
               ),
             ),

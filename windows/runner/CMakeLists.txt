@@ -53,7 +53,13 @@ add_custom_command(TARGET ${BINARY_NAME} POST_BUILD
   # 要进沙箱的文件操作不可用，界面会挂一条提示。
   COMMAND ${CMAKE_COMMAND} -E copy_if_different
     "${CMAKE_SOURCE_DIR}/../native/windows/sgcode-helper.exe"
-    "$<TARGET_FILE_DIR:${BINARY_NAME}>/sgcode-helper.exe")
+    "$<TARGET_FILE_DIR:${BINARY_NAME}>/sgcode-helper.exe"
+  # 后台浏览器扩展：agent 没检测到用户装扩展时，会用 --load-extension 起一个带它的
+  # 浏览器（见 sgit-browser chrome::launch）。helper 在**自己同目录**找 browser-extension/，
+  # 所以整个目录要拷到 exe 旁边。缺了它，agent 起的浏览器加载不到扩展（兜底 CDP 仍可用）。
+  COMMAND ${CMAKE_COMMAND} -E copy_directory_if_different
+    "${CMAKE_SOURCE_DIR}/../native/windows/browser-extension"
+    "$<TARGET_FILE_DIR:${BINARY_NAME}>/browser-extension")
 
 # Run the Flutter tool portions of the build. This must not be removed.
 add_dependencies(${BINARY_NAME} flutter_assemble)

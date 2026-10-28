@@ -221,6 +221,9 @@ class ChatItemStore {
       case KernelFrameKind.disconnected:
       case KernelFrameKind.hello:
       case KernelFrameKind.callResult:
+      // 后台任务卡片按 surfaceId 去重、不进条目列表，由 ChatController 交给
+      // TaskSurfaceController 处理。
+      case KernelFrameKind.toolSurface:
         throw StateError('${f.kind} 是会话级帧，应由 ChatController 处理');
     }
   }

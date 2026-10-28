@@ -16,6 +16,10 @@ enum MdInlineKind {
   boldItalic,
   strikethrough,
   link,
+
+  /// `![说明](地址)`。agent 在最终回复里附「完成后的样子」就用它
+  /// （截图落盘后给出本地绝对路径，见 sgit-browser / sgit-computer 的 `screenshot`）。
+  image,
 }
 
 /// 一个行内节点。
@@ -38,16 +42,22 @@ class MarkdownInline {
       : kind = MdInlineKind.link,
         children = null;
 
+  /// [text] 是替代文字（方括号里那段，可以为空）；[href] 是图片地址：
+  /// 本地绝对路径、`file://`、`data:` 或 `http(s)://`。
+  const MarkdownInline.image(this.text, String this.href)
+      : kind = MdInlineKind.image,
+        children = null;
+
   const MarkdownInline.emphasis(this.kind, this.children)
       : text = '',
         href = null;
 
   final MdInlineKind kind;
 
-  /// `text` / `code` 节点是这里；`link` 节点是显示文本。
+  /// `text` / `code` 节点是这里；`link` 节点是显示文本；`image` 是替代文字。
   final String text;
 
-  /// 仅 `link` 有值。
+  /// 仅 `link` / `image` 有值。
   final String? href;
 
   /// 仅复合节点有值。
@@ -259,6 +269,37 @@ class MarkdownInlineParser {
         continue;
       }
 
+      // ---- 图片 ![替代文字](地址)。与链接共用 linkDead 墓碑：两者都靠 `](`。----
+      if (c == '!' &&
+          !linkDead &&
+          i + 1 < s.length &&
+          s[i + 1] == '[') {
+        final open = s.indexOf('](', i + 2);
+        if (open < 0) {
+          linkDead = true;
+          buf.write(c);
+          i++;
+          continue;
+        }
+        final target = _linkTarget(s, open + 2);
+        if (target == null) {
+          buf.write(c);
+          i++;
+          continue;
+        }
+        final (src, after) = target;
+        final alt = s.substring(i + 2, open);
+        if (src.isEmpty || alt.contains('\n')) {
+          buf.write(c);
+          i++;
+          continue;
+        }
+        flush();
+        out.add(MarkdownInline.image(alt, src));
+        i = after;
+        continue;
+      }
+
       // ---- 链接 [显示文本](目标)。----
       //
       // ⚠️ 先找 `](` 这个**整体**而不是先找 `]`：`[` 密集但完全没有链接的文本
@@ -272,15 +313,20 @@ class MarkdownInlineParser {
           i++;
           continue;
         }
-        final close = s.indexOf(')', open + 2);
-        if (close < 0) {
+        if (s.indexOf(')', open + 2) < 0) {
           linkDead = true;
           buf.write(c);
           i++;
           continue;
         }
+        final target = _linkTarget(s, open + 2);
+        if (target == null) {
+          buf.write(c);
+          i++;
+          continue;
+        }
+        final (href, after) = target;
         final label = s.substring(i + 1, open);
-        final href = s.substring(open + 2, close).trim();
         if (label.isEmpty || href.isEmpty) {
           buf.write(c);
           i++;
@@ -288,7 +334,7 @@ class MarkdownInlineParser {
         }
         flush();
         out.add(MarkdownInline.link(label, href));
-        i = close + 1;
+        i = after;
         continue;
       }
 
@@ -422,6 +468,32 @@ class MarkdownInlineParser {
 
     flush();
     return out;
+  }
+
+  /// 解析 `(` 之后的链接目标，返回 `(目标, `)` 之后的下标)`；不成形返回 null。
+  ///
+  /// 支持 CommonMark 的尖括号写法 `(<含 空格 的路径>)` —— Windows 本地截图路径
+  /// 常带空格（用户名、`Program Files`），不包起来的话第一个空格就把路径截断了。
+  static (String, int)? _linkTarget(String s, int from) {
+    var i = from;
+    while (i < s.length && s[i] == ' ') {
+      i++;
+    }
+    if (i < s.length && s[i] == '<') {
+      final end = s.indexOf('>', i + 1);
+      if (end < 0) return null;
+      final inner = s.substring(i + 1, end);
+      if (inner.contains('\n')) return null;
+      var j = end + 1;
+      while (j < s.length && s[j] == ' ') {
+        j++;
+      }
+      if (j >= s.length || s[j] != ')') return null;
+      return (inner, j + 1);
+    }
+    final close = s.indexOf(')', from);
+    if (close < 0) return null;
+    return (s.substring(from, close).trim(), close + 1);
   }
 
   /// 从 [start] 处（`s[start] == '<'`）尝试认一个 HTML 标签。

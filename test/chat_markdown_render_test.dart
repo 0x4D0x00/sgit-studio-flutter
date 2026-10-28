@@ -8,6 +8,7 @@ import 'package:sgit_studio_flutter/design/tokens/app_colors.dart';
 import 'package:sgit_studio_flutter/domain/models/chat/chat_item.dart';
 import 'package:sgit_studio_flutter/l10n/generated/app_localizations.dart';
 import 'package:sgit_studio_flutter/ui/components/chat/artifact_chip.dart';
+import 'package:sgit_studio_flutter/ui/components/chat/markdown/markdown_image.dart';
 import 'package:sgit_studio_flutter/ui/components/chat/markdown/markdown_view_cache.dart';
 import 'package:sgit_studio_flutter/ui/components/chat/text_bubble.dart';
 
@@ -201,6 +202,18 @@ void main() {
       ));
 
       expect(find.byType(TextBubble), findsOneWidget);
+    });
+
+    testWidgets('最终回复截图 ![alt](本地路径) → MarkdownImage,文件缺失不崩', (tester) async {
+      await tester.pumpWidget(harness(TextItem(
+        id: 31,
+        role: ChatRole.assistant,
+        initial: '完成。\n\n![记事本截图](C:/__sgit_missing__/shot.jpg)',
+      )));
+      await tester.pump();
+
+      expect(find.byType(MarkdownImage), findsOneWidget);
+      expect(tester.takeException(), isNull);
     });
 
     testWidgets('引用块 → 有 Container(竖条)', (tester) async {

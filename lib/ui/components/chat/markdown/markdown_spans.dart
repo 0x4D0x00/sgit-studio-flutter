@@ -5,6 +5,7 @@ import 'package:sgit_studio_flutter/design/extensions/app_skin.dart';
 import 'package:sgit_studio_flutter/design/tokens/app_typography.dart';
 import 'package:sgit_studio_flutter/domain/models/chat/markdown/markdown_inline.dart';
 import 'package:sgit_studio_flutter/ui/components/chat/bubble_actions_row.dart';
+import 'package:sgit_studio_flutter/ui/components/chat/markdown/markdown_image.dart';
 import 'package:sgit_studio_flutter/ui/components/find/find_highlight.dart';
 
 /// 行内 Markdown 节点 → Flutter [TextSpan]。
@@ -92,6 +93,16 @@ class MarkdownSpans {
           ),
           find,
           recognizer: rec,
+        );
+
+      // 图片嵌成 WidgetSpan。模型附截图时通常单独写一段，实际效果就是独占一行。
+      case MdInlineKind.image:
+        return WidgetSpan(
+          alignment: PlaceholderAlignment.bottom,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 4),
+            child: MarkdownImage(src: node.href!, alt: node.text),
+          ),
         );
 
       case MdInlineKind.bold:

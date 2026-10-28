@@ -49,6 +49,9 @@ abstract final class MarkdownFind {
         case MdInlineKind.boldItalic:
         case MdInlineKind.strikethrough:
           n += _countNodes(node.children!, query);
+        // 图片画成 WidgetSpan，没有可高亮的文本 —— 计数必须和高亮一致，故不计。
+        case MdInlineKind.image:
+          break;
       }
     }
     return n;

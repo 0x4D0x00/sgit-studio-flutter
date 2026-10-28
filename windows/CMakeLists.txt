@@ -103,6 +103,11 @@ install(FILES
     "${CMAKE_SOURCE_DIR}/../native/windows/sgcode-helper.exe"
   DESTINATION "${INSTALL_BUNDLE_LIB_DIR}" COMPONENT Runtime)
 
+# 后台浏览器扩展：agent 没检测到用户装扩展时，用 --load-extension 起带它的浏览器。
+# helper 在自己同目录找 browser-extension/，所以打包版也要带上整个目录。
+install(DIRECTORY "${CMAKE_SOURCE_DIR}/../native/windows/browser-extension"
+  DESTINATION "${INSTALL_BUNDLE_LIB_DIR}" COMPONENT Runtime)
+
 # Copy the native assets provided by the build.dart from all packages.
 set(NATIVE_ASSETS_DIR "${PROJECT_BUILD_DIR}native_assets/windows/")
 install(DIRECTORY "${NATIVE_ASSETS_DIR}"

@@ -1,7 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:sgit_studio_flutter/domain/models/chat/task_surface.dart';
-import 'package:sgit_studio_flutter/features/studio/application/kernel_client_provider.dart';
+import 'package:sgit_studio_flutter/app/app_providers.dart';
 
 /// 后台任务卡片的状态容器。
 ///

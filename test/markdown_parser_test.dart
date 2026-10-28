@@ -223,6 +223,42 @@ void main() {
       expect(inlines[0].href, 'https://example.com');
     });
 
+    test('图片：本地绝对路径（agent 最终回复附截图）', () {
+      final inlines = MarkdownInlineParser.parse(
+          '完成了：\n![记事本里的文字](C:/Users/a/AppData/Local/Temp/sgit-shots/computer-1.jpg)');
+      expect(inlines.length, 2);
+      expect(inlines[0].text, '完成了：\n');
+      expect(inlines[1].kind, MdInlineKind.image);
+      expect(inlines[1].text, '记事本里的文字');
+      expect(inlines[1].href, 'C:/Users/a/AppData/Local/Temp/sgit-shots/computer-1.jpg');
+    });
+
+    test('图片：尖括号包住含空格的路径', () {
+      final inlines = MarkdownInlineParser.parse(
+          '![shot](<C:/Users/My Name/sgit-shots/a (1).jpg>)后面');
+      expect(inlines.length, 2);
+      expect(inlines[0].kind, MdInlineKind.image);
+      expect(inlines[0].href, 'C:/Users/My Name/sgit-shots/a (1).jpg');
+      expect(inlines[1].text, '后面');
+    });
+
+    test('图片：替代文字可以为空；感叹号不跟方括号时是普通字符', () {
+      final img = MarkdownInlineParser.parse('![](data:image/png;base64,AAAA)');
+      expect(img.single.kind, MdInlineKind.image);
+      expect(img.single.text, '');
+      final plain = MarkdownInlineParser.parse('好！[链接](https://a.b)');
+      expect(plain[0].text, '好！');
+      expect(plain[1].kind, MdInlineKind.link);
+    });
+
+    test('链接也认尖括号目标；未闭合的图片按字面量', () {
+      final link = MarkdownInlineParser.parse('[看这里](<https://a.b/x y>)');
+      expect(link.single.href, 'https://a.b/x y');
+      final open = MarkdownInlineParser.parse('![半截](C:/x');
+      expect(open.single.kind, MdInlineKind.text);
+      expect(open.single.text, '![半截](C:/x');
+    });
+
     test('转义', () {
       final inlines = MarkdownInlineParser.parse(r'\*不是斜体\*');
       expect(inlines.length, 1);
