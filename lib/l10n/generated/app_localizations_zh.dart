@@ -738,7 +738,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settingsTimeFocus => '时间和专注';
 
   @override
-  String get settingsClaudeCode => 'Claude Code';
+  String settingsSGITCode(String codeName) {
+    return '$codeName';
+  }
 
   @override
   String get settingsCustomize => '自定义';
@@ -810,8 +812,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settingsNotifResponseComplete => '响应完成';
 
   @override
-  String get settingsNotifResponseCompleteDesc =>
-      '当 Claude 完成响应时通知。对长时间运行的任务很有用。';
+  String settingsNotifResponseCompleteDesc(String brand) {
+    return '当 $brand 完成响应时通知。对长时间运行的任务很有用。';
+  }
 
   @override
   String get settingsFontAnthropic => 'Anthropic Serif';
@@ -847,7 +850,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get billingFreePlan => '免费版';
 
   @override
-  String get billingTryClaude => '试用 Claude';
+  String billingTrySGIT(String brand) {
+    return '试用 $brand';
+  }
 
   @override
   String get billingUpgradePlan => '升级方案';
@@ -871,7 +876,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get billingFeatureCreateFiles => '创建文件并执行代码';
 
   @override
-  String get billingFeatureDesktopExtensions => '通过桌面扩展解锁 Claude 的更多能力';
+  String billingFeatureDesktopExtensions(String brand) {
+    return '通过桌面扩展解锁 $brand 的更多能力';
+  }
 
   @override
   String get billingFeatureConnectWorkspace => '连接 Slack 和 Google Workspace 服务';
@@ -889,8 +896,8 @@ class AppLocalizationsZh extends AppLocalizations {
   String get memoryGenerateFromChats => '从对话中生成记忆';
 
   @override
-  String memoryGenerateFromChatsDesc(Object learnMore) {
-    return '允许 Claude 根据您的对话生成记忆。$learnMore';
+  String memoryGenerateFromChatsDesc(String brand, String learnMore) {
+    return '允许 $brand 根据您的对话生成记忆。$learnMore';
   }
 
   @override
@@ -903,16 +910,16 @@ class AppLocalizationsZh extends AppLocalizations {
   String get memorySensitiveTopics => '在记忆中包含敏感话题';
 
   @override
-  String memorySensitiveTopicsDesc(Object learnMore) {
-    return '允许 Claude 将健康状况或宗教信仰等敏感话题的详情保存到记忆中。$learnMore';
+  String memorySensitiveTopicsDesc(String brand, String learnMore) {
+    return '允许 $brand 将健康状况或宗教信仰等敏感话题的详情保存到记忆中。$learnMore';
   }
 
   @override
   String get memoryImportFromOtherAi => '从其他 AI 服务商导入记忆';
 
   @override
-  String memoryImportFromOtherAiDesc(Object learnMore) {
-    return '将其他 AI 服务商的相关上下文与数据带入 Claude。我们会提供一段提示词，供您从其他账号获取记忆。$learnMore';
+  String memoryImportFromOtherAiDesc(String brand, String learnMore) {
+    return '将其他 AI 服务商的相关上下文与数据带入 $brand。我们会提供一段提示词，供您从其他账号获取记忆。$learnMore';
   }
 
   @override
@@ -931,8 +938,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get memoryPauseMemory => '暂停记忆';
 
   @override
-  String get memoryPauseMemoryDesc =>
-      'Claude 会保留现有记忆（包括敏感话题），但不会使用记忆，也不会生成新记忆。';
+  String memoryPauseMemoryDesc(String brand) {
+    return '$brand 会保留现有记忆（包括敏感话题），但不会使用记忆，也不会生成新记忆。';
+  }
 
   @override
   String get memoryResetMemory => '重置记忆';
@@ -944,7 +952,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get reflectTitle => '反思';
 
   @override
-  String get reflectDesc => '基于您在 Claude 对话中的内容。';
+  String reflectDesc(String brand) {
+    return '基于您在 $brand 对话中的内容。';
+  }
 
   @override
   String get reflectEnableMemoryHintPrefix => '要使用此反思功能，您需要先在';
@@ -962,14 +972,17 @@ class AppLocalizationsZh extends AppLocalizations {
   String get timeFocusBreakReminders => '休息提醒';
 
   @override
-  String get timeFocusBreakRemindersDesc =>
-      '在使用 Claude 时提醒您休息一下。您可以随时暂停提醒或调整时间。';
+  String timeFocusBreakRemindersDesc(String brand) {
+    return '在使用 $brand 时提醒您休息一下。您可以随时暂停提醒或调整时间。';
+  }
 
   @override
   String get timeFocusQuietHours => '静默时段';
 
   @override
-  String get timeFocusQuietHoursDesc => '为 Claude 设置时间限制。您可以随时取消或调整。';
+  String timeFocusQuietHoursDesc(String brand) {
+    return '为 $brand 设置时间限制。您可以随时取消或调整。';
+  }
 
   @override
   String get commonDashPlaceholder => '-';
@@ -1093,11 +1106,14 @@ class AppLocalizationsZh extends AppLocalizations {
   String get accountWorkRoleOther => '其他';
 
   @override
-  String get accountInstructions => '给 Claude 的指示';
+  String accountInstructions(String brand) {
+    return '给 $brand 的指示';
+  }
 
   @override
-  String get accountInstructionsDesc =>
-      'Claude 将在 Anthropic 准则范围内，在此账户及关联账户的所有对话和协作中记住这些内容。';
+  String accountInstructionsDesc(String brand) {
+    return '$brand 将在 Anthropic 准则范围内，在此账户及关联账户的所有对话和协作中记住这些内容。';
+  }
 
   @override
   String get accountInstructionsPlaceholder => '例如：在学习新概念时，我发现类比特别有帮助';
@@ -1150,8 +1166,8 @@ class AppLocalizationsZh extends AppLocalizations {
   String get privacyLocationMetadata => '位置元数据';
 
   @override
-  String privacyLocationMetadataDesc(Object learnMore) {
-    return '允许 Claude 使用粗略的位置元数据（城市/地区）来改进产品体验。$learnMore';
+  String privacyLocationMetadataDesc(String brand, String learnMore) {
+    return '允许 $brand 使用粗略的位置元数据（城市/地区）来改进产品体验。$learnMore';
   }
 
   @override
@@ -1609,8 +1625,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get capabilitiesConnectorSearch => '连接器搜索';
 
   @override
-  String get capabilitiesConnectorSearchDesc =>
-      '允许 Claude 搜索连接器目录，并在对话中呈现相关的连接器。';
+  String capabilitiesConnectorSearchDesc(String brand) {
+    return '允许 $brand 搜索连接器目录，并在对话中呈现相关的连接器。';
+  }
 
   @override
   String get capabilitiesSwitchModels => '消息被标记时切换模型';
@@ -1635,22 +1652,25 @@ class AppLocalizationsZh extends AppLocalizations {
   String get capabilitiesAiArtifacts => 'AI 驱动的 Artifacts';
 
   @override
-  String get capabilitiesAiArtifactsDesc =>
-      '构建在 artifact 内部调用 Claude 的应用与交互式文档。';
+  String capabilitiesAiArtifactsDesc(String brand) {
+    return '构建在 artifact 内部调用 $brand 的应用与交互式文档。';
+  }
 
   @override
   String get capabilitiesInlineVisualizations => '对话内可视化';
 
   @override
-  String get capabilitiesInlineVisualizationsDesc =>
-      '允许 Claude 直接在对话中生成交互式可视化、图表和图解。';
+  String capabilitiesInlineVisualizationsDesc(String brand) {
+    return '允许 $brand 直接在对话中生成交互式可视化、图表和图解。';
+  }
 
   @override
   String get capabilitiesCodeExecution => '代码执行与文件创建';
 
   @override
-  String get capabilitiesCodeExecutionDesc =>
-      'Claude 可以执行代码，并创建和编辑文档、表格、演示文稿、PDF 和数据报告。技能功能依赖此项。';
+  String capabilitiesCodeExecutionDesc(String brand) {
+    return '$brand 可以执行代码，并创建和编辑文档、表格、演示文稿、PDF 和数据报告。技能功能依赖此项。';
+  }
 
   @override
   String get capabilitiesNetworkEgress => '允许网络出站';
@@ -1659,8 +1679,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String capabilitiesNetworkEgressDesc(
     String viewDomains,
     String securityRisks,
+    Object brand,
   ) {
-    return '允许 Claude 访问常用包管理器，以安装用于数据分析、可视化和文件处理的包与库。$viewDomains。请密切监控对话，因为这会带来$securityRisks。';
+    return '允许 $brand 访问常用包管理器，以安装用于数据分析、可视化和文件处理的包与库。$viewDomains。请密切监控对话，因为这会带来$securityRisks。';
   }
 
   @override

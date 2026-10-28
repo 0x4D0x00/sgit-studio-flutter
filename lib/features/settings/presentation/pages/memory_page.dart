@@ -9,6 +9,7 @@ import 'package:sgit_studio_flutter/l10n/generated/app_localizations.dart';
 import 'package:sgit_studio_flutter/features/settings/presentation/pages/memory/memory_disable_dialog.dart';
 import 'package:sgit_studio_flutter/features/settings/presentation/pages/memory/memory_notes.dart';
 import 'package:sgit_studio_flutter/features/settings/presentation/pages/memory/memory_widgets.dart';
+import 'package:sgit_studio_flutter/services/brand/brand_config.dart';
 
 export 'package:sgit_studio_flutter/features/settings/presentation/pages/memory/memory_disable_dialog.dart';
 
@@ -90,7 +91,10 @@ class _MemoryPageState extends ConsumerState<MemoryPage> {
           title: l10n.memoryGenerateFromChats,
           descriptionWidget: LearnMoreParagraph.build(
             theme,
-            (placeholder) => l10n.memoryGenerateFromChatsDesc(placeholder),
+            (placeholder) => l10n.memoryGenerateFromChatsDesc(
+              BrandConfig.instance.name,
+              placeholder,
+            ),
             l10n.memoryLearnMore,
             () => _notWired(l10n.memoryLearnMore),
           ),
@@ -132,8 +136,10 @@ class _MemoryPageState extends ConsumerState<MemoryPage> {
                 title: l10n.memoryGenerateFromChats,
                 descriptionWidget: LearnMoreParagraph.build(
                   theme,
-                  (placeholder) =>
-                      l10n.memoryGenerateFromChatsDesc(placeholder),
+                  (placeholder) => l10n.memoryGenerateFromChatsDesc(
+                    BrandConfig.instance.name,
+                    placeholder,
+                  ),
                   l10n.memoryLearnMore,
                   () => _notWired(l10n.memoryLearnMore),
                 ),
@@ -149,7 +155,10 @@ class _MemoryPageState extends ConsumerState<MemoryPage> {
                 title: l10n.memorySensitiveTopics,
                 descriptionWidget: LearnMoreParagraph.build(
                   theme,
-                  (placeholder) => l10n.memorySensitiveTopicsDesc(placeholder),
+                  (placeholder) => l10n.memorySensitiveTopicsDesc(
+                    BrandConfig.instance.name,
+                    placeholder,
+                  ),
                   l10n.memoryLearnMore,
                   () => _notWired(l10n.memoryLearnMore),
                 ),
@@ -164,8 +173,10 @@ class _MemoryPageState extends ConsumerState<MemoryPage> {
                 title: l10n.memoryImportFromOtherAi,
                 descriptionWidget: LearnMoreParagraph.build(
                   theme,
-                  (placeholder) =>
-                      l10n.memoryImportFromOtherAiDesc(placeholder),
+                  (placeholder) => l10n.memoryImportFromOtherAiDesc(
+                    BrandConfig.instance.name,
+                    placeholder,
+                  ),
                   l10n.memoryLearnMore,
                   () => _notWired(l10n.memoryLearnMore),
                 ),

@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:sgit_studio_flutter/design/extensions/app_skin.dart';
 import 'package:sgit_studio_flutter/design/tokens/app_spacing.dart';
 import 'package:sgit_studio_flutter/l10n/generated/app_localizations.dart';
+import 'package:sgit_studio_flutter/services/brand/brand_config.dart';
 
 /// 设置弹窗里的 Billing 页面:当前方案卡片 + 升级按钮 + 功能清单。
 class BillingPage extends StatelessWidget {
@@ -29,7 +30,7 @@ class BillingPage extends StatelessWidget {
       l10n.billingFeatureSearchWeb,
       l10n.billingFeatureMemory,
       l10n.billingFeatureCreateFiles,
-      l10n.billingFeatureDesktopExtensions,
+      l10n.billingFeatureDesktopExtensions(BrandConfig.instance.name),
       l10n.billingFeatureConnectWorkspace,
       l10n.billingFeatureConnectors,
       l10n.billingFeatureExtendedThinking,
@@ -65,7 +66,7 @@ class BillingPage extends StatelessWidget {
                     ),
                   ),
                   Text(
-                    l10n.billingTryClaude,
+                    l10n.billingTrySGIT(BrandConfig.instance.name),
                     style: TextStyle(fontSize: 13, color: skin.textSecondary),
                   ),
                 ],

@@ -752,7 +752,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settingsTimeFocus => 'Time and focus';
 
   @override
-  String get settingsClaudeCode => 'Claude Code';
+  String settingsSGITCode(String codeName) {
+    return '$codeName';
+  }
 
   @override
   String get settingsCustomize => 'Customize';
@@ -826,8 +828,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settingsNotifResponseComplete => 'Response completions';
 
   @override
-  String get settingsNotifResponseCompleteDesc =>
-      'Get notified when Claude has finished a response. Useful for long-running tasks.';
+  String settingsNotifResponseCompleteDesc(String brand) {
+    return 'Get notified when $brand has finished a response. Useful for long-running tasks.';
+  }
 
   @override
   String get settingsFontAnthropic => 'Anthropic Serif';
@@ -863,7 +866,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get billingFreePlan => 'Free plan';
 
   @override
-  String get billingTryClaude => 'Try Claude';
+  String billingTrySGIT(String brand) {
+    return 'Try $brand';
+  }
 
   @override
   String get billingUpgradePlan => 'Upgrade plan';
@@ -888,8 +893,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get billingFeatureCreateFiles => 'Create files and execute code';
 
   @override
-  String get billingFeatureDesktopExtensions =>
-      'Unlock more from Claude with desktop extensions';
+  String billingFeatureDesktopExtensions(String brand) {
+    return 'Unlock more from $brand with desktop extensions';
+  }
 
   @override
   String get billingFeatureConnectWorkspace =>
@@ -910,8 +916,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get memoryGenerateFromChats => 'Generate memory from chats';
 
   @override
-  String memoryGenerateFromChatsDesc(Object learnMore) {
-    return 'Allow Claude to generate memory from your chats. $learnMore';
+  String memoryGenerateFromChatsDesc(String brand, String learnMore) {
+    return 'Allow $brand to generate memory from your chats. $learnMore';
   }
 
   @override
@@ -924,16 +930,16 @@ class AppLocalizationsEn extends AppLocalizations {
   String get memorySensitiveTopics => 'Include sensitive topics in memory';
 
   @override
-  String memorySensitiveTopicsDesc(Object learnMore) {
-    return 'Allow Claude to save details about sensitive topics like health conditions or religious beliefs to memory. $learnMore';
+  String memorySensitiveTopicsDesc(String brand, String learnMore) {
+    return 'Allow $brand to save details about sensitive topics like health conditions or religious beliefs to memory. $learnMore';
   }
 
   @override
   String get memoryImportFromOtherAi => 'Import memory from other AI providers';
 
   @override
-  String memoryImportFromOtherAiDesc(Object learnMore) {
-    return 'Bring relevant context and data from another AI provider to Claude. We\'ll provide a prompt you can use to fetch the memory from your other account. $learnMore';
+  String memoryImportFromOtherAiDesc(String brand, String learnMore) {
+    return 'Bring relevant context and data from another AI provider to $brand. We\'ll provide a prompt you can use to fetch the memory from your other account. $learnMore';
   }
 
   @override
@@ -952,8 +958,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get memoryPauseMemory => 'Pause memory';
 
   @override
-  String get memoryPauseMemoryDesc =>
-      'Claude keeps its existing memory, including sensitive topics, but won\'t use memory or make new memories.';
+  String memoryPauseMemoryDesc(String brand) {
+    return '$brand keeps its existing memory, including sensitive topics, but won\'t use memory or make new memories.';
+  }
 
   @override
   String get memoryResetMemory => 'Reset memory';
@@ -966,7 +973,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get reflectTitle => 'Reflect';
 
   @override
-  String get reflectDesc => 'Based on your conversations in Claude chat.';
+  String reflectDesc(String brand) {
+    return 'Based on your conversations in $brand chat.';
+  }
 
   @override
   String get reflectEnableMemoryHintPrefix =>
@@ -985,15 +994,17 @@ class AppLocalizationsEn extends AppLocalizations {
   String get timeFocusBreakReminders => 'Break reminders';
 
   @override
-  String get timeFocusBreakRemindersDesc =>
-      'Get a nudge to take a break from Claude. You can snooze or adjust anytime.';
+  String timeFocusBreakRemindersDesc(String brand) {
+    return 'Get a nudge to take a break from $brand. You can snooze or adjust anytime.';
+  }
 
   @override
   String get timeFocusQuietHours => 'Quiet hours';
 
   @override
-  String get timeFocusQuietHoursDesc =>
-      'Set time limits for Claude. You can dismiss or adjust anytime.';
+  String timeFocusQuietHoursDesc(String brand) {
+    return 'Set time limits for $brand. You can dismiss or adjust anytime.';
+  }
 
   @override
   String get commonDashPlaceholder => '-';
@@ -1119,11 +1130,14 @@ class AppLocalizationsEn extends AppLocalizations {
   String get accountWorkRoleOther => 'Other';
 
   @override
-  String get accountInstructions => 'Instructions for Claude';
+  String accountInstructions(String brand) {
+    return 'Instructions for $brand';
+  }
 
   @override
-  String get accountInstructionsDesc =>
-      'Claude will keep these in mind for this and any of your associated accounts across chats and Cowork within Anthropic\'s guidelines.';
+  String accountInstructionsDesc(String brand) {
+    return '$brand will keep these in mind for this and any of your associated accounts across chats and Cowork within Anthropic\'s guidelines.';
+  }
 
   @override
   String get accountInstructionsPlaceholder =>
@@ -1177,8 +1191,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get privacyLocationMetadata => 'Location metadata';
 
   @override
-  String privacyLocationMetadataDesc(Object learnMore) {
-    return 'Allow Claude to use coarse location metadata (city/region) to improve product experiences. $learnMore';
+  String privacyLocationMetadataDesc(String brand, String learnMore) {
+    return 'Allow $brand to use coarse location metadata (city/region) to improve product experiences. $learnMore';
   }
 
   @override
@@ -1648,8 +1662,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get capabilitiesConnectorSearch => 'Connector search';
 
   @override
-  String get capabilitiesConnectorSearchDesc =>
-      'Let Claude search the connector directory and surface ones relevant to your conversation.';
+  String capabilitiesConnectorSearchDesc(String brand) {
+    return 'Let $brand search the connector directory and surface ones relevant to your conversation.';
+  }
 
   @override
   String get capabilitiesSwitchModels =>
@@ -1677,22 +1692,25 @@ class AppLocalizationsEn extends AppLocalizations {
   String get capabilitiesAiArtifacts => 'AI-powered artifacts';
 
   @override
-  String get capabilitiesAiArtifactsDesc =>
-      'Build apps and interactive documents that use Claude inside the artifact.';
+  String capabilitiesAiArtifactsDesc(String brand) {
+    return 'Build apps and interactive documents that use $brand inside the artifact.';
+  }
 
   @override
   String get capabilitiesInlineVisualizations => 'Inline visualizations';
 
   @override
-  String get capabilitiesInlineVisualizationsDesc =>
-      'Allow Claude to generate interactive visualizations, charts, and diagrams directly in the conversation.';
+  String capabilitiesInlineVisualizationsDesc(String brand) {
+    return 'Allow $brand to generate interactive visualizations, charts, and diagrams directly in the conversation.';
+  }
 
   @override
   String get capabilitiesCodeExecution => 'Code execution and file creation';
 
   @override
-  String get capabilitiesCodeExecutionDesc =>
-      'Claude can execute code and create and edit docs, spreadsheets, presentations, PDFs, and data reports. Required for skills.';
+  String capabilitiesCodeExecutionDesc(String brand) {
+    return '$brand can execute code and create and edit docs, spreadsheets, presentations, PDFs, and data reports. Required for skills.';
+  }
 
   @override
   String get capabilitiesNetworkEgress => 'Allow network egress';
@@ -1701,8 +1719,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String capabilitiesNetworkEgressDesc(
     String viewDomains,
     String securityRisks,
+    Object brand,
   ) {
-    return 'Allow Claude to access common package managers to install packages and libraries for data analysis, visualizations, and file processing. $viewDomains. Monitor chats closely as this comes with $securityRisks.';
+    return 'Allow $brand to access common package managers to install packages and libraries for data analysis, visualizations, and file processing. $viewDomains. Monitor chats closely as this comes with $securityRisks.';
   }
 
   @override

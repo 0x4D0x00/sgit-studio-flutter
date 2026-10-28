@@ -8,6 +8,7 @@ import 'package:sgit_studio_flutter/features/auth/application/auth_controller.da
 import 'package:sgit_studio_flutter/features/settings/application/user_profile_controller.dart';
 import 'package:sgit_studio_flutter/features/settings/presentation/widgets/settings_section.dart';
 import 'package:sgit_studio_flutter/ui/components/menu/app_menu.dart';
+import 'package:sgit_studio_flutter/services/brand/brand_config.dart';
 
 const _kMaxAvatarBytes = 5 * 1024 * 1024;
 
@@ -352,10 +353,10 @@ class _AccountPageState extends ConsumerState<AccountPage> {
         const SizedBox(height: AppSpacing.md),
 
         // 说明
-        SettingsSectionHeader(l10n.accountInstructions),
+        SettingsSectionHeader(l10n.accountInstructions(BrandConfig.instance.name)),
         const SizedBox(height: AppSpacing.xs),
         Text(
-          l10n.accountInstructionsDesc,
+          l10n.accountInstructionsDesc(BrandConfig.instance.name),
           style: theme.textTheme.bodySmall?.copyWith(
             color: theme.colorScheme.onSurfaceVariant,
           ),

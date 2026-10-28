@@ -9,6 +9,7 @@ import 'package:sgit_studio_flutter/services/layout/transcript_width.dart';
 import 'package:sgit_studio_flutter/services/theme/theme_controller.dart';
 import 'package:sgit_studio_flutter/ui/components/menu/app_menu.dart';
 import 'package:sgit_studio_flutter/features/settings/presentation/widgets/settings_section.dart';
+import 'package:sgit_studio_flutter/services/brand/brand_config.dart';
 
 /// 设置页(基础设施演示)。主题模式 / 主色 / 次色 / 字号缩放 / 语言，全部实时 + 持久化。
 class SettingsPage extends ConsumerStatefulWidget {
@@ -246,7 +247,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
 
         SettingsSectionRowWithDesc(
           title: l10n.settingsNotifResponseComplete,
-          description: l10n.settingsNotifResponseCompleteDesc,
+          description: l10n.settingsNotifResponseCompleteDesc(BrandConfig.instance.name),
           trailing: Switch(
             value: _notificationsEnabled,
             onChanged: (v) => setState(() => _notificationsEnabled = v),

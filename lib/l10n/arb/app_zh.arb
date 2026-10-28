@@ -343,7 +343,14 @@
   "settingsMemory": "记忆",
   "settingsReflect": "反思",
   "settingsTimeFocus": "时间和专注",
-  "settingsClaudeCode": "Claude Code",
+  "settingsSGITCode": "{codeName}",
+  "@settingsSGITCode": {
+    "placeholders": {
+      "codeName": {
+        "type": "String"
+      }
+    }
+  },
   "settingsCustomize": "自定义",
   "settingsSkills": "技能",
   "settingsConnectors": "连接器",
@@ -367,7 +374,14 @@
   "settingsVoiceSpeed": "速度",
   "settingsNotifications": "通知",
   "settingsNotifResponseComplete": "响应完成",
-  "settingsNotifResponseCompleteDesc": "当 Claude 完成响应时通知。对长时间运行的任务很有用。",
+  "settingsNotifResponseCompleteDesc": "当 {brand} 完成响应时通知。对长时间运行的任务很有用。",
+  "@settingsNotifResponseCompleteDesc": {
+    "placeholders": {
+      "brand": {
+        "type": "String"
+      }
+    }
+  },
   "settingsFontAnthropic": "Anthropic Serif",
   "settingsFontSystem": "系统字体",
   "settingsVoiceEnglish": "English",
@@ -379,7 +393,14 @@
   "settingsComingSoon": "即将推出",
   "settingsComingSoonDesc": "此功能正在开发中",
   "billingFreePlan": "免费版",
-  "billingTryClaude": "试用 Claude",
+  "billingTrySGIT": "试用 {brand}",
+  "@billingTrySGIT": {
+    "placeholders": {
+      "brand": {
+        "type": "String"
+      }
+    }
+  },
   "billingUpgradePlan": "升级方案",
   "billingFeatureChatPlatforms": "在网页、iOS、Android 及桌面端进行对话",
   "billingFeatureGenerateCode": "生成代码并可视化数据",
@@ -387,37 +408,102 @@
   "billingFeatureSearchWeb": "支持网页搜索能力",
   "billingFeatureMemory": "跨对话的记忆能力",
   "billingFeatureCreateFiles": "创建文件并执行代码",
-  "billingFeatureDesktopExtensions": "通过桌面扩展解锁 Claude 的更多能力",
+  "billingFeatureDesktopExtensions": "通过桌面扩展解锁 {brand} 的更多能力",
+  "@billingFeatureDesktopExtensions": {
+    "placeholders": {
+      "brand": {
+        "type": "String"
+      }
+    }
+  },
   "billingFeatureConnectWorkspace": "连接 Slack 和 Google Workspace 服务",
   "billingFeatureConnectors": "通过远程 MCP 连接器接入任意上下文或工具",
   "billingFeatureExtendedThinking": "为复杂任务提供扩展思考",
   "memoryTitle": "记忆",
   "memoryGenerateFromChats": "从对话中生成记忆",
-  "memoryGenerateFromChatsDesc": "允许 Claude 根据您的对话生成记忆。{learnMore}",
+  "memoryGenerateFromChatsDesc": "允许 {brand} 根据您的对话生成记忆。{learnMore}",
+  "@memoryGenerateFromChatsDesc": {
+    "placeholders": {
+      "brand": {
+        "type": "String"
+      },
+      "learnMore": {
+        "type": "String"
+      }
+    }
+  },
   "memoryGenerateFromChatsLearnMore": "了解更多。",
   "memoryLearnMore": "了解更多。",
   "memorySensitiveTopics": "在记忆中包含敏感话题",
-  "memorySensitiveTopicsDesc": "允许 Claude 将健康状况或宗教信仰等敏感话题的详情保存到记忆中。{learnMore}",
+  "memorySensitiveTopicsDesc": "允许 {brand} 将健康状况或宗教信仰等敏感话题的详情保存到记忆中。{learnMore}",
+  "@memorySensitiveTopicsDesc": {
+    "placeholders": {
+      "brand": {
+        "type": "String"
+      },
+      "learnMore": {
+        "type": "String"
+      }
+    }
+  },
   "memoryImportFromOtherAi": "从其他 AI 服务商导入记忆",
-  "memoryImportFromOtherAiDesc": "将其他 AI 服务商的相关上下文与数据带入 Claude。我们会提供一段提示词，供您从其他账号获取记忆。{learnMore}",
+  "memoryImportFromOtherAiDesc": "将其他 AI 服务商的相关上下文与数据带入 {brand}。我们会提供一段提示词，供您从其他账号获取记忆。{learnMore}",
+  "@memoryImportFromOtherAiDesc": {
+    "placeholders": {
+      "brand": {
+        "type": "String"
+      },
+      "learnMore": {
+        "type": "String"
+      }
+    }
+  },
   "memoryStartImport": "开始导入",
   "memoryNoFiles": "暂无文件",
   "memoryInputHint": "例如：把清单控制在五项以内",
   "memoryDisableTitle": "关闭记忆",
   "memoryPauseMemory": "暂停记忆",
-  "memoryPauseMemoryDesc": "Claude 会保留现有记忆（包括敏感话题），但不会使用记忆，也不会生成新记忆。",
+  "memoryPauseMemoryDesc": "{brand} 会保留现有记忆（包括敏感话题），但不会使用记忆，也不会生成新记忆。",
+  "@memoryPauseMemoryDesc": {
+    "placeholders": {
+      "brand": {
+        "type": "String"
+      }
+    }
+  },
   "memoryResetMemory": "重置记忆",
   "memoryResetMemoryDesc": "这将永久删除所有记忆（含项目记忆），并关闭敏感话题的保存。此操作无法撤销。",
   "reflectTitle": "反思",
-  "reflectDesc": "基于您在 Claude 对话中的内容。",
+  "reflectDesc": "基于您在 {brand} 对话中的内容。",
+  "@reflectDesc": {
+    "placeholders": {
+      "brand": {
+        "type": "String"
+      }
+    }
+  },
   "reflectEnableMemoryHintPrefix": "要使用此反思功能，您需要先在",
   "reflectMemorySettingsLink": "记忆设置",
   "reflectEnableMemoryHintSuffix": "中启用记忆。",
   "timeFocusTitle": "时间和专注",
   "timeFocusBreakReminders": "休息提醒",
-  "timeFocusBreakRemindersDesc": "在使用 Claude 时提醒您休息一下。您可以随时暂停提醒或调整时间。",
+  "timeFocusBreakRemindersDesc": "在使用 {brand} 时提醒您休息一下。您可以随时暂停提醒或调整时间。",
+  "@timeFocusBreakRemindersDesc": {
+    "placeholders": {
+      "brand": {
+        "type": "String"
+      }
+    }
+  },
   "timeFocusQuietHours": "静默时段",
-  "timeFocusQuietHoursDesc": "为 Claude 设置时间限制。您可以随时取消或调整。",
+  "timeFocusQuietHoursDesc": "为 {brand} 设置时间限制。您可以随时取消或调整。",
+  "@timeFocusQuietHoursDesc": {
+    "placeholders": {
+      "brand": {
+        "type": "String"
+      }
+    }
+  },
   "commonDashPlaceholder": "-",
   "commonHoursValue": "{n} 小时",
   "@commonHoursValue": {
@@ -471,8 +557,22 @@
   "accountWorkRoleSoftwareEngineering": "软件工程",
   "accountWorkRoleStudent": "学生",
   "accountWorkRoleOther": "其他",
-  "accountInstructions": "给 Claude 的指示",
-  "accountInstructionsDesc": "Claude 将在 Anthropic 准则范围内，在此账户及关联账户的所有对话和协作中记住这些内容。",
+  "accountInstructions": "给 {brand} 的指示",
+  "@accountInstructions": {
+    "placeholders": {
+      "brand": {
+        "type": "String"
+      }
+    }
+  },
+  "accountInstructionsDesc": "{brand} 将在 Anthropic 准则范围内，在此账户及关联账户的所有对话和协作中记住这些内容。",
+  "@accountInstructionsDesc": {
+    "placeholders": {
+      "brand": {
+        "type": "String"
+      }
+    }
+  },
   "accountInstructionsPlaceholder": "例如：在学习新概念时，我发现类比特别有帮助",
   "accountInstructionsLearnMore": "了解更多",
   "accountSectionTitle": "账户",
@@ -489,7 +589,17 @@
   "privacyUseData": "我们如何使用您的数据",
   "privacyPreferences": "偏好设置",
   "privacyLocationMetadata": "位置元数据",
-  "privacyLocationMetadataDesc": "允许 Claude 使用粗略的位置元数据（城市/地区）来改进产品体验。{learnMore}",
+  "privacyLocationMetadataDesc": "允许 {brand} 使用粗略的位置元数据（城市/地区）来改进产品体验。{learnMore}",
+  "@privacyLocationMetadataDesc": {
+    "placeholders": {
+      "brand": {
+        "type": "String"
+      },
+      "learnMore": {
+        "type": "String"
+      }
+    }
+  },
   "privacyLocationMetadataLearnMore": "了解更多。",
   "privacyImproveModels": "帮助改进我们的 AI 模型",
   "privacyImproveModelsDesc": "允许使用您的对话和编程会话来训练和改进 Anthropic AI 模型。{learnMore}",
@@ -711,7 +821,14 @@
   "capabilitiesToolAccessModeDesc": "控制连接器工具在新对话中的加载方式。",
   "capabilitiesToolAccessLoadWhenNeeded": "按需加载工具",
   "capabilitiesConnectorSearch": "连接器搜索",
-  "capabilitiesConnectorSearchDesc": "允许 Claude 搜索连接器目录，并在对话中呈现相关的连接器。",
+  "capabilitiesConnectorSearchDesc": "允许 {brand} 搜索连接器目录，并在对话中呈现相关的连接器。",
+  "@capabilitiesConnectorSearchDesc": {
+    "placeholders": {
+      "brand": {
+        "type": "String"
+      }
+    }
+  },
   "capabilitiesSwitchModels": "消息被标记时切换模型",
   "capabilitiesSwitchModelsDesc": "当安全机制标记某条消息时，自动切换到其他模型以继续对话。关闭后，对话将暂停。",
   "capabilitiesVisuals": "视觉内容",
@@ -719,13 +836,47 @@
   "capabilitiesArtifactsDesc": "在对话旁的独立窗口中生成代码、文档和设计。",
   "capabilitiesArtifactsLocked": "始终开启，不可关闭。",
   "capabilitiesAiArtifacts": "AI 驱动的 Artifacts",
-  "capabilitiesAiArtifactsDesc": "构建在 artifact 内部调用 Claude 的应用与交互式文档。",
+  "capabilitiesAiArtifactsDesc": "构建在 artifact 内部调用 {brand} 的应用与交互式文档。",
+  "@capabilitiesAiArtifactsDesc": {
+    "placeholders": {
+      "brand": {
+        "type": "String"
+      }
+    }
+  },
   "capabilitiesInlineVisualizations": "对话内可视化",
-  "capabilitiesInlineVisualizationsDesc": "允许 Claude 直接在对话中生成交互式可视化、图表和图解。",
+  "capabilitiesInlineVisualizationsDesc": "允许 {brand} 直接在对话中生成交互式可视化、图表和图解。",
+  "@capabilitiesInlineVisualizationsDesc": {
+    "placeholders": {
+      "brand": {
+        "type": "String"
+      }
+    }
+  },
   "capabilitiesCodeExecution": "代码执行与文件创建",
-  "capabilitiesCodeExecutionDesc": "Claude 可以执行代码，并创建和编辑文档、表格、演示文稿、PDF 和数据报告。技能功能依赖此项。",
+  "capabilitiesCodeExecutionDesc": "{brand} 可以执行代码，并创建和编辑文档、表格、演示文稿、PDF 和数据报告。技能功能依赖此项。",
+  "@capabilitiesCodeExecutionDesc": {
+    "placeholders": {
+      "brand": {
+        "type": "String"
+      }
+    }
+  },
   "capabilitiesNetworkEgress": "允许网络出站",
-  "capabilitiesNetworkEgressDesc": "允许 Claude 访问常用包管理器，以安装用于数据分析、可视化和文件处理的包与库。{viewDomains}。请密切监控对话，因为这会带来{securityRisks}。",
+  "capabilitiesNetworkEgressDesc": "允许 {brand} 访问常用包管理器，以安装用于数据分析、可视化和文件处理的包与库。{viewDomains}。请密切监控对话，因为这会带来{securityRisks}。",
+  "@capabilitiesNetworkEgressDesc": {
+    "placeholders": {
+      "brand": {
+        "type": "String"
+      },
+      "viewDomains": {
+        "type": "String"
+      },
+      "securityRisks": {
+        "type": "String"
+      }
+    }
+  },
   "@capabilitiesNetworkEgressDesc": {
     "placeholders": {
       "viewDomains": {

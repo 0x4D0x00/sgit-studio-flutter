@@ -26,7 +26,7 @@ class _PromoIconSpec {
 
 const _kSlides = [
   _PromoSlide(
-    title: 'Claude for design',
+    title: 'SGIT for design',
     subtitle: 'Sketch, diagram, and iterate with your creative tools.',
     icons: [
       _PromoIconSpec(Icons.circle, Color(0xFF6366F1)),
@@ -38,7 +38,7 @@ const _kSlides = [
     ],
   ),
   _PromoSlide(
-    title: 'Claude for productivity',
+    title: 'SGIT for productivity',
     subtitle: 'Plan, draft, and organize work across your everyday tools.',
     icons: [
       _PromoIconSpec(Icons.calendar_today, Color(0xFF4285F4)),
@@ -50,8 +50,8 @@ const _kSlides = [
     ],
   ),
   _PromoSlide(
-    title: 'Claude for engineering',
-    subtitle: 'Ship faster by connecting Claude to your dev stack.',
+    title: 'SGIT for engineering',
+    subtitle: 'Ship faster by connecting SGIT to your dev stack.',
     icons: [
       _PromoIconSpec(Icons.code, Color(0xFF181717)),
       _PromoIconSpec(Icons.bug_report, Color(0xFFF24E1E)),

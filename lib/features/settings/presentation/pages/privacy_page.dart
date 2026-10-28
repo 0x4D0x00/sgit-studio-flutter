@@ -113,7 +113,7 @@ class _PrivacyPageState extends ConsumerState<PrivacyPage> {
         // Location metadata toggle
         SettingsSectionRowWithDesc(
           title: l10n.privacyLocationMetadata,
-          description: 'Allow Claude to use coarse location metadata (city/region) to improve product experiences. Learn more.',
+          description: 'Allow SGIT to use coarse location metadata (city/region) to improve product experiences. Learn more.',
           trailing: Switch(
             value: _locationMetadata,
             onChanged: (value) => setState(() => _locationMetadata = value),

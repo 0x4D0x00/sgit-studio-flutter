@@ -96,7 +96,7 @@ class MemoryOutlineActionButton extends StatelessWidget {
   }
 }
 
-/// 记忆输入框：底部常驻，把一句话交给 Claude 记下来。
+/// 记忆输入框：底部常驻，把一句话交给 SGIT 记下来。
 class MemoryInputBar extends StatefulWidget {
   const MemoryInputBar({super.key, required this.onSubmit});
 

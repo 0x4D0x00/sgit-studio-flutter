@@ -5,6 +5,7 @@ import 'package:sgit_studio_flutter/design/extensions/app_skin.dart';
 import 'package:sgit_studio_flutter/design/tokens/app_spacing.dart';
 import 'package:sgit_studio_flutter/features/settings/presentation/widgets/settings_section.dart';
 import 'package:sgit_studio_flutter/l10n/generated/app_localizations.dart';
+import 'package:sgit_studio_flutter/services/brand/brand_config.dart';
 import 'package:sgit_studio_flutter/ui/components/menu/app_menu.dart';
 
 /// 静默时段的起止时间，以从 0 点开始的半小时格数表示（0..47，即 12:00am..11:30pm）。
@@ -60,7 +61,7 @@ class _TimeFocusPageState extends State<TimeFocusPage> {
         const SizedBox(height: AppSpacing.sm),
         SettingsSectionRowWithDesc(
           title: l10n.timeFocusBreakReminders,
-          description: l10n.timeFocusBreakRemindersDesc,
+          description: l10n.timeFocusBreakRemindersDesc(BrandConfig.instance.name),
           trailing: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
@@ -89,7 +90,7 @@ class _TimeFocusPageState extends State<TimeFocusPage> {
         const SettingsSectionDivider(),
         SettingsSectionRowWithDesc(
           title: l10n.timeFocusQuietHours,
-          description: l10n.timeFocusQuietHoursDesc,
+          description: l10n.timeFocusQuietHoursDesc(BrandConfig.instance.name),
           trailing: Wrap(
             spacing: AppSpacing.xs,
             children: List.generate(7, (index) {

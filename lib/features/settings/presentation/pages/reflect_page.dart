@@ -5,6 +5,7 @@ import 'package:sgit_studio_flutter/design/extensions/app_skin.dart';
 import 'package:sgit_studio_flutter/design/tokens/app_spacing.dart';
 import 'package:sgit_studio_flutter/features/settings/presentation/widgets/settings_section.dart';
 import 'package:sgit_studio_flutter/l10n/generated/app_localizations.dart';
+import 'package:sgit_studio_flutter/services/brand/brand_config.dart';
 
 /// 设置弹窗里的 Reflect 页面:未开启记忆时提示先去记忆设置里开启。
 class ReflectPage extends StatefulWidget {
@@ -50,7 +51,7 @@ class _ReflectPageState extends State<ReflectPage> {
               SettingsSectionHeader(l10n.reflectTitle),
               const SizedBox(height: AppSpacing.xs),
               Text(
-                l10n.reflectDesc,
+                l10n.reflectDesc(BrandConfig.instance.name),
                 style: theme.textTheme.bodySmall?.copyWith(
                   color: theme.colorScheme.onSurfaceVariant,
                 ),

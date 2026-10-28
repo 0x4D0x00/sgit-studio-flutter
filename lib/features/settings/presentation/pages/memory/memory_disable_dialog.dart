@@ -5,6 +5,7 @@ import 'package:sgit_studio_flutter/features/chat/application/composer_settings_
 import 'package:sgit_studio_flutter/design/extensions/app_skin.dart';
 import 'package:sgit_studio_flutter/design/tokens/app_spacing.dart';
 import 'package:sgit_studio_flutter/l10n/generated/app_localizations.dart';
+import 'package:sgit_studio_flutter/services/brand/brand_config.dart';
 
 /// 关掉记忆时用户选的处置方式。
 enum MemoryDisableChoice {
@@ -115,7 +116,7 @@ class _MemoryDisableDialogState extends State<MemoryDisableDialog> {
                   children: [
                     MemoryChoiceTile(
                       label: l10n.memoryPauseMemory,
-                      description: l10n.memoryPauseMemoryDesc,
+                      description: l10n.memoryPauseMemoryDesc(BrandConfig.instance.name),
                       selected: _selected == MemoryDisableChoice.pause,
                       onTap: () =>
                           setState(() => _selected = MemoryDisableChoice.pause),

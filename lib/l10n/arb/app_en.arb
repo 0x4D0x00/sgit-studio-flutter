@@ -341,7 +341,14 @@
   "settingsMemory": "Memory",
   "settingsReflect": "Reflect",
   "settingsTimeFocus": "Time and focus",
-  "settingsClaudeCode": "Claude Code",
+  "settingsSGITCode": "{codeName}",
+  "@settingsSGITCode": {
+    "placeholders": {
+      "codeName": {
+        "type": "String"
+      }
+    }
+  },
   "settingsCustomize": "Customize",
   "settingsSkills": "Skills",
   "settingsConnectors": "Connectors",
@@ -365,7 +372,14 @@
   "settingsVoiceSpeed": "Speed",
   "settingsNotifications": "Notifications",
   "settingsNotifResponseComplete": "Response completions",
-  "settingsNotifResponseCompleteDesc": "Get notified when Claude has finished a response. Useful for long-running tasks.",
+  "settingsNotifResponseCompleteDesc": "Get notified when {brand} has finished a response. Useful for long-running tasks.",
+  "@settingsNotifResponseCompleteDesc": {
+    "placeholders": {
+      "brand": {
+        "type": "String"
+      }
+    }
+  },
   "settingsFontAnthropic": "Anthropic Serif",
   "settingsFontSystem": "System font",
   "settingsVoiceEnglish": "English",
@@ -377,7 +391,14 @@
   "settingsComingSoon": "Coming soon",
   "settingsComingSoonDesc": "This feature is under development",
   "billingFreePlan": "Free plan",
-  "billingTryClaude": "Try Claude",
+  "billingTrySGIT": "Try {brand}",
+  "@billingTrySGIT": {
+    "placeholders": {
+      "brand": {
+        "type": "String"
+      }
+    }
+  },
   "billingUpgradePlan": "Upgrade plan",
   "billingFeatureChatPlatforms": "Chat on web, iOS, Android, and on your desktop",
   "billingFeatureGenerateCode": "Generate code and visualize data",
@@ -385,37 +406,102 @@
   "billingFeatureSearchWeb": "Ability to search the web",
   "billingFeatureMemory": "Memory across conversations",
   "billingFeatureCreateFiles": "Create files and execute code",
-  "billingFeatureDesktopExtensions": "Unlock more from Claude with desktop extensions",
+  "billingFeatureDesktopExtensions": "Unlock more from {brand} with desktop extensions",
+  "@billingFeatureDesktopExtensions": {
+    "placeholders": {
+      "brand": {
+        "type": "String"
+      }
+    }
+  },
   "billingFeatureConnectWorkspace": "Connect Slack and Google Workspace services",
   "billingFeatureConnectors": "Integrate any context or tool through connectors with remote MCP",
   "billingFeatureExtendedThinking": "Extended thinking for complex work",
   "memoryTitle": "Memory",
   "memoryGenerateFromChats": "Generate memory from chats",
-  "memoryGenerateFromChatsDesc": "Allow Claude to generate memory from your chats. {learnMore}",
+  "memoryGenerateFromChatsDesc": "Allow {brand} to generate memory from your chats. {learnMore}",
+  "@memoryGenerateFromChatsDesc": {
+    "placeholders": {
+      "brand": {
+        "type": "String"
+      },
+      "learnMore": {
+        "type": "String"
+      }
+    }
+  },
   "memoryGenerateFromChatsLearnMore": "Learn more.",
   "memoryLearnMore": "Learn more.",
   "memorySensitiveTopics": "Include sensitive topics in memory",
-  "memorySensitiveTopicsDesc": "Allow Claude to save details about sensitive topics like health conditions or religious beliefs to memory. {learnMore}",
+  "memorySensitiveTopicsDesc": "Allow {brand} to save details about sensitive topics like health conditions or religious beliefs to memory. {learnMore}",
+  "@memorySensitiveTopicsDesc": {
+    "placeholders": {
+      "brand": {
+        "type": "String"
+      },
+      "learnMore": {
+        "type": "String"
+      }
+    }
+  },
   "memoryImportFromOtherAi": "Import memory from other AI providers",
-  "memoryImportFromOtherAiDesc": "Bring relevant context and data from another AI provider to Claude. We'll provide a prompt you can use to fetch the memory from your other account. {learnMore}",
+  "memoryImportFromOtherAiDesc": "Bring relevant context and data from another AI provider to {brand}. We'll provide a prompt you can use to fetch the memory from your other account. {learnMore}",
+  "@memoryImportFromOtherAiDesc": {
+    "placeholders": {
+      "brand": {
+        "type": "String"
+      },
+      "learnMore": {
+        "type": "String"
+      }
+    }
+  },
   "memoryStartImport": "Start import",
   "memoryNoFiles": "No files yet",
   "memoryInputHint": "My dog's name is Beans",
   "memoryDisableTitle": "Turn off memory",
   "memoryPauseMemory": "Pause memory",
-  "memoryPauseMemoryDesc": "Claude keeps its existing memory, including sensitive topics, but won't use memory or make new memories.",
+  "memoryPauseMemoryDesc": "{brand} keeps its existing memory, including sensitive topics, but won't use memory or make new memories.",
+  "@memoryPauseMemoryDesc": {
+    "placeholders": {
+      "brand": {
+        "type": "String"
+      }
+    }
+  },
   "memoryResetMemory": "Reset memory",
   "memoryResetMemoryDesc": "This will permanently delete all memories, including project memories, and turn off saving sensitive topics. This can't be undone.",
   "reflectTitle": "Reflect",
-  "reflectDesc": "Based on your conversations in Claude chat.",
+  "reflectDesc": "Based on your conversations in {brand} chat.",
+  "@reflectDesc": {
+    "placeholders": {
+      "brand": {
+        "type": "String"
+      }
+    }
+  },
   "reflectEnableMemoryHintPrefix": "For this reflection to work, you'll need to enable memory in ",
   "reflectMemorySettingsLink": "memory settings",
   "reflectEnableMemoryHintSuffix": ".",
   "timeFocusTitle": "Time and focus",
   "timeFocusBreakReminders": "Break reminders",
-  "timeFocusBreakRemindersDesc": "Get a nudge to take a break from Claude. You can snooze or adjust anytime.",
+  "timeFocusBreakRemindersDesc": "Get a nudge to take a break from {brand}. You can snooze or adjust anytime.",
+  "@timeFocusBreakRemindersDesc": {
+    "placeholders": {
+      "brand": {
+        "type": "String"
+      }
+    }
+  },
   "timeFocusQuietHours": "Quiet hours",
-  "timeFocusQuietHoursDesc": "Set time limits for Claude. You can dismiss or adjust anytime.",
+  "timeFocusQuietHoursDesc": "Set time limits for {brand}. You can dismiss or adjust anytime.",
+  "@timeFocusQuietHoursDesc": {
+    "placeholders": {
+      "brand": {
+        "type": "String"
+      }
+    }
+  },
   "commonDashPlaceholder": "-",
   "commonHoursValue": "{n} hr",
   "@commonHoursValue": {
@@ -469,8 +555,22 @@
   "accountWorkRoleSoftwareEngineering": "Software engineering",
   "accountWorkRoleStudent": "Student",
   "accountWorkRoleOther": "Other",
-  "accountInstructions": "Instructions for Claude",
-  "accountInstructionsDesc": "Claude will keep these in mind for this and any of your associated accounts across chats and Cowork within Anthropic's guidelines.",
+  "accountInstructions": "Instructions for {brand}",
+  "@accountInstructions": {
+    "placeholders": {
+      "brand": {
+        "type": "String"
+      }
+    }
+  },
+  "accountInstructionsDesc": "{brand} will keep these in mind for this and any of your associated accounts across chats and Cowork within Anthropic's guidelines.",
+  "@accountInstructionsDesc": {
+    "placeholders": {
+      "brand": {
+        "type": "String"
+      }
+    }
+  },
   "accountInstructionsPlaceholder": "e.g. when learning new concepts, I find analogies particularly helpful",
   "accountInstructionsLearnMore": "Learn more",
   "accountSectionTitle": "Account",
@@ -487,7 +587,17 @@
   "privacyUseData": "How we use your data",
   "privacyPreferences": "Preferences",
   "privacyLocationMetadata": "Location metadata",
-  "privacyLocationMetadataDesc": "Allow Claude to use coarse location metadata (city/region) to improve product experiences. {learnMore}",
+  "privacyLocationMetadataDesc": "Allow {brand} to use coarse location metadata (city/region) to improve product experiences. {learnMore}",
+  "@privacyLocationMetadataDesc": {
+    "placeholders": {
+      "brand": {
+        "type": "String"
+      },
+      "learnMore": {
+        "type": "String"
+      }
+    }
+  },
   "privacyLocationMetadataLearnMore": "Learn more.",
   "privacyImproveModels": "Help improve our AI models",
   "privacyImproveModelsDesc": "Allow the use of your chats and coding sessions to train and improve Anthropic AI models. {learnMore}",
@@ -708,7 +818,14 @@
   "capabilitiesToolAccessModeDesc": "Controls how connector tools are loaded in new conversations.",
   "capabilitiesToolAccessLoadWhenNeeded": "Load tools when needed",
   "capabilitiesConnectorSearch": "Connector search",
-  "capabilitiesConnectorSearchDesc": "Let Claude search the connector directory and surface ones relevant to your conversation.",
+  "capabilitiesConnectorSearchDesc": "Let {brand} search the connector directory and surface ones relevant to your conversation.",
+  "@capabilitiesConnectorSearchDesc": {
+    "placeholders": {
+      "brand": {
+        "type": "String"
+      }
+    }
+  },
   "capabilitiesSwitchModels": "Switch models when a message is flagged",
   "capabilitiesSwitchModelsDesc": "When safeguards flag a message, automatically switch to a different model to keep chatting. When off, your chat will pause instead.",
   "capabilitiesVisuals": "Visuals",
@@ -716,13 +833,47 @@
   "capabilitiesArtifactsDesc": "Generate code, documents, and designs in a dedicated window alongside your conversation.",
   "capabilitiesArtifactsLocked": "Always on and can't be turned off.",
   "capabilitiesAiArtifacts": "AI-powered artifacts",
-  "capabilitiesAiArtifactsDesc": "Build apps and interactive documents that use Claude inside the artifact.",
+  "capabilitiesAiArtifactsDesc": "Build apps and interactive documents that use {brand} inside the artifact.",
+  "@capabilitiesAiArtifactsDesc": {
+    "placeholders": {
+      "brand": {
+        "type": "String"
+      }
+    }
+  },
   "capabilitiesInlineVisualizations": "Inline visualizations",
-  "capabilitiesInlineVisualizationsDesc": "Allow Claude to generate interactive visualizations, charts, and diagrams directly in the conversation.",
+  "capabilitiesInlineVisualizationsDesc": "Allow {brand} to generate interactive visualizations, charts, and diagrams directly in the conversation.",
+  "@capabilitiesInlineVisualizationsDesc": {
+    "placeholders": {
+      "brand": {
+        "type": "String"
+      }
+    }
+  },
   "capabilitiesCodeExecution": "Code execution and file creation",
-  "capabilitiesCodeExecutionDesc": "Claude can execute code and create and edit docs, spreadsheets, presentations, PDFs, and data reports. Required for skills.",
+  "capabilitiesCodeExecutionDesc": "{brand} can execute code and create and edit docs, spreadsheets, presentations, PDFs, and data reports. Required for skills.",
+  "@capabilitiesCodeExecutionDesc": {
+    "placeholders": {
+      "brand": {
+        "type": "String"
+      }
+    }
+  },
   "capabilitiesNetworkEgress": "Allow network egress",
-  "capabilitiesNetworkEgressDesc": "Allow Claude to access common package managers to install packages and libraries for data analysis, visualizations, and file processing. {viewDomains}. Monitor chats closely as this comes with {securityRisks}.",
+  "capabilitiesNetworkEgressDesc": "Allow {brand} to access common package managers to install packages and libraries for data analysis, visualizations, and file processing. {viewDomains}. Monitor chats closely as this comes with {securityRisks}.",
+  "@capabilitiesNetworkEgressDesc": {
+    "placeholders": {
+      "brand": {
+        "type": "String"
+      },
+      "viewDomains": {
+        "type": "String"
+      },
+      "securityRisks": {
+        "type": "String"
+      }
+    }
+  },
   "@capabilitiesNetworkEgressDesc": {
     "placeholders": {
       "viewDomains": {

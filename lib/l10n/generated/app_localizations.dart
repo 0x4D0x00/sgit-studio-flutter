@@ -1496,11 +1496,11 @@ abstract class AppLocalizations {
   /// **'时间和专注'**
   String get settingsTimeFocus;
 
-  /// No description provided for @settingsClaudeCode.
+  /// No description provided for @settingsSGITCode.
   ///
   /// In zh, this message translates to:
-  /// **'Claude Code'**
-  String get settingsClaudeCode;
+  /// **'{codeName}'**
+  String settingsSGITCode(String codeName);
 
   /// No description provided for @settingsCustomize.
   ///
@@ -1643,8 +1643,8 @@ abstract class AppLocalizations {
   /// No description provided for @settingsNotifResponseCompleteDesc.
   ///
   /// In zh, this message translates to:
-  /// **'当 Claude 完成响应时通知。对长时间运行的任务很有用。'**
-  String get settingsNotifResponseCompleteDesc;
+  /// **'当 {brand} 完成响应时通知。对长时间运行的任务很有用。'**
+  String settingsNotifResponseCompleteDesc(String brand);
 
   /// No description provided for @settingsFontAnthropic.
   ///
@@ -1712,11 +1712,11 @@ abstract class AppLocalizations {
   /// **'免费版'**
   String get billingFreePlan;
 
-  /// No description provided for @billingTryClaude.
+  /// No description provided for @billingTrySGIT.
   ///
   /// In zh, this message translates to:
-  /// **'试用 Claude'**
-  String get billingTryClaude;
+  /// **'试用 {brand}'**
+  String billingTrySGIT(String brand);
 
   /// No description provided for @billingUpgradePlan.
   ///
@@ -1763,8 +1763,8 @@ abstract class AppLocalizations {
   /// No description provided for @billingFeatureDesktopExtensions.
   ///
   /// In zh, this message translates to:
-  /// **'通过桌面扩展解锁 Claude 的更多能力'**
-  String get billingFeatureDesktopExtensions;
+  /// **'通过桌面扩展解锁 {brand} 的更多能力'**
+  String billingFeatureDesktopExtensions(String brand);
 
   /// No description provided for @billingFeatureConnectWorkspace.
   ///
@@ -1799,8 +1799,8 @@ abstract class AppLocalizations {
   /// No description provided for @memoryGenerateFromChatsDesc.
   ///
   /// In zh, this message translates to:
-  /// **'允许 Claude 根据您的对话生成记忆。{learnMore}'**
-  String memoryGenerateFromChatsDesc(Object learnMore);
+  /// **'允许 {brand} 根据您的对话生成记忆。{learnMore}'**
+  String memoryGenerateFromChatsDesc(String brand, String learnMore);
 
   /// No description provided for @memoryGenerateFromChatsLearnMore.
   ///
@@ -1823,8 +1823,8 @@ abstract class AppLocalizations {
   /// No description provided for @memorySensitiveTopicsDesc.
   ///
   /// In zh, this message translates to:
-  /// **'允许 Claude 将健康状况或宗教信仰等敏感话题的详情保存到记忆中。{learnMore}'**
-  String memorySensitiveTopicsDesc(Object learnMore);
+  /// **'允许 {brand} 将健康状况或宗教信仰等敏感话题的详情保存到记忆中。{learnMore}'**
+  String memorySensitiveTopicsDesc(String brand, String learnMore);
 
   /// No description provided for @memoryImportFromOtherAi.
   ///
@@ -1835,8 +1835,8 @@ abstract class AppLocalizations {
   /// No description provided for @memoryImportFromOtherAiDesc.
   ///
   /// In zh, this message translates to:
-  /// **'将其他 AI 服务商的相关上下文与数据带入 Claude。我们会提供一段提示词，供您从其他账号获取记忆。{learnMore}'**
-  String memoryImportFromOtherAiDesc(Object learnMore);
+  /// **'将其他 AI 服务商的相关上下文与数据带入 {brand}。我们会提供一段提示词，供您从其他账号获取记忆。{learnMore}'**
+  String memoryImportFromOtherAiDesc(String brand, String learnMore);
 
   /// No description provided for @memoryStartImport.
   ///
@@ -1871,8 +1871,8 @@ abstract class AppLocalizations {
   /// No description provided for @memoryPauseMemoryDesc.
   ///
   /// In zh, this message translates to:
-  /// **'Claude 会保留现有记忆（包括敏感话题），但不会使用记忆，也不会生成新记忆。'**
-  String get memoryPauseMemoryDesc;
+  /// **'{brand} 会保留现有记忆（包括敏感话题），但不会使用记忆，也不会生成新记忆。'**
+  String memoryPauseMemoryDesc(String brand);
 
   /// No description provided for @memoryResetMemory.
   ///
@@ -1895,8 +1895,8 @@ abstract class AppLocalizations {
   /// No description provided for @reflectDesc.
   ///
   /// In zh, this message translates to:
-  /// **'基于您在 Claude 对话中的内容。'**
-  String get reflectDesc;
+  /// **'基于您在 {brand} 对话中的内容。'**
+  String reflectDesc(String brand);
 
   /// No description provided for @reflectEnableMemoryHintPrefix.
   ///
@@ -1931,8 +1931,8 @@ abstract class AppLocalizations {
   /// No description provided for @timeFocusBreakRemindersDesc.
   ///
   /// In zh, this message translates to:
-  /// **'在使用 Claude 时提醒您休息一下。您可以随时暂停提醒或调整时间。'**
-  String get timeFocusBreakRemindersDesc;
+  /// **'在使用 {brand} 时提醒您休息一下。您可以随时暂停提醒或调整时间。'**
+  String timeFocusBreakRemindersDesc(String brand);
 
   /// No description provided for @timeFocusQuietHours.
   ///
@@ -1943,8 +1943,8 @@ abstract class AppLocalizations {
   /// No description provided for @timeFocusQuietHoursDesc.
   ///
   /// In zh, this message translates to:
-  /// **'为 Claude 设置时间限制。您可以随时取消或调整。'**
-  String get timeFocusQuietHoursDesc;
+  /// **'为 {brand} 设置时间限制。您可以随时取消或调整。'**
+  String timeFocusQuietHoursDesc(String brand);
 
   /// No description provided for @commonDashPlaceholder.
   ///
@@ -2183,14 +2183,14 @@ abstract class AppLocalizations {
   /// No description provided for @accountInstructions.
   ///
   /// In zh, this message translates to:
-  /// **'给 Claude 的指示'**
-  String get accountInstructions;
+  /// **'给 {brand} 的指示'**
+  String accountInstructions(String brand);
 
   /// No description provided for @accountInstructionsDesc.
   ///
   /// In zh, this message translates to:
-  /// **'Claude 将在 Anthropic 准则范围内，在此账户及关联账户的所有对话和协作中记住这些内容。'**
-  String get accountInstructionsDesc;
+  /// **'{brand} 将在 Anthropic 准则范围内，在此账户及关联账户的所有对话和协作中记住这些内容。'**
+  String accountInstructionsDesc(String brand);
 
   /// No description provided for @accountInstructionsPlaceholder.
   ///
@@ -2291,8 +2291,8 @@ abstract class AppLocalizations {
   /// No description provided for @privacyLocationMetadataDesc.
   ///
   /// In zh, this message translates to:
-  /// **'允许 Claude 使用粗略的位置元数据（城市/地区）来改进产品体验。{learnMore}'**
-  String privacyLocationMetadataDesc(Object learnMore);
+  /// **'允许 {brand} 使用粗略的位置元数据（城市/地区）来改进产品体验。{learnMore}'**
+  String privacyLocationMetadataDesc(String brand, String learnMore);
 
   /// No description provided for @privacyLocationMetadataLearnMore.
   ///
@@ -3155,8 +3155,8 @@ abstract class AppLocalizations {
   /// No description provided for @capabilitiesConnectorSearchDesc.
   ///
   /// In zh, this message translates to:
-  /// **'允许 Claude 搜索连接器目录，并在对话中呈现相关的连接器。'**
-  String get capabilitiesConnectorSearchDesc;
+  /// **'允许 {brand} 搜索连接器目录，并在对话中呈现相关的连接器。'**
+  String capabilitiesConnectorSearchDesc(String brand);
 
   /// No description provided for @capabilitiesSwitchModels.
   ///
@@ -3203,8 +3203,8 @@ abstract class AppLocalizations {
   /// No description provided for @capabilitiesAiArtifactsDesc.
   ///
   /// In zh, this message translates to:
-  /// **'构建在 artifact 内部调用 Claude 的应用与交互式文档。'**
-  String get capabilitiesAiArtifactsDesc;
+  /// **'构建在 artifact 内部调用 {brand} 的应用与交互式文档。'**
+  String capabilitiesAiArtifactsDesc(String brand);
 
   /// No description provided for @capabilitiesInlineVisualizations.
   ///
@@ -3215,8 +3215,8 @@ abstract class AppLocalizations {
   /// No description provided for @capabilitiesInlineVisualizationsDesc.
   ///
   /// In zh, this message translates to:
-  /// **'允许 Claude 直接在对话中生成交互式可视化、图表和图解。'**
-  String get capabilitiesInlineVisualizationsDesc;
+  /// **'允许 {brand} 直接在对话中生成交互式可视化、图表和图解。'**
+  String capabilitiesInlineVisualizationsDesc(String brand);
 
   /// No description provided for @capabilitiesCodeExecution.
   ///
@@ -3227,8 +3227,8 @@ abstract class AppLocalizations {
   /// No description provided for @capabilitiesCodeExecutionDesc.
   ///
   /// In zh, this message translates to:
-  /// **'Claude 可以执行代码，并创建和编辑文档、表格、演示文稿、PDF 和数据报告。技能功能依赖此项。'**
-  String get capabilitiesCodeExecutionDesc;
+  /// **'{brand} 可以执行代码，并创建和编辑文档、表格、演示文稿、PDF 和数据报告。技能功能依赖此项。'**
+  String capabilitiesCodeExecutionDesc(String brand);
 
   /// No description provided for @capabilitiesNetworkEgress.
   ///
@@ -3239,10 +3239,11 @@ abstract class AppLocalizations {
   /// No description provided for @capabilitiesNetworkEgressDesc.
   ///
   /// In zh, this message translates to:
-  /// **'允许 Claude 访问常用包管理器，以安装用于数据分析、可视化和文件处理的包与库。{viewDomains}。请密切监控对话，因为这会带来{securityRisks}。'**
+  /// **'允许 {brand} 访问常用包管理器，以安装用于数据分析、可视化和文件处理的包与库。{viewDomains}。请密切监控对话，因为这会带来{securityRisks}。'**
   String capabilitiesNetworkEgressDesc(
     String viewDomains,
     String securityRisks,
+    Object brand,
   );
 
   /// No description provided for @capabilitiesNetworkEgressViewDomains.

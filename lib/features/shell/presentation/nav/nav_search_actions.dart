@@ -19,6 +19,7 @@ import 'package:sgit_studio_flutter/services/chat/chat_controller.dart';
 import 'package:sgit_studio_flutter/services/layout/layout_controller.dart';
 import 'package:sgit_studio_flutter/ui/components/dialogs/search_chats_dialog.dart';
 import 'package:sgit_studio_flutter/ui/feedback/confirm.dart';
+import 'package:sgit_studio_flutter/services/brand/brand_config.dart';
 
 /// 打开搜索弹窗（左栏历史区的搜索图标、Ctrl+K 都走这里）。
 ///
@@ -124,7 +125,7 @@ List<SearchDialogCommand> _searchCommands(
     settings(l10n.settingsBilling, SettingsTab.billing),
     settings(l10n.settingsCapabilities, SettingsTab.capabilities),
     settings(l10n.settingsMemory, SettingsTab.memory),
-    settings(l10n.settingsClaudeCode, SettingsTab.claudeCode),
+    settings(l10n.settingsSGITCode(BrandConfig.instance.codeName), SettingsTab.sgitCode),
     customize(l10n.studioSkill, CustomizeTab.skills),
     customize(l10n.customizeTabConnectors, CustomizeTab.connectors),
     customize(l10n.customizeTabPlugins, CustomizeTab.plugins),

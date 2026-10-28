@@ -5,6 +5,7 @@ import 'package:sgit_studio_flutter/design/tokens/app_spacing.dart';
 import 'package:sgit_studio_flutter/features/settings/presentation/widgets/settings_section.dart';
 import 'package:sgit_studio_flutter/l10n/generated/app_localizations.dart';
 import 'package:sgit_studio_flutter/ui/components/menu/app_menu.dart';
+import 'package:sgit_studio_flutter/services/brand/brand_config.dart';
 
 /// 设置弹窗里的「能力」页面：工具访问模式 / 连接器搜索 / 模型切换 /
 /// 视觉内容 / 代码执行与文件创建 / 网络出站 / 技能。
@@ -86,7 +87,7 @@ class _CapabilitiesPageState extends State<CapabilitiesPage> {
         // 连接器搜索
         SettingsSectionRowWithDesc(
           title: l10n.capabilitiesConnectorSearch,
-          description: l10n.capabilitiesConnectorSearchDesc,
+          description: l10n.capabilitiesConnectorSearchDesc(BrandConfig.instance.name),
           trailing: Switch(
             value: _connectorSearch,
             onChanged: (v) => setState(() => _connectorSearch = v),
@@ -124,7 +125,7 @@ class _CapabilitiesPageState extends State<CapabilitiesPage> {
 
         SettingsSectionRowWithDesc(
           title: l10n.capabilitiesAiArtifacts,
-          description: l10n.capabilitiesAiArtifactsDesc,
+          description: l10n.capabilitiesAiArtifactsDesc(BrandConfig.instance.name),
           trailing: Switch(
             value: _aiArtifacts,
             onChanged: (v) => setState(() => _aiArtifacts = v),
@@ -134,7 +135,7 @@ class _CapabilitiesPageState extends State<CapabilitiesPage> {
 
         SettingsSectionRowWithDesc(
           title: l10n.capabilitiesInlineVisualizations,
-          description: l10n.capabilitiesInlineVisualizationsDesc,
+          description: l10n.capabilitiesInlineVisualizationsDesc(BrandConfig.instance.name),
           trailing: Switch(
             value: _inlineVisualizations,
             onChanged: (v) => setState(() => _inlineVisualizations = v),
@@ -149,7 +150,7 @@ class _CapabilitiesPageState extends State<CapabilitiesPage> {
 
         SettingsSectionRowWithDesc(
           title: l10n.capabilitiesCodeExecution,
-          description: l10n.capabilitiesCodeExecutionDesc,
+          description: l10n.capabilitiesCodeExecutionDesc(BrandConfig.instance.name),
           trailing: Switch(
             value: _codeExecution,
             onChanged: (v) => setState(() => _codeExecution = v),
@@ -238,7 +239,11 @@ class _CapabilitiesPageState extends State<CapabilitiesPage> {
 
     final domains = l10n.capabilitiesNetworkEgressViewDomains;
     final risks = l10n.capabilitiesNetworkEgressSecurityRisks;
-    final text = l10n.capabilitiesNetworkEgressDesc(domains, risks);
+    final text = l10n.capabilitiesNetworkEgressDesc(
+      BrandConfig.instance.name,
+      domains,
+      risks,
+    );
 
     /// 把一个链接文案换成可点的 [WidgetSpan]。
     InlineSpan link(String label) => WidgetSpan(

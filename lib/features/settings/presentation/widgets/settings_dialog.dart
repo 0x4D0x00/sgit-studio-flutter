@@ -23,6 +23,7 @@ import 'package:sgit_studio_flutter/features/studio/presentation/pages/studio_pa
 import 'package:sgit_studio_flutter/features/studio/studio_feature.dart';
 import 'package:sgit_studio_flutter/l10n/generated/app_localizations.dart';
 import 'package:sgit_studio_flutter/router/route_names.dart';
+import 'package:sgit_studio_flutter/services/brand/brand_config.dart';
 
 /// 设置弹窗的分类。公开是为了让命令面板能直接打开到某一页。
 enum SettingsTab {
@@ -34,7 +35,7 @@ enum SettingsTab {
   memory,
   reflect,
   timeFocus,
-  claudeCode,
+  sgitCode,
   skills,
   connectors,
   plugins,
@@ -242,7 +243,7 @@ class _SettingsDialogState extends ConsumerState<_SettingsDialog> {
         return CapabilitiesPage(
           onOpenSkills: () => _onCustomizeItemTap(SettingsTab.skills),
         );
-      case SettingsTab.claudeCode:
+      case SettingsTab.sgitCode:
         return const SettingsPlaceholderPage();
     }
   }
@@ -291,8 +292,8 @@ class _SettingsDialogState extends ConsumerState<_SettingsDialog> {
       ),
       _SidebarItemData(
         icon: Icons.code_outlined,
-        label: l10n.settingsClaudeCode,
-        tab: SettingsTab.claudeCode,
+        label: l10n.settingsSGITCode(BrandConfig.instance.codeName),
+        tab: SettingsTab.sgitCode,
       ),
     ];
 

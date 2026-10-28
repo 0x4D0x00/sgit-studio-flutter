@@ -139,7 +139,7 @@ List<SkillItem> buildNewSkills() => [
         icon: Icons.apartment,
         title: 'Wingspan',
         description:
-            'Ask Claude about the contractors you pay through Wingspan, what you owe them, and what is holding...',
+            'Ask SGIT about the contractors you pay through Wingspan, what you owe them, and what is holding...',
         source: 'Wingspan Engineering',
         installs: 'added 2 days ago',
         tags: const ['Engineering'],
@@ -148,7 +148,7 @@ List<SkillItem> buildNewSkills() => [
         icon: Icons.warning,
         title: 'incident.io',
         description:
-            'Work with incident.io from Claude: respond to and investigate incidents, check on-call schedules and...',
+            'Work with incident.io from SGIT: respond to and investigate incidents, check on-call schedules and...',
         source: 'incident.io',
         installs: 'added 2 days ago',
         tags: const ['Engineering', '+1'],
@@ -214,7 +214,7 @@ List<SkillItem> buildAllNewSkills() => [
         icon: Icons.code,
         title: 'FAF Skills',
         description:
-            'Claude Code skills for persistent project context: create, search, and reuse what you learned.',
+            'SGIT Code skills for persistent project context: create, search, and reuse what you learned.',
         source: 'Anthropic Directory',
         installs: 'added 2 days ago',
         tags: const ['Engineering', '+2'],
@@ -250,7 +250,7 @@ List<SkillItem> buildAllNewSkills() => [
         icon: Icons.memory,
         title: 'megapowers',
         description:
-            'Native-first workflow plugin for Claude Code and Codex: plan, build, review, ship.',
+            'Native-first workflow plugin for SGIT Code and Codex: plan, build, review, ship.',
         source: 'Anthropic Directory',
         installs: 'added 2 days ago',
         tags: const ['Engineering', '+5'],
@@ -410,7 +410,7 @@ List<SkillItem> buildAllNewPlugins() => [
         icon: Icons.code,
         title: 'FAF Skills',
         description:
-            'Claude Code skills for persistent project context: create, search, and reuse what you learned.',
+            'SGIT Code skills for persistent project context: create, search, and reuse what you learned.',
         source: 'Anthropic Directory',
         installs: 'added 2 days ago',
         tags: const ['Engineering', '+2'],
@@ -470,7 +470,7 @@ List<ConnectorItem> buildConnectors() => [
         icon: Icons.business,
         color: const Color(0xFFD83B01),
         title: 'Microsoft 365',
-        description: 'Access your company\'s SharePoint, OneDrive, Outlook, and Teams directly in Claude',
+        description: 'Access your company\'s SharePoint, OneDrive, Outlook, and Teams directly in SGIT',
         source: 'Anthropic',
       ),
       ConnectorItem(
@@ -559,7 +559,7 @@ List<ConnectorItem> buildAllConnectors() => [
         icon: Icons.assignment,
         color: const Color(0xFF00A1E0),
         title: 'Salesforce',
-        description: 'Pull account, opportunity, and pipeline context into Claude',
+        description: 'Pull account, opportunity, and pipeline context into SGIT',
         source: 'Salesforce',
       ),
       ConnectorItem(
